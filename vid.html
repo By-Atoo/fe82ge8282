@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Голосовое сообщение</title>
+    <title></title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none; /* предотвращает выделение, как в мессенджере */
+            user-select: none;
         }
 
         body {
-            background: #0a0c0f;
+            background: #000000;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
             height: 100vh;
@@ -21,7 +21,7 @@
             position: relative;
         }
 
-        /* === Фоновое видео (превью, зациклено) === */
+        /* Фоновое видео (превью, зациклено) */
         .bg-video {
             position: fixed;
             top: 0;
@@ -30,65 +30,64 @@
             height: 100%;
             object-fit: cover;
             z-index: 1;
-            filter: brightness(0.9) contrast(1.1);
+            filter: brightness(0.85) contrast(1.1);
         }
 
-        /* === Стиль "голосового сообщения" как в Telegram === */
+        /* === МЕНЮ (ГОЛОСОВОЕ СООБЩЕНИЕ) — полностью чёрное, вверху === */
         .voice-message-container {
             position: absolute;
-            bottom: 15%;
+            top: 30px;
             left: 0;
             right: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 2;
-            pointer-events: none; /* чтобы клик проходил сквозь контейнер, но кнопка сама ловит */
+            pointer-events: none;
         }
 
         .voice-card {
-            background: rgba(30, 30, 35, 0.85);
-            backdrop-filter: blur(20px);
+            background: #000000;          /* полностью чёрный фон */
             border-radius: 60px;
             padding: 12px 24px 12px 20px;
             display: inline-flex;
             align-items: center;
             gap: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15);
             pointer-events: auto;
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: transform 0.2s ease;
+            border: 1px solid #222;
+            transition: transform 0.1s ease, background 0.2s;
+            cursor: pointer;              /* вся менюшка кликабельна */
+        }
+        .voice-card:active {
+            transform: scale(0.97);
+            background: #111;
         }
 
-        /* Кнопка play (как в голосовом) */
+        /* Кнопка play (иконка внутри) — остаётся, но клик идёт от родителя */
         .play-btn {
             background: transparent;
             border: none;
-            cursor: pointer;
             padding: 0;
             width: 52px;
             height: 52px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.1s ease;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
-        }
-        .play-btn:active {
-            transform: scale(0.92);
+            pointer-events: none;   /* клик перехватывается родителем */
         }
         .play-btn img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            pointer-events: none;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
         }
 
-        /* Эквалайзер (статическая картинка + анимированные полоски поверх) */
+        /* Эквалайзер — белые полоски, чаще и динамичнее */
         .equalizer {
             position: relative;
-            width: 140px;
-            height: 44px;
+            width: 150px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -99,46 +98,37 @@
             height: 100%;
             object-fit: contain;
             opacity: 0.9;
+            filter: brightness(1.2);
         }
-        /* Анимированные полоски, имитирующие работу эквалайзера */
         .animated-bars {
             position: absolute;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 5px;      /* чаще — увеличили количество полосок и уменьшили расстояние */
             height: 100%;
             width: 100%;
             pointer-events: none;
         }
         .bar {
-            width: 5px;
-            background: #2ecc71;
-            border-radius: 3px;
-            transition: height 0.08s linear;
-            box-shadow: 0 0 4px #2ecc71;
-        }
-        /* Анимация "пульсации" до клика */
-        .voice-card {
-            animation: subtlePulse 1.8s infinite ease-in-out;
-        }
-        @keyframes subtlePulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
+            width: 4px;
+            background: #ffffff;     /* полностью белые */
+            border-radius: 2px;
+            transition: height 0.06s linear;
+            box-shadow: 0 0 5px rgba(255,255,255,0.6);
         }
 
-        /* Текст подсказки */
+        /* Текст подсказки (мелкий, внизу меню) */
         .hint {
-            font-size: 12px;
-            color: rgba(255,255,240,0.7);
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
             margin-top: 8px;
             text-align: center;
             font-weight: 500;
             letter-spacing: 0.5px;
         }
 
-        /* === ЭКРАН СКРИМЕРА (полноэкранное видео + звук) === */
+        /* === ЭКРАН СКРИМЕРА === */
         .screamer-overlay {
             position: fixed;
             top: 0;
@@ -157,38 +147,46 @@
             height: 100%;
             object-fit: cover;
         }
-        /* Кнопка перезапуска (для демонстрации, но можно и убрать) */
-        .restart-hint {
+
+        /* КНОПКА "НАЗАД" — ведёт на другую страницу */
+        .back-button {
             position: absolute;
-            bottom: 25px;
+            bottom: 35px;
             left: 0;
             right: 0;
             text-align: center;
-            background: rgba(0,0,0,0.6);
-            padding: 8px;
-            font-size: 14px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
             color: white;
             font-family: monospace;
             cursor: pointer;
-            backdrop-filter: blur(4px);
             z-index: 10001;
             width: fit-content;
             margin: 0 auto;
-            border-radius: 40px;
-            pointer-events: auto;
-            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 60px;
+            border: 1px solid rgba(255,255,255,0.4);
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
         }
-        .restart-hint:hover {
-            background: rgba(0,0,0,0.8);
+        .back-button:hover {
+            background: rgba(0,0,0,0.9);
+            border-color: white;
         }
 
-        /* Сообщение о необходимости разрешить звук (если браузер блокирует) */
+        /* Фолбэк для звука */
         .sound-fallback {
             position: absolute;
-            bottom: 20%;
+            bottom: 25%;
             left: 20px;
             right: 20px;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             color: #ffaa44;
             text-align: center;
             padding: 14px;
@@ -213,44 +211,51 @@
                 height: 44px;
             }
             .equalizer {
-                width: 100px;
-                height: 36px;
+                width: 110px;
+                height: 40px;
             }
             .bar {
-                width: 4px;
+                width: 3px;
+            }
+            .animated-bars {
+                gap: 4px;
+            }
+            .back-button {
+                font-size: 0.9rem;
+                padding: 8px 16px;
+                bottom: 25px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Фоновое зацикленное видео (первый экран) -->
+    <!-- Фоновое зацикленное видео -->
     <video class="bg-video" id="bgVideo" autoplay muted loop playsinline>
         <source src="https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/vid.mp4" type="video/mp4">
-        Ваш браузер не поддерживает видео.
     </video>
 
-    <!-- Блок "голосового сообщения" как в Telegram -->
+    <!-- МЕНЮ (полностью чёрное, кликабельное, вверху) -->
     <div class="voice-message-container">
-        <div class="voice-card">
-            <button class="play-btn" id="playVoiceBtn">
+        <div class="voice-card" id="voiceCard">
+            <div class="play-btn">
                 <img src="https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/play.png" alt="play">
-            </button>
+            </div>
             <div class="equalizer">
-                <!-- фоновая текстура эквалайзера -->
                 <img class="eq-bg" src="https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/ekv.png" alt="eq">
-                <!-- анимированные полоски -->
                 <div class="animated-bars" id="animatedBars">
+                    <!-- 12 белых полосок для более частого визуала -->
                     <div class="bar"></div><div class="bar"></div><div class="bar"></div>
                     <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-                    <div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
                 </div>
             </div>
         </div>
-        <div class="hint">🎧 нажмите ▶, чтобы прослушать</div>
+        <div class="hint">🎧 нажмите, чтобы прослушать</div>
     </div>
 
-    <!-- СКРИМЕР (полноэкранное видео + звук) -->
+    <!-- СКРИМЕР (видео + звук) -->
     <div class="screamer-overlay" id="screamerOverlay">
         <video class="screamer-video" id="screamerVideo" loop muted playsinline>
             <source src="https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/gif.mp4" type="video/mp4">
@@ -258,52 +263,46 @@
         <div class="sound-fallback" id="soundFallback">
             🔊 НАЖМИТЕ ЗДЕСЬ, ЧТОБЫ ВКЛЮЧИТЬ ЗВУК 🔊
         </div>
-        <div class="restart-hint" id="restartBtn">⟳ перезапустить скример</div>
+        <!-- КНОПКА НАЗАД -->
+        <a href="https://by-atoo.github.io/fe82ge8282/index.html" class="back-button" id="backButton">← Назад</a>
     </div>
 
     <script>
         (function() {
-            // ----- РЕСУРСЫ -----
             const SCREAM_VIDEO_URL = 'https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/gif.mp4';
             const SCREAM_SOUND_URL = 'https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/sound.mp3';
             
-            // DOM элементы
             const bgVideo = document.getElementById('bgVideo');
-            const playBtn = document.getElementById('playVoiceBtn');
+            const voiceCard = document.getElementById('voiceCard');       // вся менюшка кликабельна
             const screamerOverlay = document.getElementById('screamerOverlay');
             const screamerVideo = document.getElementById('screamerVideo');
             const soundFallback = document.getElementById('soundFallback');
-            const restartBtn = document.getElementById('restartBtn');
-            const barsContainer = document.getElementById('animatedBars');
             
-            // Звуковой объект для скримера
             let screamAudio = null;
             let screamerActive = false;
             let soundAllowed = false;
             let animationInterval = null;
             
-            // ---- АНИМАЦИЯ ЭКВАЛАЙЗЕРА (рандомные полоски, имитация голосового) ----
+            // ---- АНИМАЦИЯ ЭКВАЛАЙЗЕРА (белые полоски, частое обновление) ----
             function startEqAnimation() {
                 if (animationInterval) clearInterval(animationInterval);
                 const bars = document.querySelectorAll('.bar');
                 if (!bars.length) return;
                 
+                // обновляем каждые 70 мс для более частых изменений
                 animationInterval = setInterval(() => {
                     bars.forEach(bar => {
-                        // случайная высота от 8px до 32px
-                        const randomHeight = Math.floor(Math.random() * 28) + 6;
+                        // высота от 5px до 38px (более динамично)
+                        const randomHeight = Math.floor(Math.random() * 34) + 5;
                         bar.style.height = randomHeight + 'px';
-                        // плавный цвет: от зелёного до жёлтого
-                        const intensity = randomHeight / 34;
-                        const green = 150 + Math.floor(105 * intensity);
-                        const red = 80 + Math.floor(175 * intensity);
-                        bar.style.backgroundColor = `rgb(${red}, ${green}, 70)`;
-                        bar.style.boxShadow = `0 0 ${4 + intensity * 6}px rgba(46,204,113,0.8)`;
+                        // оставляем белый цвет, но с разной яркостью
+                        const brightness = 0.6 + (randomHeight / 45);
+                        bar.style.backgroundColor = `rgb(255, 255, 255)`;
+                        bar.style.boxShadow = `0 0 ${4 + randomHeight / 10}px rgba(255,255,255,0.8)`;
                     });
-                }, 120);
+                }, 65);
             }
             
-            // Остановка анимации эквалайзера (после клика не обязательно, но для порядка)
             function stopEqAnimation() {
                 if (animationInterval) {
                     clearInterval(animationInterval);
@@ -311,53 +310,52 @@
                 }
                 const bars = document.querySelectorAll('.bar');
                 bars.forEach(bar => {
-                    bar.style.height = '12px';
-                    bar.style.backgroundColor = '#2ecc71';
+                    bar.style.height = '10px';
+                    bar.style.backgroundColor = '#ffffff';
+                    bar.style.boxShadow = '0 0 4px rgba(255,255,255,0.5)';
                 });
             }
             
-            // Запуск анимации при загрузке
+            // Стартуем анимацию эквалайзера сразу
             startEqAnimation();
             
-            // ---- ФУНКЦИЯ ЗАПУСКА СКРИМЕРА (полный экран + звук) ----
+            // ---- ЗАПУСК СКРИМЕРА (полноэкранное видео + звук) ----
             async function launchScreamer() {
                 if (screamerActive) return;
                 screamerActive = true;
                 
-                // Останавливаем фоновое видео и убираем звук (на всякий случай)
+                // Останавливаем фоновое видео
                 if (bgVideo) {
                     bgVideo.pause();
                     bgVideo.style.opacity = '0';
                 }
                 
-                // Скрываем блок голосового сообщения плавно
+                // Скрываем меню (голосовое сообщение)
                 const voiceContainer = document.querySelector('.voice-message-container');
                 if (voiceContainer) voiceContainer.style.display = 'none';
                 
                 // Показываем оверлей скримера
                 screamerOverlay.style.display = 'flex';
                 
-                // Загружаем видео скримера и запускаем (зациклено loop=true)
+                // Загружаем и запускаем видео скримера (зациклено)
                 screamerVideo.src = SCREAM_VIDEO_URL;
                 screamerVideo.load();
-                await screamerVideo.play().catch(e => console.warn("Video play error:", e));
+                await screamerVideo.play().catch(e => console.warn("Video error:", e));
                 
-                // ---- ЗВУК скримера ----
+                // Создаём аудио для скримера
                 screamAudio = new Audio(SCREAM_SOUND_URL);
                 screamAudio.volume = 1.0;
                 screamAudio.loop = false;
                 screamAudio.preload = 'auto';
                 
-                // Пытаемся воспроизвести звук (клик по кнопке уже был, но на всякий случай проверим)
                 const playSound = () => {
                     if (!screamAudio) return;
                     screamAudio.play().then(() => {
                         soundAllowed = true;
                         if (soundFallback) soundFallback.style.display = 'none';
                     }).catch(err => {
-                        console.warn("Audio autoplay blocked:", err);
+                        console.warn("Audio blocked:", err);
                         soundFallback.style.display = 'block';
-                        // При клике на fallback или на любое место оверлея пробуем снова
                         const enableHandler = (e) => {
                             if (soundAllowed) return;
                             screamAudio.play().then(() => {
@@ -371,69 +369,34 @@
                         screamerOverlay.addEventListener('click', enableHandler);
                     });
                 };
-                
                 playSound();
                 
-                // Запрос полноэкранного режима (для большего эффекта)
+                // Запрос полноэкранного режима
                 try {
                     if (document.documentElement.requestFullscreen) {
                         await document.documentElement.requestFullscreen();
                     } else if (document.documentElement.webkitRequestFullscreen) {
                         document.documentElement.webkitRequestFullscreen();
                     }
-                } catch (e) { /* игнорируем, если не получилось */ }
+                } catch (e) {}
             }
             
-            // ---- ОБРАБОТЧИК НА КНОПКУ PLAY (как в Telegram) ----
-            playBtn.addEventListener('click', (e) => {
+            // ---- ОБРАБОТЧИК НА ВСЮ МЕНЮШКУ (клик по voiceCard) ----
+            voiceCard.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Запускаем скример сразу после клика (пользователь дал разрешение действием)
-                // Дополнительно можно показать короткую вибрацию (если поддерживается)
+                // Виброотклик
                 if (navigator.vibrate) navigator.vibrate(50);
                 
-                // Останавливаем анимацию эквалайзера, создаём эффект "отправки"
+                // Останавливаем анимацию эквалайзера
                 stopEqAnimation();
                 
-                // Меняем иконку кнопки play на секунду (эффект нажатия)
-                const playImg = playBtn.querySelector('img');
-                const originalSrc = playImg.src;
-                playImg.style.transform = 'scale(0.9)';
-                setTimeout(() => { if(playImg) playImg.style.transform = ''; }, 150);
-                
-                // Запуск скримера
+                // Запускаем скример
                 launchScreamer();
             });
             
-            // ---- ОБРАБОТЧИК ПЕРЕЗАПУСКА СКРИМЕРА (для демонстрации) ----
-            restartBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Перезапускаем скример: перезагружаем видео и звук
-                if (screamerActive && screamerOverlay.style.display === 'flex') {
-                    // Перезапуск видео
-                    screamerVideo.pause();
-                    screamerVideo.currentTime = 0;
-                    screamerVideo.play().catch(e => console.log);
-                    // Перезапуск звука
-                    if (screamAudio) {
-                        screamAudio.pause();
-                        screamAudio.currentTime = 0;
-                        screamAudio.play().catch(() => {
-                            soundFallback.style.display = 'block';
-                        });
-                    }
-                    // Если звук не играл — показать фолбэк
-                    if (!soundAllowed && screamAudio) {
-                        soundFallback.style.display = 'block';
-                    }
-                } else {
-                    // Если скример не активен, запускаем заново (резерв)
-                    launchScreamer();
-                }
-            });
-            
-            // Клик по fallback-сообщению для включения звука
+            // ---- ОБРАБОТЧИК ДЛЯ FALLBACK (звук) ----
             if (soundFallback) {
                 soundFallback.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -446,54 +409,30 @@
                 });
             }
             
-            // Предзагрузка видео скримера в фоне (чтобы появилось мгновенно)
-            const preloaderVideo = document.createElement('video');
-            preloaderVideo.preload = 'auto';
-            preloaderVideo.src = SCREAM_VIDEO_URL;
-            preloaderVideo.load();
+            // Предзагрузка ресурсов скримера
+            const preloadVideo = document.createElement('video');
+            preloadVideo.preload = 'auto';
+            preloadVideo.src = SCREAM_VIDEO_URL;
+            preloadVideo.load();
             
-            // Предзагрузка звука
             const preloadAudio = new Audio();
             preloadAudio.preload = 'auto';
             preloadAudio.src = SCREAM_SOUND_URL;
             
-            // Обработка ошибок фонового видео (если не загрузилось — всё равно работает)
-            bgVideo.addEventListener('error', () => {
-                console.log("Фоновое видео недоступно, но интерфейс работает");
-            });
-            
-            // Убедимся, что фоновое видео играет (если autoplay заблокирован, попробуем через mute)
-            bgVideo.play().catch(e => {
-                console.log("Автовоспроизведение фонового видео заблокировано, но кнопка остаётся активной");
-                // Можно добавить иконку, но не критично
-            });
-            
-            // Небольшая анимация для эквалайзера при наведении (опционально)
-            const voiceCard = document.querySelector('.voice-card');
-            if (voiceCard) {
-                voiceCard.addEventListener('mouseenter', () => {
-                    if (!screamerActive) startEqAnimation();
-                });
+            // Обработка возможной ошибки фонового видео
+            if (bgVideo) {
+                bgVideo.play().catch(e => console.log("Фоновое видео не запустилось автоматически"));
             }
             
-            // На случай если пользователь кликнет по видео скримера, чтобы включить звук (удобно)
+            // Дополнительно: если пользователь кликнет по оверлею скримера (не по кнопке назад) - включить звук при необходимости
             screamerOverlay.addEventListener('click', (e) => {
-                if (screamerActive && screamAudio && !soundAllowed && e.target !== restartBtn && e.target !== soundFallback) {
+                if (screamerActive && screamAudio && !soundAllowed && e.target !== document.getElementById('backButton')) {
                     screamAudio.play().then(() => {
                         soundAllowed = true;
                         if (soundFallback) soundFallback.style.display = 'none';
                     }).catch(() => {});
                 }
             });
-            
-            // Безопасный выход из fullscreen по ESC (необязательно)
-            document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement && screamerActive) {
-                    // если вышли из fullscreen, можно ничего не делать
-                }
-            });
-            
-            console.log("Готово. Нажмите на кнопку ▶ для запуска скримера.");
         })();
     </script>
 </body>
