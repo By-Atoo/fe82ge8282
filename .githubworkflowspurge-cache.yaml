@@ -5,5 +5,6 @@ jobs:
       - uses: gacts/purge-jsdelivr-cache@v1
         with:
           url: |
-            https://cdn.jsdelivr.net/gh/username/repo@version/file.js
-            https://cdn.jsdelivr.net/gh/username/repo@version/file2.css
+            https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/play.png?nocache=1
+            https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/play.png
+            https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/sound.mp3?nocache=1
