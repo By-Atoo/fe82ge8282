@@ -1,0 +1,9 @@
+jobs:
+  purge-jsdelivr-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gacts/purge-jsdelivr-cache@v1
+        with:
+          url: |
+            https://cdn.jsdelivr.net/gh/username/repo@version/file.js
+            https://cdn.jsdelivr.net/gh/username/repo@version/file2.css
