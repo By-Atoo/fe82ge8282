@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Voise</title>
+	<link rel="icon" href="https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/ico.png" type="image/png">
     <style>
         * {
             margin: 0;
@@ -151,14 +152,14 @@
         /* КНОПКА "НАЗАД" */
         .back-button {
             position: absolute;
-            bottom: 15px;
+            bottom: 20px;
             left: auto;
-            right: 20px;
+            right: 0;
             text-align: center;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.0);
             backdrop-filter: blur(8px);
             padding: 12px 20px;
-            font-size: 1rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: white;
             font-family: monospace;
@@ -167,7 +168,7 @@
             width: fit-content;
             margin: 0 auto;
             border-radius: 60px;
-            border: 1px solid rgba(255,255,255,0.4);
+            border: 1px solid rgba(255,255,255,0.9);
             transition: 0.2s;
             text-decoration: none;
             display: inline-block;
@@ -175,7 +176,7 @@
             white-space: nowrap;
         }
         .back-button:hover {
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.3);
             border-color: white;
         }
 
@@ -220,16 +221,16 @@
                 gap: 4px;
             }
             .back-button {
-                font-size: 0.9rem;
+                font-size: 0.7rem;
                 padding: 8px 16px;
-                bottom: 25px;
+                bottom: 20px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Фоновое зацикленное видео -->
+    <!-- Фоновое видео -->
     <video class="bg-video" id="bgVideo" autoplay muted loop playsinline>
         <source src="https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/vid.mp4" type="video/mp4">
     </video>
@@ -267,7 +268,7 @@
             const SCREAM_SOUND_URL = 'https://cdn.jsdelivr.net/gh/By-Atoo/fe82ge8282@main/.res/sound.mp3';
             
             const bgVideo = document.getElementById('bgVideo');
-            const voiceCard = document.getElementById('voiceCard');       // вся менюшка кликабельна
+            const voiceCard = document.getElementById('voiceCard');
             const screamerOverlay = document.getElementById('screamerOverlay');
             const screamerVideo = document.getElementById('screamerVideo');
             const soundFallback = document.getElementById('soundFallback');
@@ -288,7 +289,6 @@
                         // высота от 5px до 38px
                         const randomHeight = Math.floor(Math.random() * 34) + 5;
                         bar.style.height = randomHeight + 'px';
-                        // оставляем белый цвет, но с разной яркостью
                         const brightness = 0.6 + (randomHeight / 45);
                         bar.style.backgroundColor = `rgb(255, 255, 255)`;
                         bar.style.boxShadow = `0 0 ${4 + randomHeight / 10}px rgba(255,255,255,0.8)`;
