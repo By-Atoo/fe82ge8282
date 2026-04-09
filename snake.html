@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Змейка</title>
+    <title>Змейка | Из самого низа | Радужный фон</title>
     <style>
         * {
             user-select: none;
@@ -24,7 +24,7 @@
             overflow-x: hidden;
         }
 
-        /* Плавный радужный фон через JS (замедленный) */
+        /* Плавный радужный фон */
         .rainbow-bg {
             position: fixed;
             top: 0;
@@ -129,7 +129,6 @@
             box-shadow: 0 2px 0 #0e3b0e;
         }
 
-        /* На ПК скрываем кнопки управления (только свайпы и клавиатура) */
         @media (min-width: 901px) {
             .touch-panel {
                 display: none;
@@ -194,7 +193,7 @@
             box-shadow: 0 2px 0 #9b551a;
         }
 
-        /* Модальные окна — улучшенный текст */
+        /* Модальные окна — кнопка закрытия отдельно, над содержимым */
         .modal {
             position: fixed;
             top: 0;
@@ -220,7 +219,7 @@
         .modal-content {
             background: #0f1a0f;
             border-radius: 64px;
-            padding: 32px 28px 36px;
+            padding: 24px 28px 32px;
             max-width: 380px;
             width: 85%;
             text-align: center;
@@ -228,6 +227,25 @@
             box-shadow: 0 0 40px #ffbb44;
             color: #ffffdd;
             position: relative;
+        }
+
+        /* Кнопка закрытия — отдельная строка над заголовком */
+        .modal-close-row {
+            text-align: right;
+            margin-bottom: 8px;
+        }
+        .modal-close {
+            font-size: 32px;
+            cursor: pointer;
+            color: #ffdd99;
+            display: inline-block;
+            line-height: 1;
+            transition: 0.1s;
+            padding: 0 8px;
+        }
+        .modal-close:hover {
+            color: #ffaa55;
+            transform: scale(1.1);
         }
 
         .modal-content h2 {
@@ -270,21 +288,6 @@
             box-shadow: 0 1px 0 #9b551a;
         }
 
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 26px;
-            font-size: 34px;
-            cursor: pointer;
-            color: #ffdd99;
-            transition: 0.1s;
-            line-height: 1;
-        }
-        .modal-close:hover {
-            color: #ffaa55;
-            transform: scale(1.1);
-        }
-
         .setting-row {
             display: flex;
             justify-content: space-between;
@@ -312,7 +315,6 @@
             font-size: 18px;
         }
 
-        /* Адаптация под мобильные */
         @media (max-width: 700px) {
             .game-layout {
                 flex-direction: column;
@@ -388,7 +390,9 @@
 <!-- Модальное окно GAME OVER / WIN -->
 <div id="gameOverModal" class="modal">
     <div class="modal-content">
-        <div class="modal-close" id="closeGameOverModal">✖</div>
+        <div class="modal-close-row">
+            <span class="modal-close" id="closeGameOverModal">✖</span>
+        </div>
         <h2 id="modalTitle">💀 GAME OVER 💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
@@ -401,7 +405,9 @@
 <!-- Модальное окно НАСТРОЕК -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <div class="modal-close" id="closeSettingsModal">✖</div>
+        <div class="modal-close-row">
+            <span class="modal-close" id="closeSettingsModal">✖</span>
+        </div>
         <h2>⚙️ НАСТРОЙКИ</h2>
         <div class="setting-row">
             <label>📐 РАЗМЕР СЕТКИ</label>
@@ -438,14 +444,13 @@
         // ----- РАДУЖНЫЙ ФОН (медленное переливание) -----
         let hue = 0;
         function updateRainbowBackground() {
-            // Замедленный перелив: +0.25 градуса за кадр (~60 кадров/сек = 15° в секунду)
             const color1 = `hsl(${hue}, 100%, 55%)`;
             const color2 = `hsl(${(hue + 60) % 360}, 100%, 55%)`;
             const color3 = `hsl(${(hue + 120) % 360}, 100%, 55%)`;
             const color4 = `hsl(${(hue + 180) % 360}, 100%, 55%)`;
             rainbowBg.style.background = `linear-gradient(125deg, ${color1}, ${color2}, ${color3}, ${color4})`;
             rainbowBg.style.backgroundSize = '400% 400%';
-            hue = (hue + 0.25) % 360; // медленнее, чем раньше (было 1.5)
+            hue = (hue + 0.25) % 360;
             requestAnimationFrame(() => { setTimeout(updateRainbowBackground, 60); });
         }
         updateRainbowBackground();
@@ -460,7 +465,7 @@
         
         let snake = [];
         let food = { x: 12, y: 12 };
-        let direction = 'UP';        // теперь змейка начинает движение вверх
+        let direction = 'UP';
         let nextDirection = 'UP';
         let score = 0;
         let gameRunning = true;
@@ -519,16 +524,15 @@
             return Math.floor((Date.now() - sessionStartTime) / 1000);
         }
         
-        // Новая инициализация: змейка выползает снизу вверх
+        // НОВЫЙ СПАВН: змейка строго внизу, начинаем движение вверх
         function initGame(resetTimer = true) {
-            // Размещаем змейку у нижнего края, вертикально, головой вверх
-            // Координаты: голова на y = GRID_SIZE - 2, затем y-1, y-2. x = центр.
             const startX = Math.floor(GRID_SIZE / 2);
-            const startY = GRID_SIZE - 2;  // почти внизу
+            // Голова на самой нижней строке (GRID_SIZE - 1)
+            const headY = GRID_SIZE - 1;
             snake = [
-                { x: startX, y: startY },      // голова
-                { x: startX, y: startY - 1 },
-                { x: startX, y: startY - 2 }
+                { x: startX, y: headY },      // голова внизу
+                { x: startX, y: headY - 1 },
+                { x: startX, y: headY - 2 }
             ];
             direction = 'UP';
             nextDirection = 'UP';
@@ -614,7 +618,7 @@
             drawGame();
         }
         
-        // Отрисовка (улучшенная)
+        // Отрисовка
         function drawGame() {
             if(!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
