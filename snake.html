@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Змейка | Умные глаза | Радужный фон</title>
+    <title>Змейка | WASD + стрелки | Радужный фон</title>
     <style>
         * {
             user-select: none;
@@ -668,18 +668,15 @@
                 
                 // Глаза только для головы
                 if(i === 0) {
-                    // Относительные размеры
                     const eyeSize = Math.max(3, CELL_SIZE * 0.18);
                     const pupilSize = Math.max(1.5, eyeSize * 0.6);
                     const eyeOffsetX = CELL_SIZE * 0.28;
                     const eyeOffsetY = CELL_SIZE * 0.32;
                     
-                    // Позиции левого и правого глаза
                     const leftEyeX = x + eyeOffsetX;
                     const rightEyeX = x + CELL_SIZE - eyeOffsetX;
                     const eyeY = y + eyeOffsetY;
                     
-                    // Смещение зрачков в зависимости от направления
                     let pupilShiftX = 0, pupilShiftY = 0;
                     const shiftAmount = eyeSize * 0.3;
                     switch(direction) {
@@ -689,7 +686,6 @@
                         case 'DOWN':  pupilShiftY = shiftAmount; break;
                     }
                     
-                    // Белки глаз
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
                     ctx.arc(leftEyeX, eyeY, eyeSize, 0, Math.PI*2);
@@ -698,7 +694,6 @@
                     ctx.arc(rightEyeX, eyeY, eyeSize, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Зрачки
                     ctx.fillStyle = '#000000';
                     ctx.beginPath();
                     ctx.arc(leftEyeX + pupilShiftX, eyeY + pupilShiftY, pupilSize, 0, Math.PI*2);
@@ -707,7 +702,6 @@
                     ctx.arc(rightEyeX + pupilShiftX, eyeY + pupilShiftY, pupilSize, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Блики (маленькие белые точки)
                     ctx.fillStyle = '#ffffff';
                     const highlightSize = pupilSize * 0.4;
                     ctx.beginPath();
@@ -773,7 +767,7 @@
             gameLoopId = requestAnimationFrame(gameTick);
         }
         
-        // Управление
+        // Управление (стрелки + WASD)
         function setDirection(newDir) {
             if(!gameRunning) return;
             if((newDir === 'RIGHT' && direction !== 'LEFT') ||
@@ -806,15 +800,26 @@
             touchStart = null;
         }
         function handleTouchEnd(e) { e.preventDefault(); touchStart = null; }
+        
         function handleKeydown(e) {
             if(!gameRunning) return;
+            let mapped = null;
             const key = e.key;
-            if(key === 'ArrowUp') setDirection('UP');
-            else if(key === 'ArrowDown') setDirection('DOWN');
-            else if(key === 'ArrowLeft') setDirection('LEFT');
-            else if(key === 'ArrowRight') setDirection('RIGHT');
-            else return;
-            e.preventDefault();
+            // Стрелки
+            if(key === 'ArrowUp') mapped = 'UP';
+            else if(key === 'ArrowDown') mapped = 'DOWN';
+            else if(key === 'ArrowLeft') mapped = 'LEFT';
+            else if(key === 'ArrowRight') mapped = 'RIGHT';
+            // WASD
+            else if(key === 'w' || key === 'W') mapped = 'UP';
+            else if(key === 's' || key === 'S') mapped = 'DOWN';
+            else if(key === 'a' || key === 'A') mapped = 'LEFT';
+            else if(key === 'd' || key === 'D') mapped = 'RIGHT';
+            
+            if(mapped) {
+                e.preventDefault();
+                setDirection(mapped);
+            }
         }
         
         function fullRestart() {
@@ -833,7 +838,6 @@
             updateCellSize();
             gridSizeSlider.value = GRID_SIZE;
             gridSizeValueSpan.innerText = GRID_SIZE;
-            // инвертированный ползунок: значение слайдера = 220 + 70 - gameSpeed
             const sliderVal = 70 + 220 - gameSpeed;
             speedSlider.value = sliderVal;
             speedValueSpan.innerText = gameSpeed;
@@ -850,7 +854,6 @@
             let sliderValue = parseInt(speedSlider.value, 10);
             if(isNaN(newGrid)) newGrid = GRID_SIZE;
             newGrid = Math.min(35, Math.max(10, newGrid));
-            // преобразуем значение слайдера (70..220) в gameSpeed: gameSpeed = 70 + 220 - sliderValue
             let newSpeed = 70 + 220 - sliderValue;
             newSpeed = Math.min(220, Math.max(70, newSpeed));
             GRID_SIZE = newGrid;
