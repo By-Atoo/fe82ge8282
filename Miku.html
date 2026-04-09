@@ -3,44 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Хацунэ Мику — 3D примитивы (без текстур)</title>
+    <title>Хацунэ Мику — детализированная 3D (примитивы)</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #0a0f1e; font-family: 'Arial', sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #050a14; font-family: 'Segoe UI', 'Arial', sans-serif; }
         #info {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            color: #88ccff;
-            background: rgba(10,20,40,0.6);
-            padding: 8px 16px;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
+            color: #aad0ff;
+            background: rgba(8, 20, 40, 0.7);
+            padding: 10px 20px;
+            border-radius: 40px;
+            backdrop-filter: blur(8px);
             pointer-events: none;
-            font-size: 14px;
-            border-left: 3px solid #00aaff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-size: 15px;
+            border-left: 4px solid #00ccff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             z-index: 10;
         }
         #note {
             position: absolute;
             bottom: 20px;
             right: 20px;
-            color: #aaccff;
-            background: rgba(20,30,50,0.5);
+            color: #b0caf0;
+            background: rgba(15, 30, 50, 0.6);
+            padding: 8px 18px;
+            border-radius: 30px;
+            backdrop-filter: blur(6px);
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 10;
+            border-right: 3px solid #88aaff;
+        }
+        .controls-hint {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #ccddff;
+            background: rgba(10, 25, 45, 0.5);
             padding: 6px 14px;
             border-radius: 20px;
-            backdrop-filter: blur(4px);
-            font-size: 12px;
+            font-size: 13px;
+            backdrop-filter: blur(5px);
             pointer-events: none;
             z-index: 10;
         }
     </style>
 </head>
 <body>
-    <div id="info">🎤 Хацунэ Мику — стилизованная 3D модель (только примитивы, без текстур)</div>
-    <div id="note">🖱️ Вращайте камеру | Колесо мыши — зум</div>
+    <div id="info">🎤 初音ミク — Hatsune Miku · Детализированная модель (примитивы, без текстур)</div>
+    <div id="note">✨ Авто-вращение · Мышь: вращать / зум</div>
+    <div class="controls-hint">🖱️ ЛКМ — вращать · ПКМ — панорама · Колесо — зум</div>
 
-    <!-- Подключаем Three.js и дополнения -->
     <script type="importmap">
         {
             "imports": {
@@ -55,512 +69,605 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-        // --- Инициализация сцены, камеры, рендерера ---
+        // --- Инициализация сцены с улучшенным фоном ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0f1e); // глубокий синий
+        scene.background = new THREE.Color(0x060b16); // очень тёмный синий
         
-        // Добавим лёгкий туман для глубины
-        scene.fog = new THREE.FogExp2(0x0a0f1e, 0.012);
+        // Глубокий туман
+        scene.fog = new THREE.FogExp2(0x060b16, 0.008);
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(5, 3, 8);
-        camera.lookAt(0, 2.5, 0);
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(5.5, 3.2, 9);
+        camera.lookAt(0, 2.6, 0);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true; // включаем тени для реалистичности
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // мягкие тени
+        renderer.outputEncoding = THREE.sRGBEncoding; // для более ярких цветов
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
         document.body.appendChild(renderer.domElement);
 
-        // CSS2DRenderer для подписей (опционально)
+        // CSS2 рендерер для текстовых подписей
         const labelRenderer = new CSS2DRenderer();
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.domElement.style.position = 'absolute';
         labelRenderer.domElement.style.top = '0px';
         labelRenderer.domElement.style.left = '0px';
-        labelRenderer.domElement.style.pointerEvents = 'none';  // чтобы не мешал кликам
+        labelRenderer.domElement.style.pointerEvents = 'none';
         document.body.appendChild(labelRenderer.domElement);
 
-        // --- Управление камерой ---
+        // --- Управление камерой с авто-вращением ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.2;
+        controls.autoRotateSpeed = 1.0;
         controls.enableZoom = true;
-        controls.enablePan = false;
-        controls.target.set(0, 2.5, 0);
-        controls.maxPolarAngle = Math.PI / 2.2;
+        controls.enablePan = true;
+        controls.panSpeed = 0.5;
+        controls.target.set(0, 2.6, 0);
+        controls.maxPolarAngle = Math.PI / 2.1;
+        controls.minDistance = 4.0;
+        controls.maxDistance = 14.0;
 
-        // --- Освещение ---
-        // 1. Ambient базовый
-        scene.add(new THREE.AmbientLight(0x404060, 0.45));
+        // --- Освещение: многослойное, с акцентами ---
+        // 1. Базовый ambient
+        scene.add(new THREE.AmbientLight(0x404c66, 0.4));
         
-        // 2. Основной направленный свет (слева сверху)
-        const mainLight = new THREE.DirectionalLight(0xffeedd, 1.0);
-        mainLight.position.set(-3, 6, 4);
-        mainLight.castShadow = true;
-        mainLight.receiveShadow = true;
-        mainLight.shadow.mapSize.width = 1024;
-        mainLight.shadow.mapSize.height = 1024;
-        const d = 8;
-        mainLight.shadow.camera.left = -d;
-        mainLight.shadow.camera.right = d;
-        mainLight.shadow.camera.top = d;
-        mainLight.shadow.camera.bottom = -d;
-        mainLight.shadow.camera.near = 1;
-        mainLight.shadow.camera.far = 20;
-        mainLight.shadow.bias = -0.001;
-        scene.add(mainLight);
+        // 2. Ключевой свет (слева-спереди, тёплый)
+        const keyLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+        keyLight.position.set(-4, 7, 5);
+        keyLight.castShadow = true;
+        keyLight.receiveShadow = true;
+        keyLight.shadow.mapSize.width = 2048;
+        keyLight.shadow.mapSize.height = 2048;
+        const d = 9;
+        keyLight.shadow.camera.left = -d;
+        keyLight.shadow.camera.right = d;
+        keyLight.shadow.camera.top = d;
+        keyLight.shadow.camera.bottom = -d;
+        keyLight.shadow.camera.near = 1;
+        keyLight.shadow.camera.far = 25;
+        keyLight.shadow.bias = -0.0008;
+        keyLight.shadow.normalBias = 0.02;
+        scene.add(keyLight);
         
-        // 3. Заполняющий свет справа (голубоватый)
-        const fillLight = new THREE.PointLight(0x88aaff, 0.7);
-        fillLight.position.set(4, 3, 3);
+        // 3. Заполняющий свет справа (холодный)
+        const fillLight = new THREE.DirectionalLight(0xaaccff, 0.8);
+        fillLight.position.set(5, 4, 3);
+        fillLight.castShadow = true;
+        fillLight.shadow.mapSize.width = 1024;
+        fillLight.shadow.mapSize.height = 1024;
+        fillLight.shadow.camera.left = -5;
+        fillLight.shadow.camera.right = 5;
+        fillLight.shadow.camera.top = 5;
+        fillLight.shadow.camera.bottom = -5;
+        fillLight.shadow.bias = -0.0005;
         scene.add(fillLight);
         
-        // 4. Подсветка снизу (розоватый оттенок для волос)
+        // 4. Контровой свет сзади (бирюзовый оттенок для волос)
+        const backLight = new THREE.PointLight(0x88ccff, 0.9);
+        backLight.position.set(-1, 4, -7);
+        scene.add(backLight);
+        
+        // 5. Нижняя подсветка (розоватая)
         const bottomLight = new THREE.PointLight(0xffaacc, 0.5);
-        bottomLight.position.set(0, 0, 3);
+        bottomLight.position.set(0, 0.5, 4);
         scene.add(bottomLight);
         
-        // 5. Задний контровой свет
-        const backLight = new THREE.PointLight(0x88ccff, 0.6);
-        backLight.position.set(-2, 3, -6);
-        scene.add(backLight);
+        // 6. Акцент на лицо
+        const faceLight = new THREE.PointLight(0xffeedd, 0.5);
+        faceLight.position.set(1, 3.5, 4);
+        scene.add(faceLight);
+        
+        // 7. Дополнительный свет для волос
+        const hairLight = new THREE.PointLight(0x88ddff, 0.7);
+        hairLight.position.set(-2, 4.5, 2);
+        scene.add(hairLight);
 
-        // --- Декоративные элементы сцены (пол, сетка) ---
-        const gridHelper = new THREE.GridHelper(20, 20, 0x3399ff, 0x224466);
+        // --- Окружение: платформа, сетка, декоративные элементы ---
+        const gridHelper = new THREE.GridHelper(20, 30, 0x4488ff, 0x1a3355);
         gridHelper.position.y = -0.01;
         scene.add(gridHelper);
         
-        // Полупрозрачная платформа
-        const platformMat = new THREE.MeshStandardMaterial({ color: 0x1a2a4a, roughness: 0.7, metalness: 0.1, transparent: true, opacity: 0.5 });
-        const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.2, 32), platformMat);
-        platform.position.y = -0.1;
-        platform.receiveShadow = true;
-        platform.castShadow = false;
-        scene.add(platform);
+        // Стилизованная сцена-подиум
+        const podiumMat = new THREE.MeshStandardMaterial({ color: 0x1e2f4a, roughness: 0.6, metalness: 0.1, emissive: new THREE.Color(0x102030) });
+        const podiumBase = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 3.8, 0.25, 64), podiumMat);
+        podiumBase.position.y = -0.15;
+        podiumBase.receiveShadow = true;
+        podiumBase.castShadow = false;
+        scene.add(podiumBase);
         
-        // Небольшие светящиеся сферы вокруг для атмосферы
-        const glowBalls = new THREE.Group();
-        const ballMat = new THREE.MeshStandardMaterial({ color: 0x44aaff, emissive: new THREE.Color(0x113355), roughness: 0.3 });
-        for (let i = 0; i < 6; i++) {
-            const ball = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), ballMat);
-            const angle = (i / 6) * Math.PI * 2;
-            ball.position.set(Math.cos(angle)*2.8, 0.2, Math.sin(angle)*2.8);
-            ball.receiveShadow = true;
-            glowBalls.add(ball);
-        }
-        scene.add(glowBalls);
-
-        // --- СОЗДАНИЕ МОДЕЛИ МИКУ (группа для удобства) ---
-        const mikuGroup = new THREE.Group();
-        mikuGroup.position.y = 0;
-        scene.add(mikuGroup);
-
-        // ----- Материалы (цвета без текстур) -----
-        const skinMat = new THREE.MeshStandardMaterial({ color: 0xffddbb, roughness: 0.55, emissive: new THREE.Color(0x331100).multiplyScalar(0.05) });
-        const hairMainMat = new THREE.MeshStandardMaterial({ color: 0x33ccbb, roughness: 0.45, emissive: new THREE.Color(0x115555).multiplyScalar(0.1) });
-        const hairDarkMat = new THREE.MeshStandardMaterial({ color: 0x1a9988, roughness: 0.5 });
-        const shirtMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.6 });
-        const tieMat = new THREE.MeshStandardMaterial({ color: 0xcc3333, roughness: 0.4, emissive: new THREE.Color(0x440000).multiplyScalar(0.1) });
-        const skirtMat = new THREE.MeshStandardMaterial({ color: 0x334466, roughness: 0.7 });
-        const sleeveMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.65 });
-        const armWarmerMat = new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.8 });
-        const shoeMat = new THREE.MeshStandardMaterial({ color: 0x2a3a4a, roughness: 0.7 });
-        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x44aacc, emissive: new THREE.Color(0x113344), roughness: 0.2 });
-        const pupilMat = new THREE.MeshStandardMaterial({ color: 0x112233 });
-        const mouthMat = new THREE.MeshStandardMaterial({ color: 0xaa5566 });
-        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        const blackMat = new THREE.MeshStandardMaterial({ color: 0x111122 });
+        const podiumRing = new THREE.Mesh(new THREE.TorusGeometry(3.6, 0.06, 16, 64), new THREE.MeshStandardMaterial({ color: 0x88aadd, roughness: 0.3, metalness: 0.5, emissive: new THREE.Color(0x113355) }));
+        podiumRing.position.y = 0.02;
+        podiumRing.rotation.x = Math.PI / 2;
+        podiumRing.receiveShadow = true;
+        scene.add(podiumRing);
         
-        // Вспомогательная функция для создания частей с тенями
-        function addPart(part, castShadow = true, receiveShadow = true) {
-            part.castShadow = castShadow;
-            part.receiveShadow = receiveShadow;
-            return part;
+        // Неоновые акценты по кругу
+        const glowRingMat = new THREE.MeshStandardMaterial({ color: 0x44aaff, emissive: new THREE.Color(0x2266aa), transparent: true, opacity: 0.25 });
+        const glowRing = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.03, 8, 64), glowRingMat);
+        glowRing.position.y = 0.15;
+        glowRing.rotation.x = Math.PI / 2;
+        scene.add(glowRing);
+        
+        // Парящие светящиеся сферы
+        const orbGroup = new THREE.Group();
+        const orbMat = new THREE.MeshStandardMaterial({ color: 0x88ccff, emissive: new THREE.Color(0x224466), roughness: 0.2 });
+        for (let i = 0; i < 8; i++) {
+            const orb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), orbMat);
+            const angle = (i / 8) * Math.PI * 2;
+            orb.position.set(Math.cos(angle)*3.4, 0.25 + Math.sin(i*1.5)*0.1, Math.sin(angle)*3.4);
+            orb.castShadow = true;
+            orb.receiveShadow = true;
+            orbGroup.add(orb);
+        }
+        scene.add(orbGroup);
+        
+        // Звёзды (частицы фона)
+        const starsGeo = new THREE.BufferGeometry();
+        const starsCount = 400;
+        const starPositions = new Float32Array(starsCount * 3);
+        for (let i = 0; i < starsCount * 3; i += 3) {
+            const r = 15 + Math.random() * 20;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            starPositions[i] = Math.sin(phi) * Math.cos(theta) * r;
+            starPositions[i+1] = Math.sin(phi) * Math.sin(theta) * r * 0.8;
+            starPositions[i+2] = Math.cos(phi) * r;
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starsMat = new THREE.PointsMaterial({ color: 0xcce5ff, size: 0.06, transparent: true, opacity: 0.9 });
+        const stars = new THREE.Points(starsGeo, starsMat);
+        scene.add(stars);
+
+        // --- ГРУППА МОДЕЛИ МИКУ ---
+        const miku = new THREE.Group();
+        miku.position.y = 0;
+        scene.add(miku);
+
+        // ----- МАТЕРИАЛЫ (цвета подобраны тщательно) -----
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xffe5cc, roughness: 0.45, emissive: new THREE.Color(0x332211).multiplyScalar(0.03) });
+        const hairBaseMat = new THREE.MeshStandardMaterial({ color: 0x3dd4c0, roughness: 0.4, emissive: new THREE.Color(0x115555).multiplyScalar(0.08) });
+        const hairDarkMat = new THREE.MeshStandardMaterial({ color: 0x2bb5a0, roughness: 0.5 });
+        const hairLightMat = new THREE.MeshStandardMaterial({ color: 0x6ef0e0, roughness: 0.35, emissive: new THREE.Color(0x227777).multiplyScalar(0.05) });
+        const shirtMat = new THREE.MeshStandardMaterial({ color: 0xf5f5fa, roughness: 0.6 });
+        const skirtMat = new THREE.MeshStandardMaterial({ color: 0x3a4e6b, roughness: 0.65 });
+        const tieMat = new THREE.MeshStandardMaterial({ color: 0xd44, roughness: 0.45, emissive: new THREE.Color(0x330000).multiplyScalar(0.1) });
+        const sleeveMat = new THREE.MeshStandardMaterial({ color: 0xe8e8f0, roughness: 0.6 });
+        const armWarmerMat = new THREE.MeshStandardMaterial({ color: 0x2a2e3d, roughness: 0.7 });
+        const shoeMat = new THREE.MeshStandardMaterial({ color: 0x2c4058, roughness: 0.6 });
+        const soleMat = new THREE.MeshStandardMaterial({ color: 0x1a1f2a, roughness: 0.8 });
+        const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf0f5ff, roughness: 0.3 });
+        const irisMat = new THREE.MeshStandardMaterial({ color: 0x5cb8d9, roughness: 0.2, emissive: new THREE.Color(0x113344).multiplyScalar(0.2) });
+        const pupilMat = new THREE.MeshStandardMaterial({ color: 0x0a121c, roughness: 0.1 });
+        const mouthMat = new THREE.MeshStandardMaterial({ color: 0xb85c6a, roughness: 0.5 });
+        const ribbonMat = new THREE.MeshStandardMaterial({ color: 0xe64555, roughness: 0.4 });
+        const metalMat = new THREE.MeshStandardMaterial({ color: 0xaaccdd, roughness: 0.25, metalness: 0.7 });
+        
+        // Вспомогательная функция
+        function addPart(mesh, castShadow = true, receiveShadow = true) {
+            mesh.castShadow = castShadow;
+            mesh.receiveShadow = receiveShadow;
+            return mesh;
         }
 
-        // ----- ТЕЛО (торс + шея) -----
+        // ========== ТЕЛО ==========
         // Шея
-        const neck = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.4, 8), skinMat));
-        neck.position.y = 1.9;
+        const neck = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.4, 0.5, 10), skinMat));
+        neck.position.y = 2.0;
         neck.position.z = 0.0;
-        mikuGroup.add(neck);
+        miku.add(neck);
         
-        // Торс (верхняя часть тела)
-        const torso = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.85, 1.3, 10), shirtMat));
-        torso.position.y = 1.15;
+        // Торс (верх)
+        const torso = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.95, 1.5, 12), shirtMat));
+        torso.position.y = 1.2;
         torso.position.z = 0.0;
-        mikuGroup.add(torso);
+        miku.add(torso);
         
-        // Грудь (небольшие полусферы)
-        const chestL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), shirtMat));
-        chestL.position.set(-0.45, 1.45, 0.4);
+        // Грудь (две полусферы)
+        const chestL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), shirtMat));
+        chestL.position.set(-0.48, 1.55, 0.45);
         chestL.scale.set(0.9, 0.7, 0.6);
-        mikuGroup.add(chestL);
-        const chestR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), shirtMat));
-        chestR.position.set(0.45, 1.45, 0.4);
+        miku.add(chestL);
+        const chestR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), shirtMat));
+        chestR.position.set(0.48, 1.55, 0.45);
         chestR.scale.set(0.9, 0.7, 0.6);
-        mikuGroup.add(chestR);
+        miku.add(chestR);
         
-        // Юбка
-        const skirt = addPart(new THREE.Mesh(new THREE.ConeGeometry(1.1, 0.9, 8), skirtMat));
-        skirt.position.y = 0.65;
-        skirt.position.z = 0.0;
-        skirt.rotation.y = Math.PI/8;
-        mikuGroup.add(skirt);
+        // Воротник
+        const collarMat = new THREE.MeshStandardMaterial({ color: 0xddeeff });
+        const collarBack = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.08, 8, 20), collarMat));
+        collarBack.position.set(0, 1.75, -0.2);
+        collarBack.rotation.x = 0.3;
+        collarBack.rotation.y = 0;
+        collarBack.rotation.z = 0;
+        miku.add(collarBack);
+        
+        // Юбка (плиссированная имитация с помощью нескольких конусов)
+        const skirtBase = addPart(new THREE.Mesh(new THREE.ConeGeometry(1.2, 1.0, 12), skirtMat));
+        skirtBase.position.y = 0.65;
+        skirtBase.position.z = 0.0;
+        skirtBase.rotation.y = Math.PI/12;
+        miku.add(skirtBase);
         
         // Пояс юбки
-        const belt = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.08, 8, 20), new THREE.MeshStandardMaterial({ color: 0x556677 })));
-        belt.position.y = 0.7;
+        const belt = addPart(new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.1, 8, 24), new THREE.MeshStandardMaterial({ color: 0x5a6b8a })));
+        belt.position.y = 0.75;
         belt.rotation.x = Math.PI/2;
         belt.rotation.z = 0;
-        mikuGroup.add(belt);
+        miku.add(belt);
         
-        // Галстук / бант
-        const tieKnot = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.18, 6), tieMat));
-        tieKnot.position.set(0.0, 1.35, 0.7);
-        mikuGroup.add(tieKnot);
-        const tieLeft = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 6), tieMat));
-        tieLeft.position.set(-0.25, 1.1, 0.65);
-        tieLeft.rotation.z = 0.3;
+        // Галстук (детальный)
+        const tieKnot = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.2, 8), tieMat));
+        tieKnot.position.set(0.0, 1.45, 0.8);
+        miku.add(tieKnot);
+        const tieLeft = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.65, 8), tieMat));
+        tieLeft.position.set(-0.28, 1.15, 0.75);
+        tieLeft.rotation.z = 0.35;
         tieLeft.rotation.x = 0.2;
-        mikuGroup.add(tieLeft);
-        const tieRight = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 6), tieMat));
-        tieRight.position.set(0.25, 1.1, 0.65);
-        tieRight.rotation.z = -0.3;
+        miku.add(tieLeft);
+        const tieRight = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.65, 8), tieMat));
+        tieRight.position.set(0.28, 1.15, 0.75);
+        tieRight.rotation.z = -0.35;
         tieRight.rotation.x = 0.2;
-        mikuGroup.add(tieRight);
-        
-        // ----- ГОЛОВА -----
+        miku.add(tieRight);
+        const tieCenter = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.45, 6), tieMat));
+        tieCenter.position.set(0.0, 1.25, 0.85);
+        tieCenter.rotation.x = 0.15;
+        miku.add(tieCenter);
+
+        // ========== ГОЛОВА ==========
         const headGroup = new THREE.Group();
-        headGroup.position.y = 2.2;
+        headGroup.position.y = 2.4;
         headGroup.position.z = 0.0;
-        mikuGroup.add(headGroup);
+        miku.add(headGroup);
         
         // Основа головы
-        const headMain = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.65, 24, 16), skinMat));
+        const headMain = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.72, 32, 24), skinMat));
         headMain.position.y = 0.0;
-        headMain.scale.set(0.98, 1.0, 0.9);
+        headMain.scale.set(0.98, 1.0, 0.92);
         headGroup.add(headMain);
         
-        // Лицо (немного вытянутое вперёд)
-        const facePatch = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.52, 16, 12), skinMat));
-        facePatch.position.set(0.0, -0.02, 0.35);
+        // Лицевая часть (выдаётся вперёд)
+        const facePatch = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.58, 20, 16), skinMat));
+        facePatch.position.set(0.0, -0.02, 0.4);
         facePatch.scale.set(0.95, 0.9, 0.5);
         headGroup.add(facePatch);
         
         // Глаза (белки)
-        const eyeL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.16, 10), whiteMat));
-        eyeL.position.set(-0.28, 0.15, 0.7);
+        const eyeL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.18, 16), eyeWhiteMat));
+        eyeL.position.set(-0.32, 0.18, 0.78);
         headGroup.add(eyeL);
-        const eyeR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.16, 10), whiteMat));
-        eyeR.position.set(0.28, 0.15, 0.7);
+        const eyeR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.18, 16), eyeWhiteMat));
+        eyeR.position.set(0.32, 0.18, 0.78);
         headGroup.add(eyeR);
         
-        // Зрачки (радужка)
-        const irisL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.11, 8), eyeMat));
-        irisL.position.set(-0.28, 0.13, 0.82);
+        // Радужки
+        const irisL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.12, 12), irisMat));
+        irisL.position.set(-0.32, 0.15, 0.9);
         headGroup.add(irisL);
-        const irisR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.11, 8), eyeMat));
-        irisR.position.set(0.28, 0.13, 0.82);
+        const irisR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.12, 12), irisMat));
+        irisR.position.set(0.32, 0.15, 0.9);
         headGroup.add(irisR);
         
-        // Зрачки (чёрные)
-        const pupilL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.06, 6), pupilMat));
-        pupilL.position.set(-0.28, 0.11, 0.9);
+        // Зрачки
+        const pupilL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.07, 8), pupilMat));
+        pupilL.position.set(-0.32, 0.13, 0.98);
         headGroup.add(pupilL);
-        const pupilR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.06, 6), pupilMat));
-        pupilR.position.set(0.28, 0.11, 0.9);
+        const pupilR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.07, 8), pupilMat));
+        pupilR.position.set(0.32, 0.13, 0.98);
         headGroup.add(pupilR);
         
-        // Блики в глазах
-        const highlightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: new THREE.Color(0x888888) });
-        const hlL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.03, 4), highlightMat));
-        hlL.position.set(-0.32, 0.18, 0.93);
+        // Блики
+        const highlightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: new THREE.Color(0xaaaaaa) });
+        const hlL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.04, 6), highlightMat));
+        hlL.position.set(-0.36, 0.21, 1.02);
         headGroup.add(hlL);
-        const hlR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.03, 4), highlightMat));
-        hlR.position.set(0.24, 0.18, 0.93);
+        const hlR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.04, 6), highlightMat));
+        hlR.position.set(0.28, 0.21, 1.02);
         headGroup.add(hlR);
         
-        // Рот (маленький полумесяц из двух конусов)
-        const mouth = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.04, 6, 16, Math.PI), mouthMat));
-        mouth.position.set(0.0, -0.1, 0.75);
-        mouth.rotation.x = 0.2;
-        mouth.rotation.z = 0.1;
+        // Ресницы (маленькие чёрные полоски)
+        const lashMat = new THREE.MeshStandardMaterial({ color: 0x111122 });
+        const lashL = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.03, 0.03), lashMat));
+        lashL.position.set(-0.32, 0.3, 0.82);
+        lashL.rotation.z = 0.05;
+        headGroup.add(lashL);
+        const lashR = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.03, 0.03), lashMat));
+        lashR.position.set(0.32, 0.3, 0.82);
+        lashR.rotation.z = -0.05;
+        headGroup.add(lashR);
+        
+        // Рот (улыбка из тора)
+        const mouth = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.04, 8, 20, Math.PI), mouthMat));
+        mouth.position.set(0.0, -0.06, 0.82);
+        mouth.rotation.x = 0.25;
+        mouth.rotation.z = 0.05;
         mouth.rotation.y = 0.0;
-        mouth.scale.set(0.9, 0.5, 0.3);
+        mouth.scale.set(1.0, 0.6, 0.4);
         headGroup.add(mouth);
         
         // Румянец
-        const blushMat = new THREE.MeshStandardMaterial({ color: 0xffaaaa, transparent: true, opacity: 0.5 });
-        const blushL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.1, 6), blushMat));
-        blushL.position.set(-0.45, -0.1, 0.65);
+        const blushMat = new THREE.MeshStandardMaterial({ color: 0xffaaaa, transparent: true, opacity: 0.45 });
+        const blushL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.12, 8), blushMat));
+        blushL.position.set(-0.48, -0.05, 0.75);
         blushL.scale.set(0.8, 0.5, 0.2);
         headGroup.add(blushL);
-        const blushR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.1, 6), blushMat));
-        blushR.position.set(0.45, -0.1, 0.65);
+        const blushR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.12, 8), blushMat));
+        blushR.position.set(0.48, -0.05, 0.75);
         blushR.scale.set(0.8, 0.5, 0.2);
         headGroup.add(blushR);
-
-        // ----- ВОЛОСЫ (основная масса и хвосты) -----
-        // Основная шапка волос
-        const hairBase = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), hairMainMat));
-        hairBase.position.set(0.0, 0.25, -0.15);
-        hairBase.scale.set(1.1, 0.9, 0.95);
+        
+        // ========== ВОЛОСЫ (очень детальные) ==========
+        // Основная масса волос
+        const hairBase = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.78, 16, 12), hairBaseMat));
+        hairBase.position.set(0.0, 0.3, -0.15);
+        hairBase.scale.set(1.12, 0.95, 0.98);
         headGroup.add(hairBase);
         
-        // Чёлка (несколько кусочков)
-        const bangs1 = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 0.25, 6), hairMainMat));
-        bangs1.position.set(0.0, 0.4, 0.45);
-        bangs1.rotation.x = 0.3;
+        // Чёлка (несколько слоёв)
+        const bangs1 = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.55, 0.3, 8), hairBaseMat));
+        bangs1.position.set(0.0, 0.5, 0.5);
+        bangs1.rotation.x = 0.4;
         bangs1.rotation.z = 0.0;
-        bangs1.scale.set(1.1, 0.5, 0.8);
+        bangs1.scale.set(1.15, 0.6, 0.85);
         headGroup.add(bangs1);
         
-        const bangs2 = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.25, 6), hairMainMat));
-        bangs2.position.set(-0.3, 0.3, 0.55);
-        bangs2.scale.set(0.9, 0.5, 0.5);
+        const bangs2 = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.28, 8), hairLightMat));
+        bangs2.position.set(-0.32, 0.4, 0.6);
+        bangs2.scale.set(0.9, 0.55, 0.5);
         headGroup.add(bangs2);
-        const bangs3 = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.25, 6), hairMainMat));
-        bangs3.position.set(0.3, 0.3, 0.55);
-        bangs3.scale.set(0.9, 0.5, 0.5);
+        const bangs3 = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.28, 8), hairLightMat));
+        bangs3.position.set(0.32, 0.4, 0.6);
+        bangs3.scale.set(0.9, 0.55, 0.5);
         headGroup.add(bangs3);
         
         // Боковые пряди
-        const sideHairL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.7, 5), hairMainMat));
-        sideHairL.position.set(-0.65, 0.15, 0.2);
-        sideHairL.rotation.z = 0.25;
-        sideHairL.rotation.x = -0.1;
+        const sideHairL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.9, 7), hairBaseMat));
+        sideHairL.position.set(-0.72, 0.2, 0.25);
+        sideHairL.rotation.z = 0.3;
+        sideHairL.rotation.x = -0.15;
         headGroup.add(sideHairL);
-        const sideHairR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.7, 5), hairMainMat));
-        sideHairR.position.set(0.65, 0.15, 0.2);
-        sideHairR.rotation.z = -0.25;
-        sideHairR.rotation.x = -0.1;
+        const sideHairR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.9, 7), hairBaseMat));
+        sideHairR.position.set(0.72, 0.2, 0.25);
+        sideHairR.rotation.z = -0.3;
+        sideHairR.rotation.x = -0.15;
         headGroup.add(sideHairR);
         
-        // Хвосты (два высоких хвостика) - используем вытянутые сферы и конусы
-        const tailGroupL = new THREE.Group();
-        tailGroupL.position.set(-0.5, 0.8, -0.1);
-        headGroup.add(tailGroupL);
-        const tailGroupR = new THREE.Group();
-        tailGroupR.position.set(0.5, 0.8, -0.1);
-        headGroup.add(tailGroupR);
+        // Хвосты (группы)
+        const tailL = new THREE.Group();
+        tailL.position.set(-0.55, 0.9, -0.15);
+        headGroup.add(tailL);
+        const tailR = new THREE.Group();
+        tailR.position.set(0.55, 0.9, -0.15);
+        headGroup.add(tailR);
         
-        // Левый хвост
-        const tailBaseL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.45, 8), hairMainMat));
-        tailBaseL.position.y = 0.2;
-        tailBaseL.scale.set(1.0, 1.2, 0.9);
-        tailGroupL.add(tailBaseL);
+        // Левый хвост (детально)
+        const tailBaseL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.5, 12), hairBaseMat));
+        tailBaseL.position.y = 0.25;
+        tailBaseL.scale.set(1.0, 1.3, 0.9);
+        tailL.add(tailBaseL);
         
-        const tailSeg1L = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.9, 7), hairMainMat));
-        tailSeg1L.position.y = -0.35;
-        tailSeg1L.rotation.x = 0.1;
-        tailSeg1L.rotation.z = -0.15;
-        tailGroupL.add(tailSeg1L);
+        const tailSeg1L = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 1.0, 9), hairBaseMat));
+        tailSeg1L.position.y = -0.45;
+        tailSeg1L.rotation.x = 0.12;
+        tailSeg1L.rotation.z = -0.18;
+        tailL.add(tailSeg1L);
         
-        const tailSeg2L = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 0.9, 7), hairMainMat));
-        tailSeg2L.position.y = -0.9;
-        tailSeg2L.rotation.x = 0.15;
-        tailSeg2L.rotation.z = -0.1;
-        tailGroupL.add(tailSeg2L);
+        const tailSeg2L = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 1.0, 9), hairBaseMat));
+        tailSeg2L.position.y = -1.05;
+        tailSeg2L.rotation.x = 0.18;
+        tailSeg2L.rotation.z = -0.12;
+        tailL.add(tailSeg2L);
         
-        const tailTipL = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.6, 6), hairDarkMat));
-        tailTipL.position.y = -1.45;
-        tailTipL.rotation.x = 0.1;
-        tailGroupL.add(tailTipL);
+        const tailTipL = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.75, 8), hairDarkMat));
+        tailTipL.position.y = -1.7;
+        tailTipL.rotation.x = 0.15;
+        tailL.add(tailTipL);
         
-        // Правый хвост (симметрично)
-        const tailBaseR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.45, 8), hairMainMat));
-        tailBaseR.position.y = 0.2;
-        tailBaseR.scale.set(1.0, 1.2, 0.9);
-        tailGroupR.add(tailBaseR);
+        // Правый хвост
+        const tailBaseR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.5, 12), hairBaseMat));
+        tailBaseR.position.y = 0.25;
+        tailBaseR.scale.set(1.0, 1.3, 0.9);
+        tailR.add(tailBaseR);
         
-        const tailSeg1R = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.9, 7), hairMainMat));
-        tailSeg1R.position.y = -0.35;
-        tailSeg1R.rotation.x = 0.1;
-        tailSeg1R.rotation.z = 0.15;
-        tailGroupR.add(tailSeg1R);
+        const tailSeg1R = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 1.0, 9), hairBaseMat));
+        tailSeg1R.position.y = -0.45;
+        tailSeg1R.rotation.x = 0.12;
+        tailSeg1R.rotation.z = 0.18;
+        tailR.add(tailSeg1R);
         
-        const tailSeg2R = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 0.9, 7), hairMainMat));
-        tailSeg2R.position.y = -0.9;
-        tailSeg2R.rotation.x = 0.15;
-        tailSeg2R.rotation.z = 0.1;
-        tailGroupR.add(tailSeg2R);
+        const tailSeg2R = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 1.0, 9), hairBaseMat));
+        tailSeg2R.position.y = -1.05;
+        tailSeg2R.rotation.x = 0.18;
+        tailSeg2R.rotation.z = 0.12;
+        tailR.add(tailSeg2R);
         
-        const tailTipR = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.6, 6), hairDarkMat));
-        tailTipR.position.y = -1.45;
-        tailTipR.rotation.x = 0.1;
-        tailGroupR.add(tailTipR);
+        const tailTipR = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.75, 8), hairDarkMat));
+        tailTipR.position.y = -1.7;
+        tailTipR.rotation.x = 0.15;
+        tailR.add(tailTipR);
         
-        // Ленточки/резинки на хвостах
-        const bandMat = new THREE.MeshStandardMaterial({ color: 0xff5566 });
-        const bandL = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.06, 6, 12), bandMat));
-        bandL.position.y = -0.05;
-        bandL.rotation.y = 0.3;
-        bandL.rotation.x = 0.2;
-        tailGroupL.add(bandL);
-        const bandR = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.06, 6, 12), bandMat));
-        bandR.position.y = -0.05;
-        bandR.rotation.y = -0.3;
-        bandR.rotation.x = 0.2;
-        tailGroupR.add(bandR);
+        // Ленточки на хвостах
+        const ribbonL = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.08, 8, 16), ribbonMat));
+        ribbonL.position.y = -0.1;
+        ribbonL.rotation.y = 0.4;
+        ribbonL.rotation.x = 0.25;
+        tailL.add(ribbonL);
+        const ribbonR = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.08, 8, 16), ribbonMat));
+        ribbonR.position.y = -0.1;
+        ribbonR.rotation.y = -0.4;
+        ribbonR.rotation.x = 0.25;
+        tailR.add(ribbonR);
         
-        // ----- РУКИ -----
+        // Наушники (характерный аксессуар Мику)
+        const headphoneBand = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.06, 8, 24), new THREE.MeshStandardMaterial({ color: 0x3a4a5a, roughness: 0.5 })));
+        headphoneBand.position.y = 0.25;
+        headphoneBand.rotation.x = Math.PI/2;
+        headphoneBand.rotation.z = 0.1;
+        headGroup.add(headphoneBand);
+        
+        const hpCupL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.15, 12), new THREE.MeshStandardMaterial({ color: 0x2a3a4a })));
+        hpCupL.position.set(-0.85, 0.25, 0.0);
+        hpCupL.rotation.z = 0.1;
+        headGroup.add(hpCupL);
+        const hpCupR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.15, 12), new THREE.MeshStandardMaterial({ color: 0x2a3a4a })));
+        hpCupR.position.set(0.85, 0.25, 0.0);
+        hpCupR.rotation.z = -0.1;
+        headGroup.add(hpCupR);
+        
+        // ========== РУКИ ==========
         // Плечи
-        const shoulderL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.3, 6), sleeveMat));
-        shoulderL.position.set(-0.95, 1.65, 0.0);
-        mikuGroup.add(shoulderL);
-        const shoulderR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.3, 6), sleeveMat));
-        shoulderR.position.set(0.95, 1.65, 0.0);
-        mikuGroup.add(shoulderR);
+        const shoulderL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.35, 10), sleeveMat));
+        shoulderL.position.set(-1.05, 1.8, 0.0);
+        miku.add(shoulderL);
+        const shoulderR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.35, 10), sleeveMat));
+        shoulderR.position.set(1.05, 1.8, 0.0);
+        miku.add(shoulderR);
         
-        // Верхняя часть руки (рукава)
-        const armUpperL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.9, 6), sleeveMat));
-        armUpperL.position.set(-1.25, 1.2, 0.0);
-        armUpperL.rotation.z = 0.3;
-        armUpperL.rotation.x = 0.1;
-        mikuGroup.add(armUpperL);
-        
-        const armUpperR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.9, 6), sleeveMat));
-        armUpperR.position.set(1.25, 1.2, 0.0);
-        armUpperR.rotation.z = -0.3;
-        armUpperR.rotation.x = 0.1;
-        mikuGroup.add(armUpperR);
+        // Верхняя часть руки
+        const armUpL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 1.0, 8), sleeveMat));
+        armUpL.position.set(-1.4, 1.35, 0.0);
+        armUpL.rotation.z = 0.35;
+        armUpL.rotation.x = 0.1;
+        miku.add(armUpL);
+        const armUpR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 1.0, 8), sleeveMat));
+        armUpR.position.set(1.4, 1.35, 0.0);
+        armUpR.rotation.z = -0.35;
+        armUpR.rotation.x = 0.1;
+        miku.add(armUpR);
         
         // Предплечья (нарукавники)
-        const armLowerL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.8, 6), armWarmerMat));
-        armLowerL.position.set(-1.65, 0.8, 0.1);
-        armLowerL.rotation.z = 0.5;
-        armLowerL.rotation.x = 0.15;
-        mikuGroup.add(armLowerL);
-        
-        const armLowerR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.8, 6), armWarmerMat));
-        armLowerR.position.set(1.65, 0.8, 0.1);
-        armLowerR.rotation.z = -0.5;
-        armLowerR.rotation.x = 0.15;
-        mikuGroup.add(armLowerR);
+        const armLowL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.9, 8), armWarmerMat));
+        armLowL.position.set(-1.85, 0.85, 0.1);
+        armLowL.rotation.z = 0.55;
+        armLowL.rotation.x = 0.2;
+        miku.add(armLowL);
+        const armLowR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.9, 8), armWarmerMat));
+        armLowR.position.set(1.85, 0.85, 0.1);
+        armLowR.rotation.z = -0.55;
+        armLowR.rotation.x = 0.2;
+        miku.add(armLowR);
         
         // Кисти
-        const handL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.2, 5), skinMat));
-        handL.position.set(-1.95, 0.45, 0.15);
-        mikuGroup.add(handL);
-        const handR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.2, 5), skinMat));
-        handR.position.set(1.95, 0.45, 0.15);
-        mikuGroup.add(handR);
+        const handL = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.22, 8), skinMat));
+        handL.position.set(-2.15, 0.45, 0.15);
+        miku.add(handL);
+        const handR = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.22, 8), skinMat));
+        handR.position.set(2.15, 0.45, 0.15);
+        miku.add(handR);
         
-        // ----- НОГИ -----
-        // Бёдра
-        const thighL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.3, 0.9, 6), skirtMat));
-        thighL.position.set(-0.4, 0.15, 0.0);
-        mikuGroup.add(thighL);
-        const thighR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.3, 0.9, 6), skirtMat));
-        thighR.position.set(0.4, 0.15, 0.0);
-        mikuGroup.add(thighR);
+        // ========== НОГИ ==========
+        const thighL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.34, 1.0, 8), skirtMat));
+        thighL.position.set(-0.45, 0.2, 0.0);
+        miku.add(thighL);
+        const thighR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.34, 1.0, 8), skirtMat));
+        thighR.position.set(0.45, 0.2, 0.0);
+        miku.add(thighR);
         
-        // Голени (чулки/сапоги)
-        const legL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.9, 6), blackMat));
-        legL.position.set(-0.4, -0.45, 0.0);
-        mikuGroup.add(legL);
-        const legR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.9, 6), blackMat));
-        legR.position.set(0.4, -0.45, 0.0);
-        mikuGroup.add(legR);
+        const legL = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 1.0, 8), new THREE.MeshStandardMaterial({ color: 0x1e2a38 })));
+        legL.position.set(-0.45, -0.45, 0.0);
+        miku.add(legL);
+        const legR = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 1.0, 8), new THREE.MeshStandardMaterial({ color: 0x1e2a38 })));
+        legR.position.set(0.45, -0.45, 0.0);
+        miku.add(legR);
         
         // Ботинки
-        const shoeL = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.6), shoeMat));
-        shoeL.position.set(-0.4, -0.95, 0.1);
-        mikuGroup.add(shoeL);
-        const shoeR = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.6), shoeMat));
-        shoeR.position.set(0.4, -0.95, 0.1);
-        mikuGroup.add(shoeR);
+        const shoeL = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.22, 0.7), shoeMat));
+        shoeL.position.set(-0.45, -1.0, 0.1);
+        miku.add(shoeL);
+        const shoeR = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.22, 0.7), shoeMat));
+        shoeR.position.set(0.45, -1.0, 0.1);
+        miku.add(shoeR);
         
-        // Подошва
-        const soleMat = new THREE.MeshStandardMaterial({ color: 0x111122 });
-        const soleL = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.65), soleMat));
-        soleL.position.set(-0.4, -1.05, 0.1);
-        mikuGroup.add(soleL);
-        const soleR = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.65), soleMat));
-        soleR.position.set(0.4, -1.05, 0.1);
-        mikuGroup.add(soleR);
-
-        // Добавим микрофон (для атмосферы)
+        const soleL = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.75), soleMat));
+        soleL.position.set(-0.45, -1.12, 0.1);
+        miku.add(soleL);
+        const soleR = addPart(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.75), soleMat));
+        soleR.position.set(0.45, -1.12, 0.1);
+        miku.add(soleR);
+        
+        // ========== МИКРОФОН (детальный) ==========
         const micGroup = new THREE.Group();
-        micGroup.position.set(1.8, 0.9, 0.5);
-        micGroup.rotation.z = -0.3;
-        micGroup.rotation.x = 0.2;
-        mikuGroup.add(micGroup);
-        const micHandle = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.8, 6), new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.4, metalness: 0.6 })));
-        micHandle.position.y = 0.4;
+        micGroup.position.set(1.9, 1.0, 0.6);
+        micGroup.rotation.z = -0.35;
+        micGroup.rotation.x = 0.15;
+        miku.add(micGroup);
+        
+        const micHandle = addPart(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.9, 8), new THREE.MeshStandardMaterial({ color: 0xccccdd, roughness: 0.3, metalness: 0.5 })));
+        micHandle.position.y = 0.45;
         micGroup.add(micHandle);
-        const micHead = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.18, 8), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3, metalness: 0.2 })));
-        micHead.position.y = 0.85;
+        
+        const micHead = addPart(new THREE.Mesh(new THREE.SphereGeometry(0.22, 12), new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.4, metalness: 0.1 })));
+        micHead.position.y = 0.95;
         micGroup.add(micHead);
-        const micRing = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.03, 6, 12), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.5, metalness: 0.7 })));
-        micRing.position.y = 0.85;
-        micRing.rotation.y = 0.5;
+        
+        const micRing = addPart(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.04, 8, 16), metalMat));
+        micRing.position.y = 0.95;
+        micRing.rotation.y = 0.3;
         micRing.rotation.x = 0.8;
         micGroup.add(micRing);
-
-        // Небольшая подпись "Miku" с помощью CSS2DRenderer (стильно)
+        
+        const micTop = addPart(new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.15, 8), new THREE.MeshStandardMaterial({ color: 0x555555 })));
+        micTop.position.y = 1.12;
+        micGroup.add(micTop);
+        
+        // ========== ТЕКСТОВАЯ ПОДПИСЬ (CSS2D) ==========
         const labelDiv = document.createElement('div');
         labelDiv.textContent = '初音ミク';
-        labelDiv.style.color = '#88ddff';
-        labelDiv.style.fontSize = '24px';
+        labelDiv.style.color = '#a0e0ff';
+        labelDiv.style.fontSize = '28px';
         labelDiv.style.fontWeight = 'bold';
-        labelDiv.style.textShadow = '0 0 15px #00aaff, 0 0 30px #0066aa';
-        labelDiv.style.fontFamily = 'Arial, sans-serif';
+        labelDiv.style.textShadow = '0 0 20px #00aaff, 0 0 40px #0066cc';
+        labelDiv.style.fontFamily = 'Segoe UI, Arial, sans-serif';
         labelDiv.style.pointerEvents = 'none';
         labelDiv.style.userSelect = 'none';
         
         const labelObj = new CSS2DObject(labelDiv);
-        labelObj.position.set(0, 3.9, 0);
-        mikuGroup.add(labelObj);
+        labelObj.position.set(0, 4.2, 0);
+        miku.add(labelObj);
         
-        // Добавим звёздочки (частицы)
-        const starsGeometry = new THREE.BufferGeometry();
-        const starsCount = 200;
-        const starPositions = new Float32Array(starsCount * 3);
-        for (let i = 0; i < starsCount * 3; i += 3) {
-            const r = 8 + Math.random() * 15;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
-            starPositions[i] = Math.sin(phi) * Math.cos(theta) * r;
-            starPositions[i+1] = Math.sin(phi) * Math.sin(theta) * r;
-            starPositions[i+2] = Math.cos(phi) * r;
+        // Небольшие плавающие ноты (частицы)
+        const notesGroup = new THREE.Group();
+        const noteMat = new THREE.MeshStandardMaterial({ color: 0x88ddff, emissive: new THREE.Color(0x226688), transparent: true });
+        for (let i = 0; i < 5; i++) {
+            const note = new THREE.Mesh(new THREE.SphereGeometry(0.06, 4), noteMat);
+            note.position.set(Math.sin(i)*1.2, 2.5 + i*0.3, Math.cos(i*2)*1.5);
+            notesGroup.add(note);
         }
-        starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starsMaterial = new THREE.PointsMaterial({ color: 0xaaccff, size: 0.05, transparent: true });
-        const stars = new THREE.Points(starsGeometry, starsMaterial);
-        scene.add(stars);
+        miku.add(notesGroup);
 
-        // --- Анимация (лёгкое покачивание хвостов и авто-вращение) ---
-        let clock = new THREE.Clock();
+        // --- АНИМАЦИЯ ---
+        const clock = new THREE.Clock();
         
         function animate() {
             const delta = clock.getDelta();
-            const time = performance.now() * 0.001; // seconds
+            const time = performance.now() * 0.001;
             
-            // Автовращение через OrbitControls
             controls.update();
             
-            // Анимация хвостов (небольшое покачивание)
-            if (tailGroupL && tailGroupR) {
-                tailGroupL.rotation.z = -0.1 + Math.sin(time * 2.5) * 0.05;
-                tailGroupL.rotation.x = 0.1 + Math.sin(time * 2.0) * 0.03;
-                tailGroupR.rotation.z = 0.1 + Math.sin(time * 2.5 + 2) * 0.05;
-                tailGroupR.rotation.x = 0.1 + Math.sin(time * 2.0 + 2) * 0.03;
+            // Покачивание хвостов
+            if (tailL && tailR) {
+                tailL.rotation.z = -0.12 + Math.sin(time * 2.3) * 0.06;
+                tailL.rotation.x = 0.1 + Math.sin(time * 1.9) * 0.04;
+                tailR.rotation.z = 0.12 + Math.sin(time * 2.3 + 2) * 0.06;
+                tailR.rotation.x = 0.1 + Math.sin(time * 1.9 + 2) * 0.04;
             }
             
-            // Лёгкое движение рук и микрофона
-            if (armUpperL) {
-                armUpperL.rotation.z = 0.3 + Math.sin(time * 1.8) * 0.03;
-                armUpperR.rotation.z = -0.3 + Math.sin(time * 1.8 + 3) * 0.03;
+            // Лёгкое движение рук
+            if (armUpL) {
+                armUpL.rotation.z = 0.35 + Math.sin(time * 1.5) * 0.03;
+                armUpR.rotation.z = -0.35 + Math.sin(time * 1.5 + 3) * 0.03;
             }
             
-            // Вращение звёзд
-            stars.rotation.y += 0.001;
+            // Вращение звёзд и орбит
+            stars.rotation.y += 0.0008;
+            orbGroup.rotation.y += 0.005;
+            notesGroup.rotation.y += 0.01;
             
             renderer.render(scene, camera);
             labelRenderer.render(scene, camera);
@@ -570,7 +677,7 @@
         
         animate();
 
-        // --- Адаптация под размер окна ---
+        // --- РЕСАЙЗ ---
         window.addEventListener('resize', onWindowResize, false);
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -578,9 +685,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
         }
-
-        // Небольшая инструкция в консоли (для эстетики)
-        console.log('%c🎤 初音ミク | Hatsune Miku — стилизованная 3D модель из примитивов', 'font-size:16px; background:#0a1f2e; color:#88ccff; padding:4px 8px; border-radius:4px;');
+        
+        console.log('%c🎤 初音ミク — детализированная 3D модель (примитивы)', 'font-size:16px; background:#0a1f2e; color:#aad0ff; padding:6px 12px; border-radius:6px;');
     </script>
 </body>
 </html>
