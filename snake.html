@@ -24,7 +24,6 @@
             overflow-x: hidden;
         }
 
-        /* Плавный радужный фон */
         .rainbow-bg {
             position: fixed;
             top: 0;
@@ -93,7 +92,6 @@
             max-height: 85vw;
         }
 
-        /* Сенсорные кнопки — только на мобильных */
         .touch-panel {
             margin-top: 20px;
             display: flex;
@@ -135,7 +133,6 @@
             }
         }
 
-        /* Боковая панель */
         .sidebar {
             flex: 1;
             min-width: 150px;
@@ -193,7 +190,6 @@
             box-shadow: 0 2px 0 #9b551a;
         }
 
-        /* Модальные окна — кнопка закрытия отдельно, над содержимым */
         .modal {
             position: fixed;
             top: 0;
@@ -229,7 +225,6 @@
             position: relative;
         }
 
-        /* Кнопка закрытия — отдельная строка над заголовком */
         .modal-close-row {
             text-align: right;
             margin-bottom: 8px;
@@ -524,13 +519,12 @@
             return Math.floor((Date.now() - sessionStartTime) / 1000);
         }
         
-        // НОВЫЙ СПАВН: змейка строго внизу, начинаем движение вверх
+        // СПАВН: змейка строго внизу, голова на последней строке, тело выше
         function initGame(resetTimer = true) {
             const startX = Math.floor(GRID_SIZE / 2);
-            // Голова на самой нижней строке (GRID_SIZE - 1)
-            const headY = GRID_SIZE - 1;
+            const headY = GRID_SIZE - 1;      // самая нижняя строка
             snake = [
-                { x: startX, y: headY },      // голова внизу
+                { x: startX, y: headY },
                 { x: startX, y: headY - 1 },
                 { x: startX, y: headY - 2 }
             ];
@@ -575,10 +569,12 @@
             }
             
             const head = snake[0];
+            // Проверка выхода за границы
             if(head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
                 gameOver();
                 return false;
             }
+            // Проверка столкновения с собой (исключаем голову)
             for(let i = 1; i < snake.length; i++) {
                 if(snake[i].x === head.x && snake[i].y === head.y) {
                     gameOver();
