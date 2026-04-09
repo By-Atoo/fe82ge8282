@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Змейка | WASD + стрелки | Радужный фон</title>
+    <title>Змейка</title>
     <style>
         * {
             user-select: none;
@@ -20,7 +20,7 @@
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', 'Courier New', monospace;
-            padding: 0;
+            padding: 16px;
             overflow-x: hidden;
         }
 
@@ -47,8 +47,8 @@
 
         .game-container {
             width: 100%;
-            max-width: 100vw;
-            padding: 12px;
+            max-width: 1000px;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -57,18 +57,17 @@
         .game-console {
             background: rgba(10, 15, 8, 0.7);
             backdrop-filter: blur(8px);
-            border-radius: 56px;
-            padding: 20px 18px 22px;
-            box-shadow: 0 25px 40px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,200,0.2);
+            border-radius: 48px;
+            padding: 16px 18px 18px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,200,0.2);
             width: 100%;
-            max-width: 1200px;
         }
 
         .game-layout {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 24px;
+            gap: 20px;
         }
 
         .canvas-area {
@@ -84,41 +83,51 @@
             width: 100%;
             height: auto;
             background: #0a1f0a;
-            border-radius: 32px;
-            box-shadow: 0 0 0 5px #ffe6b3, 0 18px 35px black;
+            border-radius: 28px;
+            box-shadow: 0 0 0 4px #ffe6b3, 0 12px 25px black;
             cursor: pointer;
             aspect-ratio: 1 / 1;
-            max-width: 85vw;
-            max-height: 85vw;
+            max-width: 65vw;
+            max-height: 65vw;
+        }
+
+        /* Для ПК делаем холст фиксированного удобного размера */
+        @media (min-width: 900px) {
+            canvas {
+                max-width: 550px;
+                max-height: 550px;
+                width: 550px;
+                height: 550px;
+            }
         }
 
         .touch-panel {
-            margin-top: 20px;
+            margin-top: 18px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .arrow-row {
             display: flex;
             justify-content: center;
-            gap: 22px;
+            gap: 18px;
         }
 
         .ctrl-btn {
             background: #1e2a1aee;
             backdrop-filter: blur(6px);
             border: none;
-            font-size: 44px;
+            font-size: 38px;
             font-weight: bold;
-            padding: 8px 26px;
-            border-radius: 70px;
-            box-shadow: 0 7px 0 #0e3b0e;
+            padding: 6px 22px;
+            border-radius: 60px;
+            box-shadow: 0 6px 0 #0e3b0e;
             transition: 0.05s linear;
             cursor: pointer;
             color: #ffffcc;
-            min-width: 90px;
+            min-width: 80px;
             font-family: monospace;
         }
 
@@ -135,15 +144,15 @@
 
         .sidebar {
             flex: 1;
-            min-width: 140px;
+            min-width: 120px;
             background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(12px);
             border-radius: 48px;
-            padding: 20px 12px;
+            padding: 18px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
+            gap: 28px;
             border: 1px solid #ffda88;
         }
 
@@ -151,20 +160,20 @@
             text-align: center;
             background: #000000aa;
             width: 100%;
-            border-radius: 40px;
-            padding: 10px 5px;
+            border-radius: 36px;
+            padding: 8px 5px;
             border-bottom: 2px solid #ffcc55;
         }
 
         .score-label {
-            font-size: 16px;
+            font-size: 14px;
             color: #ffe6b3;
             letter-spacing: 1px;
             font-weight: 500;
         }
 
         .score-value {
-            font-size: 40px;
+            font-size: 36px;
             font-weight: bold;
             color: #ffffcc;
             text-shadow: 0 0 6px #ffaa44;
@@ -175,13 +184,13 @@
         .settings-btn {
             background: #ffb347dd;
             border: none;
-            font-size: 44px;
+            font-size: 40px;
             cursor: pointer;
-            padding: 8px;
+            padding: 6px;
             border-radius: 60px;
-            width: 80px;
+            width: 70px;
             transition: 0.08s linear;
-            box-shadow: 0 6px 0 #9b551a;
+            box-shadow: 0 5px 0 #9b551a;
             color: #2c1c0a;
         }
 
@@ -214,29 +223,29 @@
 
         .modal-content {
             background: #0f1a0f;
-            border-radius: 64px;
-            padding: 24px 28px 32px;
-            max-width: 380px;
+            border-radius: 56px;
+            padding: 20px 24px 28px;
+            max-width: 340px;
             width: 85%;
             text-align: center;
             border: 2px solid #ffdd77;
-            box-shadow: 0 0 40px #ffbb44;
+            box-shadow: 0 0 35px #ffbb44;
             color: #ffffdd;
             position: relative;
         }
 
         .modal-close-row {
             text-align: right;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .modal-close {
-            font-size: 32px;
+            font-size: 28px;
             cursor: pointer;
             color: #ffdd99;
             display: inline-block;
             line-height: 1;
             transition: 0.1s;
-            padding: 0 8px;
+            padding: 0 6px;
         }
         .modal-close:hover {
             color: #ffaa55;
@@ -244,34 +253,34 @@
         }
 
         .modal-content h2 {
-            font-size: 34px;
-            margin: 0 0 20px;
+            font-size: 30px;
+            margin: 0 0 16px;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
         .modal-stats {
-            font-size: 24px;
-            margin: 20px 0;
+            font-size: 22px;
+            margin: 18px 0;
             background: #00000099;
-            padding: 14px;
-            border-radius: 48px;
+            padding: 12px;
+            border-radius: 40px;
         }
 
         .modal-stats p {
-            margin: 10px 0;
+            margin: 8px 0;
         }
 
         .modal-btn {
             background: #ffb347;
             border: none;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            padding: 12px 20px;
-            border-radius: 70px;
+            padding: 10px 16px;
+            border-radius: 60px;
             font-family: monospace;
             cursor: pointer;
-            margin-top: 16px;
+            margin-top: 14px;
             width: 100%;
             box-shadow: 0 5px 0 #9b551a;
             transition: 0.05s linear;
@@ -286,66 +295,40 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 22px 0;
-            gap: 14px;
+            margin: 18px 0;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .setting-row label {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
         }
 
         input[type="range"] {
             flex: 2;
-            min-width: 150px;
+            min-width: 130px;
         }
 
         .value-display {
             background: black;
-            padding: 4px 12px;
-            border-radius: 40px;
+            padding: 3px 10px;
+            border-radius: 30px;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
         }
 
-        @media (max-width: 700px) {
-            .game-layout {
-                flex-direction: column;
-                align-items: center;
-            }
-            .sidebar {
-                flex-direction: row;
-                justify-content: space-evenly;
-                width: 100%;
-                padding: 14px 12px;
-                gap: 20px;
-            }
-            .score-value {
-                font-size: 34px;
-            }
-            canvas {
-                max-width: 92vw;
-                max-height: 92vw;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .settings-btn {
-                font-size: 36px;
-                width: 70px;
-            }
-            .ctrl-btn {
-                font-size: 28px;
-                padding: 5px 16px;
-                min-width: 60px;
-            }
-            .modal-content h2 {
-                font-size: 28px;
-            }
-            .modal-stats {
-                font-size: 20px;
-            }
+        /* Подсказка горячих клавиш (ненавязчиво) */
+        .hotkeys-hint {
+            text-align: center;
+            font-size: 11px;
+            color: #bbaa77;
+            margin-top: 12px;
+            background: #00000066;
+            display: inline-block;
+            width: auto;
+            padding: 3px 12px;
+            border-radius: 40px;
         }
     </style>
 </head>
@@ -357,7 +340,7 @@
     <div class="game-console">
         <div class="game-layout">
             <div class="canvas-area">
-                <canvas id="snakeCanvas" width="700" height="700"></canvas>
+                <canvas id="snakeCanvas" width="600" height="600"></canvas>
                 <div class="touch-panel">
                     <div class="arrow-row">
                         <button class="ctrl-btn" data-dir="UP">▲</button>
@@ -368,6 +351,7 @@
                         <button class="ctrl-btn" data-dir="RIGHT">▶</button>
                     </div>
                 </div>
+                <div class="hotkeys-hint">⌨️ ESC — настройки | Enter / Space — рестарт | WASD / стрелки</div>
             </div>
 
             <div class="sidebar">
@@ -387,7 +371,7 @@
         <div class="modal-close-row">
             <span class="modal-close" id="closeGameOverModal">✖</span>
         </div>
-        <h2 id="modalTitle">💀 GAME OVER 💀</h2>
+        <h2 id="modalTitle">💀GAME OVER💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
             <p>⏱️ Время: <span id="gameTime">0</span> сек.</p>
@@ -409,11 +393,11 @@
             <span id="gridSizeValue" class="value-display">20</span>
         </div>
         <div class="setting-row">
-            <label>⚡ СКОРОСТЬ →</label>
+            <label>⚡ СКОРОСТЬ</label>
             <input type="range" id="speedSlider" min="70" max="220" step="5" value="180">
             <span id="speedValue" class="value-display">110</span>
         </div>
-        <button class="modal-btn" id="applySettingsBtn">ПРИМЕНИТЬ И РЕСТАРТ</button>
+        <button class="modal-btn" id="applySettingsBtn">ПРИМЕНИТЬ И ПЕРЕЗАПУСТИТЬ</button>
         <button class="modal-btn" id="resetSettingsBtn" style="background:#5f4a2e;">⟳ СБРОС НАСТРОЕК</button>
     </div>
 </div>
@@ -451,7 +435,7 @@
         
         // ----- ИГРОВЫЕ ПАРАМЕТРЫ -----
         const DEFAULT_GRID = 20;
-        const DEFAULT_SPEED = 110;  // мс задержка
+        const DEFAULT_SPEED = 110;
         
         let GRID_SIZE = DEFAULT_GRID;
         let CELL_SIZE = canvas.width / GRID_SIZE;
@@ -518,12 +502,11 @@
             return Math.floor((Date.now() - sessionStartTime) / 1000);
         }
         
-        // СПАВН: змейка внизу, голова направлена вверх, не касается края
         function initGame(resetTimer = true) {
             const startX = Math.floor(GRID_SIZE / 2);
             const headY = GRID_SIZE - 2;
             snake = [
-                { x: startX, y: headY },      // голова
+                { x: startX, y: headY },
                 { x: startX, y: headY + 1 },
                 { x: startX, y: headY + 2 }
             ];
@@ -591,7 +574,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '💀 GAME OVER 💀';
+            modalTitle.innerHTML = '💀GAME OVER💀';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -606,12 +589,11 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '🏆 ПОБЕДА! 🏆';
+            modalTitle.innerHTML = '🏆VICTORY🏆';
             gameOverModal.classList.add('active');
             drawGame();
         }
         
-        // Отрисовка с умными глазами
         function drawGame() {
             if(!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -630,7 +612,6 @@
                 ctx.stroke();
             }
             
-            // Еда
             const fx = food.x * CELL_SIZE;
             const fy = food.y * CELL_SIZE;
             const size = CELL_SIZE;
@@ -648,7 +629,6 @@
                 ctx.fill();
             }
             
-            // Змейка
             for(let i = 0; i < snake.length; i++) {
                 const seg = snake[i];
                 const x = seg.x * CELL_SIZE;
@@ -666,13 +646,11 @@
                 ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, radius);
                 ctx.stroke();
                 
-                // Глаза только для головы
                 if(i === 0) {
                     const eyeSize = Math.max(3, CELL_SIZE * 0.18);
                     const pupilSize = Math.max(1.5, eyeSize * 0.6);
                     const eyeOffsetX = CELL_SIZE * 0.28;
                     const eyeOffsetY = CELL_SIZE * 0.32;
-                    
                     const leftEyeX = x + eyeOffsetX;
                     const rightEyeX = x + CELL_SIZE - eyeOffsetX;
                     const eyeY = y + eyeOffsetY;
@@ -732,7 +710,6 @@
             };
         }
         
-        // Игровой цикл
         function gameTick(now) {
             if(!gameRunning) {
                 drawGame();
@@ -767,7 +744,7 @@
             gameLoopId = requestAnimationFrame(gameTick);
         }
         
-        // Управление (стрелки + WASD)
+        // ----- УПРАВЛЕНИЕ С КЛАВИАТУРЫ (стрелки + WASD + ESC + Enter/R) -----
         function setDirection(newDir) {
             if(!gameRunning) return;
             if((newDir === 'RIGHT' && direction !== 'LEFT') ||
@@ -802,23 +779,65 @@
         function handleTouchEnd(e) { e.preventDefault(); touchStart = null; }
         
         function handleKeydown(e) {
-            if(!gameRunning) return;
-            let mapped = null;
             const key = e.key;
-            // Стрелки
-            if(key === 'ArrowUp') mapped = 'UP';
-            else if(key === 'ArrowDown') mapped = 'DOWN';
-            else if(key === 'ArrowLeft') mapped = 'LEFT';
-            else if(key === 'ArrowRight') mapped = 'RIGHT';
-            // WASD
-            else if(key === 'w' || key === 'W') mapped = 'UP';
-            else if(key === 's' || key === 'S') mapped = 'DOWN';
-            else if(key === 'a' || key === 'A') mapped = 'LEFT';
-            else if(key === 'd' || key === 'D') mapped = 'RIGHT';
+            // Управление движением (всегда, если игра активна)
+            if(gameRunning) {
+                let mapped = null;
+                if(key === 'ArrowUp') mapped = 'UP';
+                else if(key === 'ArrowDown') mapped = 'DOWN';
+                else if(key === 'ArrowLeft') mapped = 'LEFT';
+                else if(key === 'ArrowRight') mapped = 'RIGHT';
+                else if(key === 'w' || key === 'W') mapped = 'UP';
+                else if(key === 's' || key === 'S') mapped = 'DOWN';
+                else if(key === 'a' || key === 'A') mapped = 'LEFT';
+                else if(key === 'd' || key === 'D') mapped = 'RIGHT';
+                if(mapped) {
+                    e.preventDefault();
+                    setDirection(mapped);
+                    return;
+                }
+            }
             
-            if(mapped) {
+            // Глобальные горячие клавиши
+            if(key === 'Escape') {
                 e.preventDefault();
-                setDirection(mapped);
+                // Если меню настроек открыто — закрыть, иначе открыть
+                if(settingsModal.classList.contains('active')) {
+                    settingsModal.classList.remove('active');
+                    // Если игра была на паузе, возобновляем? нет, игра на паузе только если меню открыто вручную, но мы её не останавливали при открытии? В коде открытия мы ставим gameRunning = false. Нужно восстановить.
+                    // Лучше: при открытии меню мы ставим gameRunning = false, при закрытии — возобновляем.
+                    if(!gameRunning && gameLoopId === null) {
+                        // перезапускаем цикл, если он остановлен
+                        gameRunning = true;
+                        startGameLoop();
+                    }
+                } else {
+                    // Открыть настройки, поставив игру на паузу
+                    if(gameLoopId) cancelAnimationFrame(gameLoopId);
+                    gameRunning = false;
+                    gridSizeSlider.value = GRID_SIZE;
+                    gridSizeValueSpan.innerText = GRID_SIZE;
+                    const sliderVal = 70 + 220 - gameSpeed;
+                    speedSlider.value = sliderVal;
+                    speedValueSpan.innerText = gameSpeed;
+                    settingsModal.classList.add('active');
+                }
+                return;
+            }
+            
+            // Рестарт игры по клавише Enter или Пробел
+            if(key === 'Enter' || key === 'space' || key === 'Space') {
+                e.preventDefault();
+                fullRestart();
+                return;
+            }
+            
+            // Если меню настроек активно, то Enter применяет настройки, Escape уже обработан выше
+            if(settingsModal.classList.contains('active')) {
+                if(key === 'Enter') {
+                    e.preventDefault();
+                    applySettingsAndRestart();
+                }
             }
         }
         
@@ -883,7 +902,13 @@
             });
             
             document.getElementById('closeGameOverModal').onclick = () => gameOverModal.classList.remove('active');
-            document.getElementById('closeSettingsModal').onclick = () => settingsModal.classList.remove('active');
+            document.getElementById('closeSettingsModal').onclick = () => {
+                settingsModal.classList.remove('active');
+                if(!gameRunning && gameLoopId === null) {
+                    gameRunning = true;
+                    startGameLoop();
+                }
+            };
             document.getElementById('restartFromDeathBtn').onclick = () => fullRestart();
             document.getElementById('openSettingsBtn').onclick = () => {
                 if(gameLoopId) cancelAnimationFrame(gameLoopId);
