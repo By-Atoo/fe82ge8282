@@ -3,326 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Shake</title>
+    <title>Змейка :: консольная версия</title>
     <style>
         * {
             user-select: none;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb4d);
-            background-size: 400% 400%;
-            animation: auroraFlow 12s ease infinite;
+            background: radial-gradient(circle at 20% 30%, #0a0f0a, #030603);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', 'Courier New', system-ui, monospace;
-            padding: 16px;
-        }
-
-        @keyframes auroraFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Контейнер игры — максимальная ширина, но с отступами */
-        .game-wrapper {
-            max-width: 1000px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 56px;
-            padding: 16px;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 25px 40px rgba(0,0,0,0.5);
-        }
-
-        .game-panel {
-            background: rgba(25, 20, 15, 0.7);
-            border-radius: 48px;
+            font-family: 'Courier New', 'Fira Code', monospace;
             padding: 20px;
-            backdrop-filter: blur(2px);
         }
 
-        /* Верхняя панель: счёт и настройки */
-        .top-bar {
+        /* главный блок в стиле консольной консоли */
+        .console-wrapper {
+            background: #0c0f0c;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 0 0 2px #2e6b2e, 0 15px 30px rgba(0,0,0,0.6), inset 0 0 15px rgba(0,255,0,0.1);
+            backdrop-filter: blur(0px);
+        }
+
+        .game-console {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 15px;
             flex-wrap: wrap;
-        }
-
-        .score-box {
-            background: #000000aa;
-            backdrop-filter: blur(8px);
-            padding: 8px 24px;
-            border-radius: 60px;
-            color: #fff0b5;
-            font-weight: bold;
-            font-size: 36px;
-            letter-spacing: 2px;
-            font-family: monospace;
-            display: flex;
-            align-items: baseline;
-            gap: 12px;
-            border: 1px solid #ffdd88;
-        }
-
-        .score-label {
-            font-size: 24px;
-            color: #ffe6aa;
-        }
-
-        /* Настройка размера сетки */
-        .grid-control {
-            display: flex;
-            gap: 12px;
-            background: #00000088;
-            backdrop-filter: blur(8px);
-            padding: 6px 18px;
-            border-radius: 60px;
-            align-items: center;
-        }
-
-        .grid-control span {
-            color: #ffecb3;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .grid-btn {
-            background: #ffb347;
-            border: none;
-            font-size: 20px;
-            font-weight: bold;
-            width: 44px;
-            height: 44px;
-            border-radius: 40px;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #9b551a;
-            transition: 0.05s linear;
-            color: #2c1c0a;
-        }
-
-        .grid-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 0 #9b551a;
-        }
-
-        .grid-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffefb0;
-            min-width: 50px;
-            text-align: center;
-        }
-
-        /* Холст — увеличенный (800x800) */
-        .canvas-wrapper {
-            display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            align-items: flex-start;
+            gap: 24px;
+            background: #010101cc;
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        /* игровое поле — кибер-монитор */
+        .canvas-area {
+            flex: 3;
+            min-width: 280px;
         }
 
         canvas {
             display: block;
             margin: 0 auto;
-            border-radius: 32px;
-            box-shadow: 0 0 0 6px #ffecb3, 0 15px 30px black;
-            background-color: #1e3a1a;
+            border-radius: 18px;
+            box-shadow: 0 0 0 3px #2ecc2e, 0 0 0 6px #0f3f0f, 0 10px 25px black;
+            background-color: #001000;
+            cursor: pointer;
             width: 100%;
             height: auto;
-            cursor: pointer;
         }
 
-        /* Кнопка рестарт — на всю ширину */
-        .restart-container {
-            width: 100%;
-            margin: 15px 0 15px 0;
-        }
-
-        .restart-btn {
-            background: #ffb347;
-            border: none;
-            font-size: 26px;
-            font-weight: bold;
-            padding: 14px 0;
-            width: 100%;
-            border-radius: 80px;
-            font-family: inherit;
-            color: #2c1c0a;
-            cursor: pointer;
-            transition: 0.08s linear;
-            box-shadow: 0 6px 0 #9b551a;
-            letter-spacing: 2px;
-            text-align: center;
-        }
-
-        .restart-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #9b551a;
-        }
-
-        /* Панель сенсорных кнопок (стрелки) */
-        .touch-controls {
+        /* боковая панель: счёт и настройки (в сторону) */
+        .sidebar {
+            flex: 0.8;
+            min-width: 130px;
+            background: #0a120a;
+            border-radius: 28px;
+            padding: 20px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
-            margin-top: 5px;
+            gap: 35px;
+            box-shadow: inset 0 0 8px #2e6b2e, 0 5px 12px black;
+            border: 1px solid #2b792b;
+        }
+
+        .score-console {
+            text-align: center;
+            background: #000000aa;
+            width: 100%;
+            border-radius: 40px;
+            padding: 12px 5px;
+            border-bottom: 3px solid #3eaa3e;
+        }
+
+        .score-label {
+            font-size: 18px;
+            color: #6f9e6f;
+            letter-spacing: 2px;
+        }
+
+        .score-value {
+            font-size: 58px;
+            font-weight: bold;
+            color: #b3ffa7;
+            text-shadow: 0 0 6px #00ff33;
+            font-family: monospace;
+            line-height: 1;
+        }
+
+        .settings-btn {
+            background: #1e2a1a;
+            border: none;
+            font-size: 48px;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 60px;
+            width: 80px;
+            transition: 0.08s linear;
+            box-shadow: 0 6px 0 #0e3b0e;
+            color: #e5ffb3;
+        }
+
+        .settings-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #0e3b0e;
+        }
+
+        /* сенсорное управление (кнопки без лишних надписей) */
+        .touch-panel {
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
         .arrow-row {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 20px;
         }
 
         .ctrl-btn {
-            background: #fee3a0;
+            background: #1e2a1a;
             border: none;
-            font-size: 44px;
+            font-size: 40px;
             font-weight: bold;
-            padding: 12px 28px;
-            border-radius: 70px;
-            box-shadow: 0 7px 0 #b97f2e;
+            padding: 8px 20px;
+            border-radius: 50px;
+            box-shadow: 0 5px 0 #0e3b0e;
             transition: 0.05s linear;
             cursor: pointer;
-            touch-action: manipulation;
-            color: #5a3a1a;
-            text-align: center;
-            min-width: 90px;
-            font-family: monospace;
+            color: #ccff99;
+            min-width: 80px;
         }
 
         .ctrl-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #b97f2e;
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #0e3b0e;
         }
 
-        /* Статус игры (мини-иконка) */
-        .status {
+        /* модальные окна (смерть / настройки) */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-family: 'Courier New', monospace;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.2s, opacity 0.2s;
+        }
+
+        .modal.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: #0b130b;
+            border-radius: 48px;
+            padding: 28px 32px;
+            max-width: 340px;
+            width: 80%;
             text-align: center;
-            margin-top: 12px;
-            font-size: 28px;
+            border: 2px solid #3cb043;
+            box-shadow: 0 0 25px #00aa33;
+            color: #c3ffb2;
+        }
+
+        .modal-content h2 {
+            font-size: 32px;
+            margin: 0 0 16px 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .modal-stats {
+            font-size: 22px;
+            margin: 20px 0;
+            background: #00000066;
+            padding: 12px;
+            border-radius: 32px;
+        }
+
+        .modal-stats p {
+            margin: 8px 0;
+        }
+
+        .modal-btn {
+            background: #ffb347;
+            border: none;
+            font-size: 24px;
             font-weight: bold;
-            background: #000000aa;
-            backdrop-filter: blur(8px);
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 4px 28px;
+            padding: 10px 24px;
             border-radius: 60px;
-            color: #ffeaac;
-            letter-spacing: 1px;
+            font-family: monospace;
+            cursor: pointer;
+            margin-top: 12px;
+            width: 100%;
+            box-shadow: 0 4px 0 #9b551a;
         }
 
-        /* Адаптация под мобильные */
+        .modal-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #9b551a;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .setting-row label {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            flex: 2;
+            min-width: 140px;
+        }
+
+        .value-display {
+            background: black;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .close-icon {
+            position: absolute;
+            top: 18px;
+            right: 24px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #ffaa55;
+        }
+
         @media (max-width: 650px) {
-            .ctrl-btn {
-                font-size: 32px;
-                padding: 10px 20px;
-                min-width: 70px;
+            .game-console {
+                flex-direction: column;
             }
-            .arrow-row {
-                gap: 18px;
+            .sidebar {
+                flex-direction: row;
+                justify-content: space-around;
+                width: 100%;
             }
-            .score-box {
-                font-size: 28px;
-                padding: 4px 18px;
-            }
-            .score-label {
-                font-size: 20px;
-            }
-            .grid-btn {
-                width: 38px;
-                height: 38px;
-                font-size: 18px;
-            }
-            .restart-btn {
-                font-size: 22px;
-                padding: 10px 0;
-            }
-        }
-
-        @media (max-width: 480px) {
             .ctrl-btn {
                 font-size: 28px;
-                padding: 8px 16px;
+                padding: 6px 14px;
                 min-width: 60px;
             }
-            .top-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .grid-control {
-                justify-content: center;
+            .score-value {
+                font-size: 42px;
             }
         }
     </style>
 </head>
 <body>
-<div class="game-wrapper">
-    <div class="game-panel">
-        <!-- Верхняя панель: счёт и настройки сетки -->
-        <div class="top-bar">
-            <div class="score-box">
-                <span class="score-label">🍎</span>
-                <span id="scoreValue">0</span>
-            </div>
-            <div class="grid-control">
-                <span>📐</span>
-                <button class="grid-btn" id="gridMinus">−</button>
-                <span id="gridSizeDisplay" class="grid-value">20</span>
-                <button class="grid-btn" id="gridPlus">+</button>
-            </div>
-        </div>
-
-        <!-- Увеличенный холст (800x800) -->
-        <div class="canvas-wrapper">
-            <canvas id="snakeCanvas" width="800" height="800"></canvas>
-        </div>
-
-        <!-- Кнопка рестарт на всю ширину -->
-        <div class="restart-container">
-            <button class="restart-btn" id="restartButton">⟳ НОВАЯ ИГРА</button>
-        </div>
-
-        <!-- Сенсорные кнопки управления -->
-        <div class="touch-controls">
-            <div class="arrow-row">
-                <button class="ctrl-btn" data-dir="UP">▲</button>
-            </div>
-            <div class="arrow-row">
-                <button class="ctrl-btn" data-dir="LEFT">◀</button>
-                <button class="ctrl-btn" data-dir="DOWN">▼</button>
-                <button class="ctrl-btn" data-dir="RIGHT">▶</button>
+<div class="console-wrapper">
+    <div class="game-console">
+        <!-- игровая область -->
+        <div class="canvas-area">
+            <canvas id="snakeCanvas" width="700" height="700"></canvas>
+            <!-- сенсорные кнопки (только стрелки, без подписей) -->
+            <div class="touch-panel">
+                <div class="arrow-row">
+                    <button class="ctrl-btn" data-dir="UP">▲</button>
+                </div>
+                <div class="arrow-row">
+                    <button class="ctrl-btn" data-dir="LEFT">◀</button>
+                    <button class="ctrl-btn" data-dir="DOWN">▼</button>
+                    <button class="ctrl-btn" data-dir="RIGHT">▶</button>
+                </div>
             </div>
         </div>
 
-        <!-- Статус игры (иконка) -->
-        <div id="gameStatus" class="status">▶</div>
+        <!-- боковая панель: только счёт и шестерёнка -->
+        <div class="sidebar">
+            <div class="score-console">
+                <div class="score-label">🍎 СЧЕТ</div>
+                <div class="score-value" id="scoreValue">0</div>
+            </div>
+            <button class="settings-btn" id="openSettingsBtn">⚙️</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно GAME OVER / WIN -->
+<div id="gameOverModal" class="modal">
+    <div class="modal-content">
+        <div class="close-icon" id="closeGameOverModal">✖</div>
+        <h2 id="modalTitle">💀 GAME OVER 💀</h2>
+        <div class="modal-stats">
+            <p>🐍 Счёт: <span id="finalScore">0</span></p>
+            <p>⏱️ Время игры: <span id="gameTime">0</span> сек.</p>
+        </div>
+        <button class="modal-btn" id="restartFromDeathBtn">⟳ НОВАЯ ИГРА</button>
+    </div>
+</div>
+
+<!-- Модальное окно НАСТРОЕК -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <div class="close-icon" id="closeSettingsModal">✖</div>
+        <h2>⚙️ КОНСОЛЬ</h2>
+        <div class="setting-row">
+            <label>📐 РАЗМЕР СЕТКИ</label>
+            <button id="gridMinus" style="background:#2e2e1e;border:none;font-size:22px;width:40px;">−</button>
+            <span id="gridSizeValue" style="min-width:45px;text-align:center;font-weight:bold;">20</span>
+            <button id="gridPlus" style="background:#2e2e1e;border:none;font-size:22px;width:40px;">+</button>
+        </div>
+        <div class="setting-row">
+            <label>⚡ СКОРОСТЬ (мс)</label>
+            <input type="range" id="speedSlider" min="70" max="220" step="5" value="110">
+            <span id="speedValue" class="value-display">110</span>
+        </div>
+        <button class="modal-btn" id="applySettingsBtn">ПРИМЕНИТЬ И РЕСТАРТ</button>
+        <button class="modal-btn" id="resetFromSettingsBtn" style="background:#5f4a2e;">⟳ СБРОС ИГРЫ</button>
     </div>
 </div>
 
 <script>
     (function(){
-        // ----- ЭЛЕМЕНТЫ -----
+        // ------ DOM элементы ------
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
-        const statusDiv = document.getElementById('gameStatus');
-        const gridSizeDisplay = document.getElementById('gridSizeDisplay');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const settingsModal = document.getElementById('settingsModal');
+        const finalScoreSpan = document.getElementById('finalScore');
+        const gameTimeSpan = document.getElementById('gameTime');
+        const modalTitle = document.getElementById('modalTitle');
+        const gridSizeValueSpan = document.getElementById('gridSizeValue');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValueSpan = document.getElementById('speedValue');
         
-        // ----- ПЕРЕМЕННЫЕ ИГРЫ -----
-        let GRID_SIZE = 20;          // по умолчанию 20x20
-        let CELL_SIZE = canvas.width / GRID_SIZE; // 800 / 20 = 40px
+        // ------ Игровые параметры ------
+        let GRID_SIZE = 20;          // изменяемый
+        let CELL_SIZE = canvas.width / GRID_SIZE;
+        let gameSpeed = 110;          // мс на ход
         
         let snake = [];
         let food = { x: 12, y: 12 };
@@ -331,25 +371,21 @@
         let score = 0;
         let gameRunning = true;
         let gameLoopId = null;
-        let gameSpeed = 110;          // мс на шаг
         let lastMoveTime = 0;
+        
+        // Таймер сессии
+        let sessionStartTime = null;   // timestamp начала текущей игры
+        let sessionActive = true;      // флаг для отслеживания
         
         // Изображение яблока
         let appleImage = new Image();
         let appleLoaded = false;
         const APPLE_URL = 'https://raw.githubusercontent.com/By-Atoo/fe82ge8282/main/.res/apple.png';
-        
-        appleImage.onload = () => {
-            appleLoaded = true;
-            drawGame();
-        };
-        appleImage.onerror = () => {
-            appleLoaded = false;
-            drawGame();
-        };
+        appleImage.onload = () => { appleLoaded = true; drawGame(); };
+        appleImage.onerror = () => { appleLoaded = false; drawGame(); };
         appleImage.src = APPLE_URL;
         
-        // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ -----
+        // ------ Вспомогательные функции ------
         function updateCellSize() {
             CELL_SIZE = canvas.width / GRID_SIZE;
         }
@@ -368,7 +404,6 @@
                     return;
                 }
             }
-            // Ручной поиск
             for(let y = 0; y < GRID_SIZE; y++) {
                 for(let x = 0; x < GRID_SIZE; x++) {
                     if(!isPartOfSnake(x, y)) {
@@ -377,16 +412,26 @@
                     }
                 }
             }
-            gameWin();
+            gameWin(); // победа, нет места
         }
         
         function updateScoreUI() {
             scoreSpan.innerText = score;
         }
         
-        // Инициализация / сброс игры с текущим GRID_SIZE
-        function initGame() {
-            // Центральная стартовая позиция
+        // Запуск таймера сессии
+        function startSessionTimer() {
+            sessionStartTime = Date.now();
+            sessionActive = true;
+        }
+        
+        function getSessionDuration() {
+            if(!sessionStartTime) return 0;
+            return Math.floor((Date.now() - sessionStartTime) / 1000);
+        }
+        
+        // Инициализация / сброс игры с текущими параметрами
+        function initGame(resetTimer = true) {
             const center = Math.floor(GRID_SIZE / 2);
             snake = [
                 { x: center, y: center },
@@ -398,10 +443,11 @@
             score = 0;
             gameRunning = true;
             updateScoreUI();
-            statusDiv.innerHTML = '▶';
-            statusDiv.style.color = '#d4ffb0';
             generateValidFood();
             drawGame();
+            if(resetTimer) {
+                startSessionTimer();
+            }
         }
         
         // Логика движения
@@ -436,15 +482,13 @@
             }
             
             const head = snake[0];
-            // Стены
             if(head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
-                gameOver('💀');
+                gameOver('стена');
                 return false;
             }
-            // Столкновение с собой
             for(let i = 1; i < snake.length; i++) {
                 if(snake[i].x === head.x && snake[i].y === head.y) {
-                    gameOver('💀');
+                    gameOver('самостолкновение');
                     return false;
                 }
             }
@@ -454,39 +498,47 @@
         function gameOver(reason) {
             if(!gameRunning) return;
             gameRunning = false;
-            statusDiv.innerHTML = '💀';
-            statusDiv.style.color = '#ffa07a';
+            sessionActive = false;
             if(gameLoopId) {
                 cancelAnimationFrame(gameLoopId);
                 gameLoopId = null;
             }
+            // показать меню смерти с временем и счётом
+            const duration = getSessionDuration();
+            finalScoreSpan.innerText = score;
+            gameTimeSpan.innerText = duration;
+            modalTitle.innerHTML = '💀 GAME OVER 💀';
+            gameOverModal.classList.add('active');
             drawGame();
         }
         
         function gameWin() {
             if(!gameRunning) return;
             gameRunning = false;
-            statusDiv.innerHTML = '🏆';
-            statusDiv.style.color = '#ffd966';
+            sessionActive = false;
             if(gameLoopId) {
                 cancelAnimationFrame(gameLoopId);
                 gameLoopId = null;
             }
+            const duration = getSessionDuration();
+            finalScoreSpan.innerText = score;
+            gameTimeSpan.innerText = duration;
+            modalTitle.innerHTML = '🏆 ПОБЕДА! 🏆';
+            gameOverModal.classList.add('active');
             drawGame();
         }
         
-        // ----- ОТРИСОВКА (с учётом CELL_SIZE) -----
+        // ------ Отрисовка в стиле консоли (чёрный фон, зелёные линии) ------
         function drawGame() {
             if(!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Яркий фон поля
-            ctx.fillStyle = '#b8f080';
+            // чёрный фон консоли
+            ctx.fillStyle = '#041004';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Сетка
-            ctx.strokeStyle = '#d6ff96';
-            ctx.lineWidth = 1.5;
+            // зелёная сетка
+            ctx.strokeStyle = '#2eaa2e';
+            ctx.lineWidth = 1.2;
             for(let i = 0; i <= GRID_SIZE; i++) {
                 ctx.beginPath();
                 ctx.moveTo(i * CELL_SIZE, 0);
@@ -497,82 +549,58 @@
                 ctx.stroke();
             }
             
-            // Еда (яблоко)
+            // яблоко (текстура или пиксельный стиль)
             const fx = food.x * CELL_SIZE;
             const fy = food.y * CELL_SIZE;
             const size = CELL_SIZE;
             if(appleLoaded && appleImage.complete && appleImage.naturalWidth > 0) {
-                const padding = Math.max(2, Math.floor(CELL_SIZE * 0.1));
-                ctx.drawImage(appleImage, fx + padding, fy + padding, size - padding*2, size - padding*2);
+                const pad = Math.max(2, CELL_SIZE * 0.1);
+                ctx.drawImage(appleImage, fx + pad, fy + pad, size - pad*2, size - pad*2);
             } else {
-                // Fallback
-                ctx.fillStyle = '#ff4d4d';
-                ctx.shadowBlur = 2;
+                ctx.fillStyle = '#ff5555';
                 ctx.beginPath();
                 ctx.arc(fx + size/2, fy + size/2, size/2 - 3, 0, Math.PI*2);
                 ctx.fill();
-                ctx.fillStyle = '#f9e05e';
+                ctx.fillStyle = '#aaffaa';
                 ctx.beginPath();
                 ctx.arc(fx + size/2 - 3, fy + size/2 - 4, 3, 0, Math.PI*2);
                 ctx.fill();
-                ctx.fillStyle = '#5e8c3a';
-                ctx.beginPath();
-                ctx.moveTo(fx + size/2 + 3, fy + size/2 - 9);
-                ctx.lineTo(fx + size/2 + 8, fy + size/2 - 15);
-                ctx.lineTo(fx + size/2 - 1, fy + size/2 - 11);
-                ctx.fill();
-                ctx.shadowBlur = 0;
             }
             
-            // Змейка
+            // змейка: светящийся зелёный
             for(let i = 0; i < snake.length; i++) {
                 const seg = snake[i];
                 const x = seg.x * CELL_SIZE;
                 const y = seg.y * CELL_SIZE;
-                const radius = Math.max(4, CELL_SIZE * 0.2);
-                const grad = ctx.createLinearGradient(x, y, x+CELL_SIZE, y+CELL_SIZE);
-                if(i === 0) {
-                    grad.addColorStop(0, '#7ef86a');
-                    grad.addColorStop(1, '#48c43b');
-                } else {
-                    grad.addColorStop(0, '#5fdf52');
-                    grad.addColorStop(1, '#38a52c');
-                }
-                ctx.fillStyle = grad;
+                const radius = Math.max(3, CELL_SIZE * 0.2);
+                ctx.fillStyle = i === 0 ? '#7cfc00' : '#3cb043';
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = '#00ff66';
                 ctx.beginPath();
                 ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, radius);
                 ctx.fill();
-                ctx.strokeStyle = '#1f771a';
-                ctx.lineWidth = 1.8;
+                ctx.strokeStyle = '#004d00';
+                ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, radius);
                 ctx.stroke();
-                
-                // Глаза для головы
                 if(i === 0) {
-                    const eyeSize = Math.max(2.5, CELL_SIZE * 0.1);
-                    const eyeOffsetX = CELL_SIZE * 0.25;
-                    const eyeOffsetY = CELL_SIZE * 0.3;
                     ctx.fillStyle = '#ffffff';
+                    const eyeOff = CELL_SIZE * 0.25;
                     ctx.beginPath();
-                    ctx.arc(x + CELL_SIZE - eyeOffsetX, y + eyeOffsetY, eyeSize, 0, Math.PI*2);
-                    ctx.arc(x + eyeOffsetX, y + eyeOffsetY, eyeSize, 0, Math.PI*2);
+                    ctx.arc(x + CELL_SIZE - eyeOff, y + eyeOff, 3, 0, Math.PI*2);
+                    ctx.arc(x + eyeOff, y + eyeOff, 3, 0, Math.PI*2);
                     ctx.fill();
-                    ctx.fillStyle = '#010101';
+                    ctx.fillStyle = '#000';
                     ctx.beginPath();
-                    ctx.arc(x + CELL_SIZE - eyeOffsetX - 1, y + eyeOffsetY - 1, eyeSize*0.7, 0, Math.PI*2);
-                    ctx.arc(x + eyeOffsetX - 1, y + eyeOffsetY - 1, eyeSize*0.7, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.fillStyle = 'white';
-                    ctx.beginPath();
-                    ctx.arc(x + CELL_SIZE - eyeOffsetX - 1.5, y + eyeOffsetY - 1.8, eyeSize*0.35, 0, Math.PI*2);
-                    ctx.arc(x + eyeOffsetX - 1.5, y + eyeOffsetY - 1.8, eyeSize*0.35, 0, Math.PI*2);
+                    ctx.arc(x + CELL_SIZE - eyeOff - 1, y + eyeOff - 1, 1.5, 0, Math.PI*2);
+                    ctx.arc(x + eyeOff - 1, y + eyeOff - 1, 1.5, 0, Math.PI*2);
                     ctx.fill();
                 }
             }
+            ctx.shadowBlur = 0;
         }
         
-        // roundRect
         if (!CanvasRenderingContext2D.prototype.roundRect) {
             CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
                 if (w < 2 * r) r = w / 2;
@@ -590,34 +618,26 @@
             };
         }
         
-        // ----- ИГРОВОЙ ЦИКЛ -----
+        // ------ Игровой цикл ------
         function gameTick(now) {
             if(!gameRunning) {
                 drawGame();
-                if(gameLoopId) {
-                    cancelAnimationFrame(gameLoopId);
-                    gameLoopId = null;
-                }
                 return;
             }
-            
             if(!lastMoveTime) {
                 lastMoveTime = now;
                 requestAnimationFrame(gameTick);
                 drawGame();
                 return;
             }
-            
             const elapsed = now - lastMoveTime;
             if(elapsed >= gameSpeed) {
                 const success = moveSnake();
                 lastMoveTime = now;
                 drawGame();
                 if(!success) {
-                    if(gameLoopId) {
-                        cancelAnimationFrame(gameLoopId);
-                        gameLoopId = null;
-                    }
+                    if(gameLoopId) cancelAnimationFrame(gameLoopId);
+                    gameLoopId = null;
                     drawGame();
                     return;
                 }
@@ -633,7 +653,7 @@
             gameLoopId = requestAnimationFrame(gameTick);
         }
         
-        // ----- УПРАВЛЕНИЕ: СВАЙПЫ + КНОПКИ + КЛАВИАТУРА -----
+        // ------ Управление (свайпы + кнопки + клавиатура) ------
         function setDirection(newDir) {
             if(!gameRunning) return;
             if((newDir === 'RIGHT' && direction !== 'LEFT') ||
@@ -650,132 +670,128 @@
             e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
-            touchStart = {
-                x: touch.clientX - rect.left,
-                y: touch.clientY - rect.top,
-                time: Date.now()
-            };
+            touchStart = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
         }
-        
         function handleTouchMove(e) {
             e.preventDefault();
             if(!touchStart || !gameRunning) return;
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
-            const currentX = touch.clientX - rect.left;
-            const currentY = touch.clientY - rect.top;
-            const dx = currentX - touchStart.x;
-            const dy = currentY - touchStart.y;
+            const dx = (touch.clientX - rect.left) - touchStart.x;
+            const dy = (touch.clientY - rect.top) - touchStart.y;
             if(Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
-            
             let newDir = null;
-            if(Math.abs(dx) > Math.abs(dy)) {
-                newDir = dx > 0 ? 'RIGHT' : 'LEFT';
-            } else {
-                newDir = dy > 0 ? 'DOWN' : 'UP';
-            }
+            if(Math.abs(dx) > Math.abs(dy)) newDir = dx > 0 ? 'RIGHT' : 'LEFT';
+            else newDir = dy > 0 ? 'DOWN' : 'UP';
             if(newDir) setDirection(newDir);
             touchStart = null;
         }
+        function handleTouchEnd(e) { e.preventDefault(); touchStart = null; }
         
-        function handleTouchEnd(e) {
-            e.preventDefault();
-            touchStart = null;
-        }
-        
-        // Клавиатура
         function handleKeydown(e) {
             if(!gameRunning) return;
-            let mapped = null;
-            if(e.key === 'ArrowUp') mapped = 'UP';
-            else if(e.key === 'ArrowDown') mapped = 'DOWN';
-            else if(e.key === 'ArrowLeft') mapped = 'LEFT';
-            else if(e.key === 'ArrowRight') mapped = 'RIGHT';
-            if(mapped) {
-                e.preventDefault();
-                setDirection(mapped);
-            }
+            let key = e.key;
+            if(key === 'ArrowUp') setDirection('UP');
+            else if(key === 'ArrowDown') setDirection('DOWN');
+            else if(key === 'ArrowLeft') setDirection('LEFT');
+            else if(key === 'ArrowRight') setDirection('RIGHT');
+            else return;
+            e.preventDefault();
         }
         
-        // ----- ИЗМЕНЕНИЕ РАЗМЕРА СЕТКИ (перезапуск) -----
-        let availableSizes = [15, 20, 25, 30];
-        let currentSizeIndex = 1; // 20 по умолчанию
-        
-        function setGridSize(newSize) {
-            if(newSize === GRID_SIZE) return;
-            GRID_SIZE = newSize;
-            updateCellSize();
-            gridSizeDisplay.innerText = GRID_SIZE;
-            // Перезапуск игры с новыми параметрами
+        // ------ Перезапуск игры (сброс всего) ------
+        function fullRestart() {
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
-            initGame();
-            startGameLoop();
-        }
-        
-        function changeGrid(delta) {
-            let newVal = GRID_SIZE + delta;
-            if(newVal >= 10 && newVal <= 40) {
-                setGridSize(newVal);
-            }
-        }
-        
-        // ----- ПЕРЕЗАПУСК -----
-        function restartGame() {
-            if(gameLoopId) cancelAnimationFrame(gameLoopId);
-            initGame();
-            direction = 'RIGHT';
-            nextDirection = 'RIGHT';
+            initGame(true);
             gameRunning = true;
             lastMoveTime = 0;
-            drawGame();
             startGameLoop();
+            // закрываем модалки если открыты
+            gameOverModal.classList.remove('active');
+            settingsModal.classList.remove('active');
         }
         
-        // ----- ПРИВЯЗКА СОБЫТИЙ -----
+        // ------ НАСТРОЙКИ ------
+        function applySettingsAndRestart() {
+            // получить новые значения
+            let newGrid = parseInt(gridSizeValueSpan.innerText, 10);
+            let newSpeed = parseInt(speedSlider.value, 10);
+            if(isNaN(newGrid)) newGrid = GRID_SIZE;
+            if(newGrid < 10) newGrid = 10;
+            if(newGrid > 35) newGrid = 35;
+            GRID_SIZE = newGrid;
+            gameSpeed = newSpeed;
+            speedValueSpan.innerText = gameSpeed;
+            updateCellSize();
+            // перезапуск игры
+            if(gameLoopId) cancelAnimationFrame(gameLoopId);
+            initGame(true);
+            gameRunning = true;
+            lastMoveTime = 0;
+            startGameLoop();
+            settingsModal.classList.remove('active');
+        }
+        
+        function updateGridUI() {
+            gridSizeValueSpan.innerText = GRID_SIZE;
+        }
+        
+        // ------ Инициализация событий ------
         function attachEvents() {
-            // Свайпы
             canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
             canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
             canvas.addEventListener('touchend', handleTouchEnd);
-            canvas.addEventListener('touchcancel', handleTouchEnd);
-            // Клавиатура
             window.addEventListener('keydown', handleKeydown);
-            // Кнопки управления
-            const ctrlBtns = document.querySelectorAll('.ctrl-btn');
-            ctrlBtns.forEach(btn => {
+            
+            // сенсорные кнопки
+            document.querySelectorAll('.ctrl-btn').forEach(btn => {
                 const dir = btn.getAttribute('data-dir');
                 if(!dir) return;
-                const handler = (e) => {
-                    e.preventDefault();
-                    setDirection(dir);
-                };
-                btn.addEventListener('click', handler);
-                btn.addEventListener('touchstart', handler, { passive: false });
+                btn.addEventListener('click', (e) => { e.preventDefault(); setDirection(dir); });
+                btn.addEventListener('touchstart', (e) => { e.preventDefault(); setDirection(dir); });
             });
-            // Кнопка рестарт
-            document.getElementById('restartButton').addEventListener('click', () => restartGame());
-            // Кнопки изменения сетки
-            document.getElementById('gridMinus').addEventListener('click', () => changeGrid(-1));
-            document.getElementById('gridPlus').addEventListener('click', () => changeGrid(1));
             
-            // Блокировка скролла на canvas
-            document.body.addEventListener('touchmove', (e) => {
-                if(e.target === canvas || canvas.contains(e.target)) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
+            // модальные закрытия
+            document.getElementById('closeGameOverModal').onclick = () => gameOverModal.classList.remove('active');
+            document.getElementById('closeSettingsModal').onclick = () => settingsModal.classList.remove('active');
+            document.getElementById('restartFromDeathBtn').onclick = () => fullRestart();
+            document.getElementById('openSettingsBtn').onclick = () => {
+                if(gameLoopId) cancelAnimationFrame(gameLoopId);
+                gameRunning = false;   // пауза
+                settingsModal.classList.add('active');
+                // обновить значения в окне настроек
+                gridSizeValueSpan.innerText = GRID_SIZE;
+                speedSlider.value = gameSpeed;
+                speedValueSpan.innerText = gameSpeed;
+            };
+            document.getElementById('applySettingsBtn').onclick = () => applySettingsAndRestart();
+            document.getElementById('resetFromSettingsBtn').onclick = () => {
+                fullRestart();
+                settingsModal.classList.remove('active');
+            };
+            document.getElementById('gridMinus').onclick = () => {
+                let val = parseInt(gridSizeValueSpan.innerText,10);
+                if(val > 10) gridSizeValueSpan.innerText = val-1;
+            };
+            document.getElementById('gridPlus').onclick = () => {
+                let val = parseInt(gridSizeValueSpan.innerText,10);
+                if(val < 35) gridSizeValueSpan.innerText = val+1;
+            };
+            speedSlider.oninput = () => {
+                speedValueSpan.innerText = speedSlider.value;
+            };
+            // клик вне модалок не закрывает их чтобы не ошибиться, но крестик есть
         }
         
-        // ----- ЗАПУСК ВСЕГО -----
+        // Старт
         function start() {
             updateCellSize();
-            initGame();
+            initGame(true);
             startGameLoop();
             attachEvents();
-            console.log('🍎;
         }
         
-        window.addEventListener('load', start);
+        start();
     })();
 </script>
 </body>
