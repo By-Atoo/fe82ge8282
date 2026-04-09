@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Змейка</title>
+    <title>Змейка | Умные глаза | Радужный фон</title>
     <style>
         * {
             user-select: none;
@@ -133,7 +133,6 @@
             }
         }
 
-        /* Боковая панель — счёт уменьшен */
         .sidebar {
             flex: 1;
             min-width: 140px;
@@ -191,7 +190,6 @@
             box-shadow: 0 2px 0 #9b551a;
         }
 
-        /* Модальные окна */
         .modal {
             position: fixed;
             top: 0;
@@ -389,7 +387,7 @@
         <div class="modal-close-row">
             <span class="modal-close" id="closeGameOverModal">✖</span>
         </div>
-        <h2 id="modalTitle">💀GAME OVER💀</h2>
+        <h2 id="modalTitle">💀 GAME OVER 💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
             <p>⏱️ Время: <span id="gameTime">0</span> сек.</p>
@@ -411,8 +409,8 @@
             <span id="gridSizeValue" class="value-display">20</span>
         </div>
         <div class="setting-row">
-            <label>⚡ СКОРОСТЬ (мс)</label>
-            <input type="range" id="speedSlider" min="70" max="220" step="5" value="110">
+            <label>⚡ СКОРОСТЬ →</label>
+            <input type="range" id="speedSlider" min="70" max="220" step="5" value="180">
             <span id="speedValue" class="value-display">110</span>
         </div>
         <button class="modal-btn" id="applySettingsBtn">ПРИМЕНИТЬ И РЕСТАРТ</button>
@@ -453,7 +451,7 @@
         
         // ----- ИГРОВЫЕ ПАРАМЕТРЫ -----
         const DEFAULT_GRID = 20;
-        const DEFAULT_SPEED = 110;
+        const DEFAULT_SPEED = 110;  // мс задержка
         
         let GRID_SIZE = DEFAULT_GRID;
         let CELL_SIZE = canvas.width / GRID_SIZE;
@@ -520,17 +518,15 @@
             return Math.floor((Date.now() - sessionStartTime) / 1000);
         }
         
-        // ПРАВИЛЬНЫЙ СПАВН: змейка внизу, голова смотрит вверх, не касается края (тело отступает)
+        // СПАВН: змейка внизу, голова направлена вверх, не касается края
         function initGame(resetTimer = true) {
             const startX = Math.floor(GRID_SIZE / 2);
-            // Голова на предпоследней строке, чтобы хвост не вылезал за границы
             const headY = GRID_SIZE - 2;
             snake = [
                 { x: startX, y: headY },      // голова
-                { x: startX, y: headY + 1 },  // тело ниже (но голова выше, так как направление вверх)
+                { x: startX, y: headY + 1 },
                 { x: startX, y: headY + 2 }
             ];
-            // Направление вверх — голова движется в сторону уменьшения y
             direction = 'UP';
             nextDirection = 'UP';
             score = 0;
@@ -595,7 +591,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '💀GAME OVER💀';
+            modalTitle.innerHTML = '💀 GAME OVER 💀';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -610,12 +606,12 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '🏆ПОБЕДА!🏆';
+            modalTitle.innerHTML = '🏆 ПОБЕДА! 🏆';
             gameOverModal.classList.add('active');
             drawGame();
         }
         
-        // Отрисовка
+        // Отрисовка с умными глазами
         function drawGame() {
             if(!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -634,6 +630,7 @@
                 ctx.stroke();
             }
             
+            // Еда
             const fx = food.x * CELL_SIZE;
             const fy = food.y * CELL_SIZE;
             const size = CELL_SIZE;
@@ -651,6 +648,7 @@
                 ctx.fill();
             }
             
+            // Змейка
             for(let i = 0; i < snake.length; i++) {
                 const seg = snake[i];
                 const x = seg.x * CELL_SIZE;
@@ -667,17 +665,56 @@
                 ctx.beginPath();
                 ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, radius);
                 ctx.stroke();
+                
+                // Глаза только для головы
                 if(i === 0) {
+                    // Относительные размеры
+                    const eyeSize = Math.max(3, CELL_SIZE * 0.18);
+                    const pupilSize = Math.max(1.5, eyeSize * 0.6);
+                    const eyeOffsetX = CELL_SIZE * 0.28;
+                    const eyeOffsetY = CELL_SIZE * 0.32;
+                    
+                    // Позиции левого и правого глаза
+                    const leftEyeX = x + eyeOffsetX;
+                    const rightEyeX = x + CELL_SIZE - eyeOffsetX;
+                    const eyeY = y + eyeOffsetY;
+                    
+                    // Смещение зрачков в зависимости от направления
+                    let pupilShiftX = 0, pupilShiftY = 0;
+                    const shiftAmount = eyeSize * 0.3;
+                    switch(direction) {
+                        case 'RIGHT': pupilShiftX = shiftAmount; break;
+                        case 'LEFT':  pupilShiftX = -shiftAmount; break;
+                        case 'UP':    pupilShiftY = -shiftAmount; break;
+                        case 'DOWN':  pupilShiftY = shiftAmount; break;
+                    }
+                    
+                    // Белки глаз
                     ctx.fillStyle = '#ffffff';
-                    const eyeOff = CELL_SIZE * 0.27;
                     ctx.beginPath();
-                    ctx.arc(x + CELL_SIZE - eyeOff, y + eyeOff, 3.2, 0, Math.PI*2);
-                    ctx.arc(x + eyeOff, y + eyeOff, 3.2, 0, Math.PI*2);
+                    ctx.arc(leftEyeX, eyeY, eyeSize, 0, Math.PI*2);
                     ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(rightEyeX, eyeY, eyeSize, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Зрачки
                     ctx.fillStyle = '#000000';
                     ctx.beginPath();
-                    ctx.arc(x + CELL_SIZE - eyeOff - 1.2, y + eyeOff - 0.8, 2, 0, Math.PI*2);
-                    ctx.arc(x + eyeOff - 1.2, y + eyeOff - 0.8, 2, 0, Math.PI*2);
+                    ctx.arc(leftEyeX + pupilShiftX, eyeY + pupilShiftY, pupilSize, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(rightEyeX + pupilShiftX, eyeY + pupilShiftY, pupilSize, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Блики (маленькие белые точки)
+                    ctx.fillStyle = '#ffffff';
+                    const highlightSize = pupilSize * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(leftEyeX + pupilShiftX - highlightSize*0.7, eyeY + pupilShiftY - highlightSize*0.7, highlightSize, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(rightEyeX + pupilShiftX - highlightSize*0.7, eyeY + pupilShiftY - highlightSize*0.7, highlightSize, 0, Math.PI*2);
                     ctx.fill();
                 }
             }
@@ -796,7 +833,9 @@
             updateCellSize();
             gridSizeSlider.value = GRID_SIZE;
             gridSizeValueSpan.innerText = GRID_SIZE;
-            speedSlider.value = gameSpeed;
+            // инвертированный ползунок: значение слайдера = 220 + 70 - gameSpeed
+            const sliderVal = 70 + 220 - gameSpeed;
+            speedSlider.value = sliderVal;
             speedValueSpan.innerText = gameSpeed;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
@@ -808,9 +847,12 @@
         
         function applySettingsAndRestart() {
             let newGrid = parseInt(gridSizeSlider.value, 10);
-            let newSpeed = parseInt(speedSlider.value, 10);
+            let sliderValue = parseInt(speedSlider.value, 10);
             if(isNaN(newGrid)) newGrid = GRID_SIZE;
             newGrid = Math.min(35, Math.max(10, newGrid));
+            // преобразуем значение слайдера (70..220) в gameSpeed: gameSpeed = 70 + 220 - sliderValue
+            let newSpeed = 70 + 220 - sliderValue;
+            newSpeed = Math.min(220, Math.max(70, newSpeed));
             GRID_SIZE = newGrid;
             gameSpeed = newSpeed;
             gridSizeValueSpan.innerText = GRID_SIZE;
@@ -845,7 +887,8 @@
                 gameRunning = false;
                 gridSizeSlider.value = GRID_SIZE;
                 gridSizeValueSpan.innerText = GRID_SIZE;
-                speedSlider.value = gameSpeed;
+                const sliderVal = 70 + 220 - gameSpeed;
+                speedSlider.value = sliderVal;
                 speedValueSpan.innerText = gameSpeed;
                 settingsModal.classList.add('active');
             };
@@ -856,7 +899,9 @@
                 gridSizeValueSpan.innerText = gridSizeSlider.value;
             };
             speedSlider.oninput = () => {
-                speedValueSpan.innerText = speedSlider.value;
+                const val = parseInt(speedSlider.value, 10);
+                const speedMs = 70 + 220 - val;
+                speedValueSpan.innerText = speedMs;
             };
         }
         
