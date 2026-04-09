@@ -15,7 +15,7 @@
         body {
             margin: 0;
             min-height: 100vh;
-            background: #000; /* fallback */
+            background: #000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,7 +24,7 @@
             overflow-x: hidden;
         }
 
-        /* РАДУЖНЫЙ ФОН (динамический, будет переливаться через JS) */
+        /* Динамический радужный фон через JS (будет меняться плавно) */
         .rainbow-bg {
             position: fixed;
             top: 0;
@@ -32,30 +32,20 @@
             width: 100%;
             height: 100%;
             z-index: -2;
-            background: linear-gradient(125deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
-            background-size: 400% 400%;
-            animation: rainbowShift 8s ease infinite;
+            transition: background 1.2s ease;
         }
 
-        @keyframes rainbowShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Дополнительный слой для яркости */
         .overlay-glow {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.2) 100%);
+            background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.25) 100%);
             pointer-events: none;
             z-index: -1;
         }
 
-        /* Контейнер игры — максимальное расширение на мобилках */
         .game-container {
             width: 100%;
             max-width: 100vw;
@@ -66,17 +56,15 @@
         }
 
         .game-console {
-            background: rgba(10, 15, 8, 0.75);
+            background: rgba(10, 15, 8, 0.7);
             backdrop-filter: blur(8px);
             border-radius: 48px;
             padding: 18px 16px 20px 16px;
             box-shadow: 0 20px 35px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,200,0.2);
             width: 100%;
             max-width: 1200px;
-            transition: all 0.2s;
         }
 
-        /* Гибкая компоновка: холст + боковая панель */
         .game-layout {
             display: flex;
             flex-wrap: wrap;
@@ -84,7 +72,6 @@
             gap: 20px;
         }
 
-        /* Холст — максимально большой на мобилках */
         .canvas-area {
             flex: 4;
             min-width: 260px;
@@ -106,7 +93,7 @@
             max-height: 85vw;
         }
 
-        /* Сенсорные кнопки управления */
+        /* Сенсорные кнопки — скрыты на ПК (ширина > 900px), видны только на планшетах/мобилках */
         .touch-panel {
             margin-top: 20px;
             display: flex;
@@ -142,7 +129,14 @@
             box-shadow: 0 2px 0 #0e3b0e;
         }
 
-        /* Боковая панель: счёт и настройки */
+        /* На ПК скрываем кнопки управления (только свайпы и клавиатура) */
+        @media (min-width: 901px) {
+            .touch-panel {
+                display: none;
+            }
+        }
+
+        /* Боковая панель */
         .sidebar {
             flex: 1;
             min-width: 140px;
@@ -199,14 +193,14 @@
             box-shadow: 0 2px 0 #9b551a;
         }
 
-        /* Модальные окна */
+        /* Модальные окна — крестик внутри контента */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
@@ -225,13 +219,14 @@
         .modal-content {
             background: #0f1a0f;
             border-radius: 56px;
-            padding: 28px 28px;
+            padding: 28px 28px 32px;
             max-width: 360px;
             width: 85%;
             text-align: center;
             border: 2px solid #ffcc55;
             box-shadow: 0 0 35px #ffaa33;
             color: #ffffdd;
+            position: relative;
         }
 
         .modal-content h2 {
@@ -271,6 +266,22 @@
             box-shadow: 0 1px 0 #9b551a;
         }
 
+        /* Крестик теперь внутри, справа вверху */
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 24px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #ffcc77;
+            transition: 0.1s;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: #ffaa33;
+            transform: scale(1.1);
+        }
+
         .setting-row {
             display: flex;
             justify-content: space-between;
@@ -297,16 +308,7 @@
             font-weight: bold;
         }
 
-        .close-icon {
-            position: absolute;
-            top: 16px;
-            right: 24px;
-            font-size: 32px;
-            cursor: pointer;
-            color: #ffcc77;
-        }
-
-        /* Адаптация под мобильные — максимальный размер холста */
+        /* Адаптация под мобильные */
         @media (max-width: 700px) {
             .game-layout {
                 flex-direction: column;
@@ -322,11 +324,6 @@
             .score-value {
                 font-size: 48px;
             }
-            .ctrl-btn {
-                font-size: 32px;
-                padding: 6px 18px;
-                min-width: 70px;
-            }
             canvas {
                 max-width: 92vw;
                 max-height: 92vw;
@@ -334,11 +331,6 @@
         }
 
         @media (max-width: 480px) {
-            .ctrl-btn {
-                font-size: 28px;
-                padding: 5px 14px;
-                min-width: 60px;
-            }
             .settings-btn {
                 font-size: 40px;
                 width: 70px;
@@ -347,15 +339,15 @@
     </style>
 </head>
 <body>
-<div class="rainbow-bg"></div>
+<div class="rainbow-bg" id="rainbowBg"></div>
 <div class="overlay-glow"></div>
 
 <div class="game-container">
     <div class="game-console">
         <div class="game-layout">
-            <!-- игровая область с холстом -->
             <div class="canvas-area">
                 <canvas id="snakeCanvas" width="700" height="700"></canvas>
+                <!-- Сенсорные кнопки (на мобилках видны, на ПК скрыты) -->
                 <div class="touch-panel">
                     <div class="arrow-row">
                         <button class="ctrl-btn" data-dir="UP">▲</button>
@@ -368,10 +360,9 @@
                 </div>
             </div>
 
-            <!-- боковая панель: счёт и настройки -->
             <div class="sidebar">
                 <div class="score-console">
-                    <div class="score-label">🍎 СЧЕТ</div>
+                    <div class="score-label">СЧЕТ</div>
                     <div class="score-value" id="scoreValue">0</div>
                 </div>
                 <button class="settings-btn" id="openSettingsBtn">⚙️</button>
@@ -383,8 +374,8 @@
 <!-- Модальное окно GAME OVER / WIN -->
 <div id="gameOverModal" class="modal">
     <div class="modal-content">
-        <div class="close-icon" id="closeGameOverModal">✖</div>
-        <h2 id="modalTitle">💀 GAME OVER 💀</h2>
+        <div class="modal-close" id="closeGameOverModal">✖</div>
+        <h2 id="modalTitle">💀GAME OVER💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
             <p>⏱️ Время: <span id="gameTime">0</span> сек.</p>
@@ -396,7 +387,7 @@
 <!-- Модальное окно НАСТРОЕК -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <div class="close-icon" id="closeSettingsModal">✖</div>
+        <div class="modal-close" id="closeSettingsModal">✖</div>
         <h2>⚙️ НАСТРОЙКИ</h2>
         <div class="setting-row">
             <label>📐 РАЗМЕР СЕТКИ</label>
@@ -405,7 +396,7 @@
             <button id="gridPlus" style="background:#2e2e1e;border:none;font-size:22px;width:44px;">+</button>
         </div>
         <div class="setting-row">
-            <label>⚡ СКОРОСТЬ (мс)</label>
+            <label>⚡ СКОРОСТЬ (мс/на клетку)</label>
             <input type="range" id="speedSlider" min="70" max="220" step="5" value="110">
             <span id="speedValue" class="value-display">110</span>
         </div>
@@ -428,8 +419,24 @@
         const gridSizeValueSpan = document.getElementById('gridSizeValue');
         const speedSlider = document.getElementById('speedSlider');
         const speedValueSpan = document.getElementById('speedValue');
+        const rainbowBg = document.getElementById('rainbowBg');
         
-        // ----- ИГРОВЫЕ ПАРАМЕТРЫ (стандартные) -----
+        // ----- РАДУЖНЫЙ ФОН (перелив ВСЕМИ цветами) -----
+        let hue = 0;
+        function updateRainbowBackground() {
+            // Плавный переход через hsl (полный круг 0-360)
+            const color1 = `hsl(${hue}, 100%, 55%)`;
+            const color2 = `hsl(${(hue + 60) % 360}, 100%, 55%)`;
+            const color3 = `hsl(${(hue + 120) % 360}, 100%, 55%)`;
+            const color4 = `hsl(${(hue + 180) % 360}, 100%, 55%)`;
+            rainbowBg.style.background = `linear-gradient(125deg, ${color1}, ${color2}, ${color3}, ${color4})`;
+            rainbowBg.style.backgroundSize = '400% 400%';
+            hue = (hue + 1.5) % 360; // плавное изменение
+            requestAnimationFrame(() => { setTimeout(updateRainbowBackground, 60); });
+        }
+        updateRainbowBackground();
+        
+        // ----- ИГРОВЫЕ ПАРАМЕТРЫ -----
         const DEFAULT_GRID = 20;
         const DEFAULT_SPEED = 110;
         
@@ -445,8 +452,6 @@
         let gameRunning = true;
         let gameLoopId = null;
         let lastMoveTime = 0;
-        
-        // Таймер сессии
         let sessionStartTime = null;
         
         // Яблоко
@@ -517,7 +522,6 @@
             if(resetTimer) startSessionTimer();
         }
         
-        // Движение
         function moveSnake() {
             if(!gameRunning) return false;
             
@@ -572,7 +576,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '💀 GAME OVER 💀';
+            modalTitle.innerHTML = '💀GAME OVER💀';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -587,19 +591,18 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '🏆 ПОБЕДА! 🏆';
+            modalTitle.innerHTML = '🏆VICTORY🏆';
             gameOverModal.classList.add('active');
             drawGame();
         }
         
-        // Отрисовка (консольный стиль, но яркая змейка)
+        // Отрисовка
         function drawGame() {
             if(!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#0a1a0a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // сетка
             ctx.strokeStyle = '#4aff4a';
             ctx.lineWidth = 1.2;
             for(let i = 0; i <= GRID_SIZE; i++) {
@@ -612,7 +615,6 @@
                 ctx.stroke();
             }
             
-            // еда
             const fx = food.x * CELL_SIZE;
             const fy = food.y * CELL_SIZE;
             const size = CELL_SIZE;
@@ -630,7 +632,6 @@
                 ctx.fill();
             }
             
-            // змейка
             for(let i = 0; i < snake.length; i++) {
                 const seg = snake[i];
                 const x = seg.x * CELL_SIZE;
@@ -716,7 +717,7 @@
             gameLoopId = requestAnimationFrame(gameTick);
         }
         
-        // Управление
+        // Управление (свайпы + клавиатура)
         function setDirection(newDir) {
             if(!gameRunning) return;
             if((newDir === 'RIGHT' && direction !== 'LEFT') ||
@@ -727,7 +728,6 @@
             }
         }
         
-        // Свайпы
         let touchStart = null;
         function handleTouchStart(e) {
             e.preventDefault();
@@ -761,7 +761,6 @@
             e.preventDefault();
         }
         
-        // Перезапуск игры (с текущими настройками)
         function fullRestart() {
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
@@ -772,7 +771,6 @@
             settingsModal.classList.remove('active');
         }
         
-        // Сброс настроек к стандартным
         function resetToDefaultSettings() {
             GRID_SIZE = DEFAULT_GRID;
             gameSpeed = DEFAULT_SPEED;
@@ -780,7 +778,6 @@
             speedSlider.value = gameSpeed;
             speedValueSpan.innerText = gameSpeed;
             gridSizeValueSpan.innerText = GRID_SIZE;
-            // Перезапуск игры с новыми настройками
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
             gameRunning = true;
@@ -789,7 +786,6 @@
             settingsModal.classList.remove('active');
         }
         
-        // Применить настройки из модалки и рестарт
         function applySettingsAndRestart() {
             let newGrid = parseInt(gridSizeValueSpan.innerText, 10);
             let newSpeed = parseInt(speedSlider.value, 10);
@@ -807,13 +803,13 @@
             settingsModal.classList.remove('active');
         }
         
-        // Инициализация событий
         function attachEvents() {
             canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
             canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
             canvas.addEventListener('touchend', handleTouchEnd);
             window.addEventListener('keydown', handleKeydown);
             
+            // Сенсорные кнопки (если видны на мобилках)
             document.querySelectorAll('.ctrl-btn').forEach(btn => {
                 const dir = btn.getAttribute('data-dir');
                 if(!dir) return;
@@ -845,7 +841,6 @@
             speedSlider.oninput = () => { speedValueSpan.innerText = speedSlider.value; };
         }
         
-        // Старт
         function start() {
             updateCellSize();
             initGame(true);
