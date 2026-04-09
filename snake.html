@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Змейка</title>
+    <title>Змейка | Управление с клавиатуры | Радужный фон</title>
     <style>
         * {
             user-select: none;
@@ -47,7 +47,7 @@
 
         .game-container {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px;
             padding: 0;
             display: flex;
             justify-content: center;
@@ -87,12 +87,19 @@
             box-shadow: 0 0 0 4px #ffe6b3, 0 12px 25px black;
             cursor: pointer;
             aspect-ratio: 1 / 1;
-            max-width: 65vw;
-            max-height: 65vw;
         }
 
-        /* Для ПК делаем холст фиксированного удобного размера */
-        @media (min-width: 900px) {
+        /* Для мобильных — большой экран */
+        @media (max-width: 900px) {
+            canvas {
+                max-width: 85vw;
+                max-height: 85vw;
+                width: auto;
+            }
+        }
+
+        /* Для ПК — комфортный размер */
+        @media (min-width: 901px) {
             canvas {
                 max-width: 550px;
                 max-height: 550px;
@@ -144,7 +151,7 @@
 
         .sidebar {
             flex: 1;
-            min-width: 120px;
+            min-width: 130px;
             background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(12px);
             border-radius: 48px;
@@ -152,7 +159,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 28px;
+            gap: 20px;
             border: 1px solid #ffda88;
         }
 
@@ -181,20 +188,38 @@
             line-height: 1;
         }
 
-        .settings-btn {
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .settings-btn, .external-btn {
             background: #ffb347dd;
             border: none;
-            font-size: 40px;
+            font-size: 28px;
             cursor: pointer;
-            padding: 6px;
+            padding: 8px;
             border-radius: 60px;
             width: 70px;
             transition: 0.08s linear;
             box-shadow: 0 5px 0 #9b551a;
             color: #2c1c0a;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .settings-btn:active {
+        .external-btn {
+            background: #5a7a4add;
+            box-shadow: 0 5px 0 #2e4a2e;
+            font-size: 24px;
+            width: 70px;
+        }
+
+        .settings-btn:active, .external-btn:active {
             transform: translateY(3px);
             box-shadow: 0 2px 0 #9b551a;
         }
@@ -318,7 +343,6 @@
             font-size: 14px;
         }
 
-        /* Подсказка горячих клавиш (ненавязчиво) */
         .hotkeys-hint {
             text-align: center;
             font-size: 11px;
@@ -351,7 +375,7 @@
                         <button class="ctrl-btn" data-dir="RIGHT">▶</button>
                     </div>
                 </div>
-                <div class="hotkeys-hint">⌨️ ESC — настройки | Enter / Space — рестарт | WASD / стрелки</div>
+                <div class="hotkeys-hint">⌨️ ESC — настройки / пауза | Enter / Space — рестарт | WASD / стрелки</div>
             </div>
 
             <div class="sidebar">
@@ -359,7 +383,11 @@
                     <div class="score-label">🍎 СЧЁТ</div>
                     <div class="score-value" id="scoreValue">0</div>
                 </div>
-                <button class="settings-btn" id="openSettingsBtn">⚙️</button>
+                <div class="button-group">
+                    <button class="settings-btn" id="openSettingsBtn">⚙️</button>
+                    <a class="external-btn" id="externalLink1" href="#" target="_blank">🔗</a>
+                    <a class="external-btn" id="externalLink2" href="#" target="_blank">🌐</a>
+                </div>
             </div>
         </div>
     </div>
@@ -371,7 +399,7 @@
         <div class="modal-close-row">
             <span class="modal-close" id="closeGameOverModal">✖</span>
         </div>
-        <h2 id="modalTitle">💀GAME OVER💀</h2>
+        <h2 id="modalTitle">💀 GAME OVER 💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
             <p>⏱️ Время: <span id="gameTime">0</span> сек.</p>
@@ -393,11 +421,11 @@
             <span id="gridSizeValue" class="value-display">20</span>
         </div>
         <div class="setting-row">
-            <label>⚡ СКОРОСТЬ</label>
+            <label>⚡ СКОРОСТЬ →</label>
             <input type="range" id="speedSlider" min="70" max="220" step="5" value="180">
             <span id="speedValue" class="value-display">110</span>
         </div>
-        <button class="modal-btn" id="applySettingsBtn">ПРИМЕНИТЬ И ПЕРЕЗАПУСТИТЬ</button>
+        <button class="modal-btn" id="applySettingsBtn">ПРИМЕНИТЬ И РЕСТАРТ</button>
         <button class="modal-btn" id="resetSettingsBtn" style="background:#5f4a2e;">⟳ СБРОС НАСТРОЕК</button>
     </div>
 </div>
@@ -450,6 +478,9 @@
         let gameLoopId = null;
         let lastMoveTime = 0;
         let sessionStartTime = null;
+        
+        // Флаг паузы (чтобы не запускать лишний цикл)
+        let isPaused = false;
         
         // Яблоко
         let appleImage = new Image();
@@ -514,6 +545,7 @@
             nextDirection = 'UP';
             score = 0;
             gameRunning = true;
+            isPaused = false;
             updateScoreUI();
             generateValidFood();
             drawGame();
@@ -521,7 +553,7 @@
         }
         
         function moveSnake() {
-            if(!gameRunning) return false;
+            if(!gameRunning || isPaused) return false;
             
             let newDir = nextDirection;
             if((newDir === 'RIGHT' && direction === 'LEFT') ||
@@ -567,6 +599,7 @@
         function gameOver() {
             if(!gameRunning) return;
             gameRunning = false;
+            isPaused = false;
             if(gameLoopId) {
                 cancelAnimationFrame(gameLoopId);
                 gameLoopId = null;
@@ -574,7 +607,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '💀GAME OVER💀';
+            modalTitle.innerHTML = '💀 GAME OVER 💀';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -582,6 +615,7 @@
         function gameWin() {
             if(!gameRunning) return;
             gameRunning = false;
+            isPaused = false;
             if(gameLoopId) {
                 cancelAnimationFrame(gameLoopId);
                 gameLoopId = null;
@@ -589,7 +623,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '🏆VICTORY🏆';
+            modalTitle.innerHTML = '🏆 ПОБЕДА! 🏆';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -711,8 +745,12 @@
         }
         
         function gameTick(now) {
-            if(!gameRunning) {
+            if(!gameRunning || isPaused) {
                 drawGame();
+                if(gameLoopId && (isPaused || !gameRunning)) {
+                    // если на паузе или игра не активна, продолжаем запрашивать кадры, но не двигаем
+                    gameLoopId = requestAnimationFrame(gameTick);
+                }
                 return;
             }
             if(!lastMoveTime) {
@@ -741,12 +779,27 @@
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             lastMoveTime = 0;
             gameRunning = true;
+            isPaused = false;
             gameLoopId = requestAnimationFrame(gameTick);
         }
         
-        // ----- УПРАВЛЕНИЕ С КЛАВИАТУРЫ (стрелки + WASD + ESC + Enter/R) -----
+        function pauseGame() {
+            if(gameRunning && !isPaused && gameLoopId) {
+                isPaused = true;
+                // цикл продолжит работать, но moveSnake не будет вызываться из-за isPaused
+            }
+        }
+        
+        function resumeGame() {
+            if(gameRunning && isPaused) {
+                isPaused = false;
+                lastMoveTime = 0; // сбросить, чтобы не было рывка
+            }
+        }
+        
+        // ----- УПРАВЛЕНИЕ -----
         function setDirection(newDir) {
-            if(!gameRunning) return;
+            if(!gameRunning || isPaused) return;
             if((newDir === 'RIGHT' && direction !== 'LEFT') ||
                (newDir === 'LEFT' && direction !== 'RIGHT') ||
                (newDir === 'UP' && direction !== 'DOWN') ||
@@ -764,7 +817,7 @@
         }
         function handleTouchMove(e) {
             e.preventDefault();
-            if(!touchStart || !gameRunning) return;
+            if(!touchStart || !gameRunning || isPaused) return;
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
             const dx = (touch.clientX - rect.left) - touchStart.x;
@@ -778,73 +831,11 @@
         }
         function handleTouchEnd(e) { e.preventDefault(); touchStart = null; }
         
-        function handleKeydown(e) {
-            const key = e.key;
-            // Управление движением (всегда, если игра активна)
-            if(gameRunning) {
-                let mapped = null;
-                if(key === 'ArrowUp') mapped = 'UP';
-                else if(key === 'ArrowDown') mapped = 'DOWN';
-                else if(key === 'ArrowLeft') mapped = 'LEFT';
-                else if(key === 'ArrowRight') mapped = 'RIGHT';
-                else if(key === 'w' || key === 'W') mapped = 'UP';
-                else if(key === 's' || key === 'S') mapped = 'DOWN';
-                else if(key === 'a' || key === 'A') mapped = 'LEFT';
-                else if(key === 'd' || key === 'D') mapped = 'RIGHT';
-                if(mapped) {
-                    e.preventDefault();
-                    setDirection(mapped);
-                    return;
-                }
-            }
-            
-            // Глобальные горячие клавиши
-            if(key === 'Escape') {
-                e.preventDefault();
-                // Если меню настроек открыто — закрыть, иначе открыть
-                if(settingsModal.classList.contains('active')) {
-                    settingsModal.classList.remove('active');
-                    // Если игра была на паузе, возобновляем? нет, игра на паузе только если меню открыто вручную, но мы её не останавливали при открытии? В коде открытия мы ставим gameRunning = false. Нужно восстановить.
-                    // Лучше: при открытии меню мы ставим gameRunning = false, при закрытии — возобновляем.
-                    if(!gameRunning && gameLoopId === null) {
-                        // перезапускаем цикл, если он остановлен
-                        gameRunning = true;
-                        startGameLoop();
-                    }
-                } else {
-                    // Открыть настройки, поставив игру на паузу
-                    if(gameLoopId) cancelAnimationFrame(gameLoopId);
-                    gameRunning = false;
-                    gridSizeSlider.value = GRID_SIZE;
-                    gridSizeValueSpan.innerText = GRID_SIZE;
-                    const sliderVal = 70 + 220 - gameSpeed;
-                    speedSlider.value = sliderVal;
-                    speedValueSpan.innerText = gameSpeed;
-                    settingsModal.classList.add('active');
-                }
-                return;
-            }
-            
-            // Рестарт игры по клавише Enter или Пробел
-            if(key === 'Enter' || key === 'space' || key === 'Space') {
-                e.preventDefault();
-                fullRestart();
-                return;
-            }
-            
-            // Если меню настроек активно, то Enter применяет настройки, Escape уже обработан выше
-            if(settingsModal.classList.contains('active')) {
-                if(key === 'Enter') {
-                    e.preventDefault();
-                    applySettingsAndRestart();
-                }
-            }
-        }
-        
         function fullRestart() {
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
             gameRunning = true;
+            isPaused = false;
             lastMoveTime = 0;
             startGameLoop();
             gameOverModal.classList.remove('active');
@@ -863,6 +854,7 @@
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
             gameRunning = true;
+            isPaused = false;
             lastMoveTime = 0;
             startGameLoop();
             settingsModal.classList.remove('active');
@@ -883,9 +875,66 @@
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
             gameRunning = true;
+            isPaused = false;
             lastMoveTime = 0;
             startGameLoop();
             settingsModal.classList.remove('active');
+        }
+        
+        function handleKeydown(e) {
+            const key = e.key;
+            // Управление движением (если игра активна и не на паузе)
+            if(gameRunning && !isPaused) {
+                let mapped = null;
+                if(key === 'ArrowUp') mapped = 'UP';
+                else if(key === 'ArrowDown') mapped = 'DOWN';
+                else if(key === 'ArrowLeft') mapped = 'LEFT';
+                else if(key === 'ArrowRight') mapped = 'RIGHT';
+                else if(key === 'w' || key === 'W') mapped = 'UP';
+                else if(key === 's' || key === 'S') mapped = 'DOWN';
+                else if(key === 'a' || key === 'A') mapped = 'LEFT';
+                else if(key === 'd' || key === 'D') mapped = 'RIGHT';
+                if(mapped) {
+                    e.preventDefault();
+                    setDirection(mapped);
+                    return;
+                }
+            }
+            
+            // Escape: открыть/закрыть настройки с паузой/возобновлением
+            if(key === 'Escape') {
+                e.preventDefault();
+                if(settingsModal.classList.contains('active')) {
+                    // Закрыть настройки и возобновить игру, если она не закончена
+                    settingsModal.classList.remove('active');
+                    if(gameRunning && isPaused) {
+                        resumeGame();
+                    } else if(!gameRunning && gameOverModal.classList.contains('active')) {
+                        // Если меню смерти открыто, ничего не делаем
+                    }
+                } else {
+                    // Открыть настройки, поставить на паузу, если игра активна
+                    if(gameRunning && !isPaused) {
+                        pauseGame();
+                    }
+                    gridSizeSlider.value = GRID_SIZE;
+                    gridSizeValueSpan.innerText = GRID_SIZE;
+                    const sliderVal = 70 + 220 - gameSpeed;
+                    speedSlider.value = sliderVal;
+                    speedValueSpan.innerText = gameSpeed;
+                    settingsModal.classList.add('active');
+                }
+                return;
+            }
+            
+            // Пробел или Enter: рестарт, если открыто любое меню (смерти или настроек)
+            if(key === 'Enter' || key === ' ' || key === 'Space') {
+                e.preventDefault();
+                if(gameOverModal.classList.contains('active') || settingsModal.classList.contains('active')) {
+                    fullRestart();
+                }
+                return;
+            }
         }
         
         function attachEvents() {
@@ -901,18 +950,20 @@
                 btn.addEventListener('touchstart', (e) => { e.preventDefault(); setDirection(dir); });
             });
             
-            document.getElementById('closeGameOverModal').onclick = () => gameOverModal.classList.remove('active');
+            document.getElementById('closeGameOverModal').onclick = () => {
+                gameOverModal.classList.remove('active');
+            };
             document.getElementById('closeSettingsModal').onclick = () => {
                 settingsModal.classList.remove('active');
-                if(!gameRunning && gameLoopId === null) {
-                    gameRunning = true;
-                    startGameLoop();
+                if(gameRunning && isPaused) {
+                    resumeGame();
                 }
             };
             document.getElementById('restartFromDeathBtn').onclick = () => fullRestart();
             document.getElementById('openSettingsBtn').onclick = () => {
-                if(gameLoopId) cancelAnimationFrame(gameLoopId);
-                gameRunning = false;
+                if(gameRunning && !isPaused) {
+                    pauseGame();
+                }
                 gridSizeSlider.value = GRID_SIZE;
                 gridSizeValueSpan.innerText = GRID_SIZE;
                 const sliderVal = 70 + 220 - gameSpeed;
@@ -931,6 +982,12 @@
                 const speedMs = 70 + 220 - val;
                 speedValueSpan.innerText = speedMs;
             };
+            
+            const externalLinks = document.querySelectorAll('.external-btn');
+            const placeholderUrl = 'ССЫЛКА-ПОД-ЗАМЕНУ';
+            externalLinks.forEach(link => {
+                link.href = placeholderUrl;
+            });
         }
         
         function start() {
