@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Змейка | Управление с клавиатуры | Радужный фон</title>
+    <title>Змейка</title>
     <style>
         * {
             user-select: none;
@@ -89,7 +89,7 @@
             aspect-ratio: 1 / 1;
         }
 
-        /* Для мобильных — большой экран */
+        /* Для мобильных 
         @media (max-width: 900px) {
             canvas {
                 max-width: 85vw;
@@ -98,7 +98,7 @@
             }
         }
 
-        /* Для ПК — комфортный размер */
+        /* Для ПК 
         @media (min-width: 901px) {
             canvas {
                 max-width: 550px;
@@ -367,15 +367,14 @@
                 <canvas id="snakeCanvas" width="600" height="600"></canvas>
                 <div class="touch-panel">
                     <div class="arrow-row">
-                        <button class="ctrl-btn" data-dir="UP">▲</button>
+                        <button class="ctrl-btn" data-dir="UP">↑</button>
                     </div>
                     <div class="arrow-row">
-                        <button class="ctrl-btn" data-dir="LEFT">◀</button>
-                        <button class="ctrl-btn" data-dir="DOWN">▼</button>
-                        <button class="ctrl-btn" data-dir="RIGHT">▶</button>
+                        <button class="ctrl-btn" data-dir="LEFT">←</button>
+                        <button class="ctrl-btn" data-dir="DOWN">↓</button>
+                        <button class="ctrl-btn" data-dir="RIGHT">→</button>
                     </div>
                 </div>
-                <div class="hotkeys-hint">⌨️ ESC — настройки / пауза | Enter / Space — рестарт | WASD / стрелки</div>
             </div>
 
             <div class="sidebar">
@@ -385,21 +384,20 @@
                 </div>
                 <div class="button-group">
                     <button class="settings-btn" id="openSettingsBtn">⚙️</button>
-                    <a class="external-btn" id="externalLink1" href="#" target="_blank">🔗</a>
-                    <a class="external-btn" id="externalLink2" href="#" target="_blank">🌐</a>
+                    <a class="external-btn" id="externalLink1" href="#" target="_blank"></a>
+                    <a class="external-btn" id="externalLink2" href="#" target="_blank"></a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Модальное окно GAME OVER / WIN -->
 <div id="gameOverModal" class="modal">
     <div class="modal-content">
         <div class="modal-close-row">
             <span class="modal-close" id="closeGameOverModal">✖</span>
         </div>
-        <h2 id="modalTitle">💀 GAME OVER 💀</h2>
+        <h2 id="modalTitle">💀GAME OVER💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
             <p>⏱️ Время: <span id="gameTime">0</span> сек.</p>
@@ -408,31 +406,29 @@
     </div>
 </div>
 
-<!-- Модальное окно НАСТРОЕК -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <div class="modal-close-row">
             <span class="modal-close" id="closeSettingsModal">✖</span>
         </div>
-        <h2>⚙️ НАСТРОЙКИ</h2>
+        <h2>НАСТРОЙКИ</h2>
         <div class="setting-row">
-            <label>📐 РАЗМЕР СЕТКИ</label>
+            <label>📐 РАЗМЕР СЕТКИ </label>
             <input type="range" id="gridSizeSlider" min="10" max="35" step="1" value="20">
             <span id="gridSizeValue" class="value-display">20</span>
         </div>
         <div class="setting-row">
-            <label>⚡ СКОРОСТЬ →</label>
+            <label>⚡ СКОРОСТЬ (ms) </label>
             <input type="range" id="speedSlider" min="70" max="220" step="5" value="180">
             <span id="speedValue" class="value-display">110</span>
         </div>
-        <button class="modal-btn" id="applySettingsBtn">ПРИМЕНИТЬ И РЕСТАРТ</button>
-        <button class="modal-btn" id="resetSettingsBtn" style="background:#5f4a2e;">⟳ СБРОС НАСТРОЕК</button>
+        <button class="modal-btn" id="applySettingsBtn">✔ ПРИМЕНИТЬ </button>
+        <button class="modal-btn" id="resetSettingsBtn" style="background:#5f4a2e;">⟳ СБРОС </button>
     </div>
 </div>
 
 <script>
     (function(){
-        // ----- ЭЛЕМЕНТЫ -----
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
@@ -447,7 +443,6 @@
         const speedValueSpan = document.getElementById('speedValue');
         const rainbowBg = document.getElementById('rainbowBg');
         
-        // ----- РАДУЖНЫЙ ФОН -----
         let hue = 0;
         function updateRainbowBackground() {
             const color1 = `hsl(${hue}, 100%, 55%)`;
@@ -461,7 +456,6 @@
         }
         updateRainbowBackground();
         
-        // ----- ИГРОВЫЕ ПАРАМЕТРЫ -----
         const DEFAULT_GRID = 20;
         const DEFAULT_SPEED = 110;
         
@@ -479,10 +473,8 @@
         let lastMoveTime = 0;
         let sessionStartTime = null;
         
-        // Флаг паузы (чтобы не запускать лишний цикл)
         let isPaused = false;
         
-        // Яблоко
         let appleImage = new Image();
         let appleLoaded = false;
         const APPLE_URL = 'https://raw.githubusercontent.com/By-Atoo/fe82ge8282/main/.res/apple.png';
@@ -490,7 +482,6 @@
         appleImage.onerror = () => { appleLoaded = false; drawGame(); };
         appleImage.src = APPLE_URL;
         
-        // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ -----
         function updateCellSize() {
             CELL_SIZE = canvas.width / GRID_SIZE;
         }
@@ -607,7 +598,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '💀 GAME OVER 💀';
+            modalTitle.innerHTML = '💀GAME OVER💀';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -623,7 +614,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '🏆 ПОБЕДА! 🏆';
+            modalTitle.innerHTML = '🏆YOU WIN🏆';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -748,7 +739,7 @@
             if(!gameRunning || isPaused) {
                 drawGame();
                 if(gameLoopId && (isPaused || !gameRunning)) {
-                    // если на паузе или игра не активна, продолжаем запрашивать кадры, но не двигаем
+                    
                     gameLoopId = requestAnimationFrame(gameTick);
                 }
                 return;
@@ -786,18 +777,16 @@
         function pauseGame() {
             if(gameRunning && !isPaused && gameLoopId) {
                 isPaused = true;
-                // цикл продолжит работать, но moveSnake не будет вызываться из-за isPaused
             }
         }
         
         function resumeGame() {
             if(gameRunning && isPaused) {
                 isPaused = false;
-                lastMoveTime = 0; // сбросить, чтобы не было рывка
+                lastMoveTime = 0;
             }
         }
         
-        // ----- УПРАВЛЕНИЕ -----
         function setDirection(newDir) {
             if(!gameRunning || isPaused) return;
             if((newDir === 'RIGHT' && direction !== 'LEFT') ||
@@ -883,13 +872,16 @@
         
         function handleKeydown(e) {
             const key = e.key;
-            // Управление движением (если игра активна и не на паузе)
             if(gameRunning && !isPaused) {
                 let mapped = null;
                 if(key === 'ArrowUp') mapped = 'UP';
                 else if(key === 'ArrowDown') mapped = 'DOWN';
                 else if(key === 'ArrowLeft') mapped = 'LEFT';
                 else if(key === 'ArrowRight') mapped = 'RIGHT';
+                else if(key === 'ц' || key === 'Ц') mapped = 'UP';
+                else if(key === 'ы' || key === 'Ы') mapped = 'DOWN';
+                else if(key === 'ф' || key === 'Ф') mapped = 'LEFT';
+                else if(key === 'в' || key === 'В') mapped = 'RIGHT';
                 else if(key === 'w' || key === 'W') mapped = 'UP';
                 else if(key === 's' || key === 'S') mapped = 'DOWN';
                 else if(key === 'a' || key === 'A') mapped = 'LEFT';
@@ -901,19 +893,15 @@
                 }
             }
             
-            // Escape: открыть/закрыть настройки с паузой/возобновлением
             if(key === 'Escape') {
                 e.preventDefault();
                 if(settingsModal.classList.contains('active')) {
-                    // Закрыть настройки и возобновить игру, если она не закончена
                     settingsModal.classList.remove('active');
                     if(gameRunning && isPaused) {
                         resumeGame();
                     } else if(!gameRunning && gameOverModal.classList.contains('active')) {
-                        // Если меню смерти открыто, ничего не делаем
                     }
                 } else {
-                    // Открыть настройки, поставить на паузу, если игра активна
                     if(gameRunning && !isPaused) {
                         pauseGame();
                     }
@@ -927,7 +915,6 @@
                 return;
             }
             
-            // Пробел или Enter: рестарт, если открыто любое меню (смерти или настроек)
             if(key === 'Enter' || key === ' ' || key === 'Space') {
                 e.preventDefault();
                 if(gameOverModal.classList.contains('active') || settingsModal.classList.contains('active')) {
@@ -984,7 +971,7 @@
             };
             
             const externalLinks = document.querySelectorAll('.external-btn');
-            const placeholderUrl = 'ССЫЛКА-ПОД-ЗАМЕНУ';
+            const placeholderUrl = 'ССЫЛКА-ПОД-ЗАМЕНУ1';
             externalLinks.forEach(link => {
                 link.href = placeholderUrl;
             });
