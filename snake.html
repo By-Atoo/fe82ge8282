@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Змейка | Из самого низа | Радужный фон</title>
+    <title>Змейка</title>
     <style>
         * {
             user-select: none;
@@ -19,7 +19,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', 'Courier New', 'Fira Code', monospace;
+            font-family: 'Segoe UI', 'Courier New', monospace;
             padding: 0;
             overflow-x: hidden;
         }
@@ -58,7 +58,7 @@
             background: rgba(10, 15, 8, 0.7);
             backdrop-filter: blur(8px);
             border-radius: 56px;
-            padding: 20px 18px 22px 18px;
+            padding: 20px 18px 22px;
             box-shadow: 0 25px 40px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,200,0.2);
             width: 100%;
             max-width: 1200px;
@@ -133,17 +133,18 @@
             }
         }
 
+        /* Боковая панель — счёт уменьшен */
         .sidebar {
             flex: 1;
-            min-width: 150px;
-            background: rgba(0, 0, 0, 0.6);
+            min-width: 140px;
+            background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(12px);
-            border-radius: 52px;
-            padding: 24px 12px;
+            border-radius: 48px;
+            padding: 20px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 40px;
+            gap: 30px;
             border: 1px solid #ffda88;
         }
 
@@ -151,23 +152,23 @@
             text-align: center;
             background: #000000aa;
             width: 100%;
-            border-radius: 48px;
-            padding: 12px 8px;
-            border-bottom: 4px solid #ffcc55;
+            border-radius: 40px;
+            padding: 10px 5px;
+            border-bottom: 2px solid #ffcc55;
         }
 
         .score-label {
-            font-size: 22px;
+            font-size: 16px;
             color: #ffe6b3;
-            letter-spacing: 2px;
-            font-weight: 600;
+            letter-spacing: 1px;
+            font-weight: 500;
         }
 
         .score-value {
-            font-size: 72px;
+            font-size: 40px;
             font-weight: bold;
             color: #ffffcc;
-            text-shadow: 0 0 12px #ffaa44;
+            text-shadow: 0 0 6px #ffaa44;
             font-family: monospace;
             line-height: 1;
         }
@@ -175,21 +176,22 @@
         .settings-btn {
             background: #ffb347dd;
             border: none;
-            font-size: 56px;
+            font-size: 44px;
             cursor: pointer;
-            padding: 12px;
-            border-radius: 70px;
-            width: 96px;
+            padding: 8px;
+            border-radius: 60px;
+            width: 80px;
             transition: 0.08s linear;
-            box-shadow: 0 7px 0 #9b551a;
+            box-shadow: 0 6px 0 #9b551a;
             color: #2c1c0a;
         }
 
         .settings-btn:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: 0 2px 0 #9b551a;
         }
 
+        /* Модальные окна */
         .modal {
             position: fixed;
             top: 0;
@@ -244,37 +246,36 @@
         }
 
         .modal-content h2 {
-            font-size: 38px;
-            margin: 0 0 20px 0;
+            font-size: 34px;
+            margin: 0 0 20px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            font-weight: 800;
         }
 
         .modal-stats {
-            font-size: 26px;
-            margin: 24px 0;
+            font-size: 24px;
+            margin: 20px 0;
             background: #00000099;
-            padding: 16px;
+            padding: 14px;
             border-radius: 48px;
         }
 
         .modal-stats p {
-            margin: 12px 0;
+            margin: 10px 0;
         }
 
         .modal-btn {
             background: #ffb347;
             border: none;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: bold;
-            padding: 14px 20px;
+            padding: 12px 20px;
             border-radius: 70px;
             font-family: monospace;
             cursor: pointer;
-            margin-top: 18px;
+            margin-top: 16px;
             width: 100%;
-            box-shadow: 0 6px 0 #9b551a;
+            box-shadow: 0 5px 0 #9b551a;
             transition: 0.05s linear;
         }
 
@@ -287,13 +288,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 24px 0;
+            margin: 22px 0;
             gap: 14px;
             flex-wrap: wrap;
         }
 
         .setting-row label {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
         }
 
@@ -304,10 +305,10 @@
 
         .value-display {
             background: black;
-            padding: 5px 14px;
+            padding: 4px 12px;
             border-radius: 40px;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         @media (max-width: 700px) {
@@ -319,11 +320,11 @@
                 flex-direction: row;
                 justify-content: space-evenly;
                 width: 100%;
-                padding: 18px 12px;
+                padding: 14px 12px;
                 gap: 20px;
             }
             .score-value {
-                font-size: 52px;
+                font-size: 34px;
             }
             canvas {
                 max-width: 92vw;
@@ -333,19 +334,19 @@
 
         @media (max-width: 480px) {
             .settings-btn {
-                font-size: 44px;
-                width: 76px;
+                font-size: 36px;
+                width: 70px;
             }
             .ctrl-btn {
-                font-size: 32px;
-                padding: 6px 18px;
-                min-width: 70px;
+                font-size: 28px;
+                padding: 5px 16px;
+                min-width: 60px;
             }
             .modal-content h2 {
-                font-size: 30px;
+                font-size: 28px;
             }
             .modal-stats {
-                font-size: 22px;
+                font-size: 20px;
             }
         }
     </style>
@@ -388,7 +389,7 @@
         <div class="modal-close-row">
             <span class="modal-close" id="closeGameOverModal">✖</span>
         </div>
-        <h2 id="modalTitle">💀 GAME OVER 💀</h2>
+        <h2 id="modalTitle">💀GAME OVER💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
             <p>⏱️ Время: <span id="gameTime">0</span> сек.</p>
@@ -406,9 +407,8 @@
         <h2>⚙️ НАСТРОЙКИ</h2>
         <div class="setting-row">
             <label>📐 РАЗМЕР СЕТКИ</label>
-            <button id="gridMinus" style="background:#2e2e1e;border:none;font-size:24px;width:48px;">−</button>
-            <span id="gridSizeValue" style="min-width:55px;text-align:center;font-weight:bold;font-size:20px;">20</span>
-            <button id="gridPlus" style="background:#2e2e1e;border:none;font-size:24px;width:48px;">+</button>
+            <input type="range" id="gridSizeSlider" min="10" max="35" step="1" value="20">
+            <span id="gridSizeValue" class="value-display">20</span>
         </div>
         <div class="setting-row">
             <label>⚡ СКОРОСТЬ (мс)</label>
@@ -431,12 +431,13 @@
         const finalScoreSpan = document.getElementById('finalScore');
         const gameTimeSpan = document.getElementById('gameTime');
         const modalTitle = document.getElementById('modalTitle');
+        const gridSizeSlider = document.getElementById('gridSizeSlider');
         const gridSizeValueSpan = document.getElementById('gridSizeValue');
         const speedSlider = document.getElementById('speedSlider');
         const speedValueSpan = document.getElementById('speedValue');
         const rainbowBg = document.getElementById('rainbowBg');
         
-        // ----- РАДУЖНЫЙ ФОН (медленное переливание) -----
+        // ----- РАДУЖНЫЙ ФОН -----
         let hue = 0;
         function updateRainbowBackground() {
             const color1 = `hsl(${hue}, 100%, 55%)`;
@@ -519,15 +520,17 @@
             return Math.floor((Date.now() - sessionStartTime) / 1000);
         }
         
-        // СПАВН: змейка строго внизу, голова на последней строке, тело выше
+        // ПРАВИЛЬНЫЙ СПАВН: змейка внизу, голова смотрит вверх, не касается края (тело отступает)
         function initGame(resetTimer = true) {
             const startX = Math.floor(GRID_SIZE / 2);
-            const headY = GRID_SIZE - 1;      // самая нижняя строка
+            // Голова на предпоследней строке, чтобы хвост не вылезал за границы
+            const headY = GRID_SIZE - 2;
             snake = [
-                { x: startX, y: headY },
-                { x: startX, y: headY - 1 },
-                { x: startX, y: headY - 2 }
+                { x: startX, y: headY },      // голова
+                { x: startX, y: headY + 1 },  // тело ниже (но голова выше, так как направление вверх)
+                { x: startX, y: headY + 2 }
             ];
+            // Направление вверх — голова движется в сторону уменьшения y
             direction = 'UP';
             nextDirection = 'UP';
             score = 0;
@@ -569,12 +572,10 @@
             }
             
             const head = snake[0];
-            // Проверка выхода за границы
             if(head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
                 gameOver();
                 return false;
             }
-            // Проверка столкновения с собой (исключаем голову)
             for(let i = 1; i < snake.length; i++) {
                 if(snake[i].x === head.x && snake[i].y === head.y) {
                     gameOver();
@@ -594,7 +595,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '💀 GAME OVER 💀';
+            modalTitle.innerHTML = '💀GAME OVER💀';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -609,7 +610,7 @@
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
-            modalTitle.innerHTML = '🏆 ПОБЕДА! 🏆';
+            modalTitle.innerHTML = '🏆ПОБЕДА!🏆';
             gameOverModal.classList.add('active');
             drawGame();
         }
@@ -735,7 +736,7 @@
             gameLoopId = requestAnimationFrame(gameTick);
         }
         
-        // Управление (свайпы + клавиатура)
+        // Управление
         function setDirection(newDir) {
             if(!gameRunning) return;
             if((newDir === 'RIGHT' && direction !== 'LEFT') ||
@@ -793,9 +794,10 @@
             GRID_SIZE = DEFAULT_GRID;
             gameSpeed = DEFAULT_SPEED;
             updateCellSize();
+            gridSizeSlider.value = GRID_SIZE;
+            gridSizeValueSpan.innerText = GRID_SIZE;
             speedSlider.value = gameSpeed;
             speedValueSpan.innerText = gameSpeed;
-            gridSizeValueSpan.innerText = GRID_SIZE;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
             gameRunning = true;
@@ -805,12 +807,13 @@
         }
         
         function applySettingsAndRestart() {
-            let newGrid = parseInt(gridSizeValueSpan.innerText, 10);
+            let newGrid = parseInt(gridSizeSlider.value, 10);
             let newSpeed = parseInt(speedSlider.value, 10);
             if(isNaN(newGrid)) newGrid = GRID_SIZE;
             newGrid = Math.min(35, Math.max(10, newGrid));
             GRID_SIZE = newGrid;
             gameSpeed = newSpeed;
+            gridSizeValueSpan.innerText = GRID_SIZE;
             speedValueSpan.innerText = gameSpeed;
             updateCellSize();
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
@@ -840,6 +843,7 @@
             document.getElementById('openSettingsBtn').onclick = () => {
                 if(gameLoopId) cancelAnimationFrame(gameLoopId);
                 gameRunning = false;
+                gridSizeSlider.value = GRID_SIZE;
                 gridSizeValueSpan.innerText = GRID_SIZE;
                 speedSlider.value = gameSpeed;
                 speedValueSpan.innerText = gameSpeed;
@@ -847,15 +851,13 @@
             };
             document.getElementById('applySettingsBtn').onclick = () => applySettingsAndRestart();
             document.getElementById('resetSettingsBtn').onclick = () => resetToDefaultSettings();
-            document.getElementById('gridMinus').onclick = () => {
-                let val = parseInt(gridSizeValueSpan.innerText,10);
-                if(val > 10) gridSizeValueSpan.innerText = val-1;
+            
+            gridSizeSlider.oninput = () => {
+                gridSizeValueSpan.innerText = gridSizeSlider.value;
             };
-            document.getElementById('gridPlus').onclick = () => {
-                let val = parseInt(gridSizeValueSpan.innerText,10);
-                if(val < 35) gridSizeValueSpan.innerText = val+1;
+            speedSlider.oninput = () => {
+                speedValueSpan.innerText = speedSlider.value;
             };
-            speedSlider.oninput = () => { speedValueSpan.innerText = speedSlider.value; };
         }
         
         function start() {
