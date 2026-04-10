@@ -12,7 +12,6 @@
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
         }
-
         body {
             margin: 0;
             min-height: 100vh;
@@ -24,7 +23,6 @@
             padding: 16px;
             overflow-x: hidden;
         }
-
         .rainbow-bg {
             position: fixed;
             top: 0;
@@ -34,7 +32,6 @@
             z-index: -2;
             transition: background 1.5s ease;
         }
-
         .overlay-glow {
             position: fixed;
             top: 0;
@@ -45,7 +42,6 @@
             pointer-events: none;
             z-index: -1;
         }
-
         .game-container {
             width: 100%;
             max-width: 1200px;
@@ -54,7 +50,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .game-console {
             background: rgba(10, 15, 8, 0.7);
             backdrop-filter: blur(8px);
@@ -63,21 +58,18 @@
             box-shadow: 0 20px 35px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,200,0.2);
             width: auto;
         }
-
         .game-layout {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 20px;
         }
-
         .canvas-area {
             min-width: 260px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
         canvas {
             display: block;
             width: 100%;
@@ -88,7 +80,6 @@
             cursor: pointer;
             aspect-ratio: 1 / 1;
         }
-
         @media (max-width: 900px) {
             canvas {
                 max-width: 85vw;
@@ -96,7 +87,6 @@
                 width: auto;
             }
         }
-
         @media (min-width: 901px) {
             canvas {
                 max-width: 550px;
@@ -105,7 +95,6 @@
                 height: 550px;
             }
         }
-
         .touch-panel {
             margin-top: 18px;
             display: flex;
@@ -113,13 +102,11 @@
             align-items: center;
             gap: 10px;
         }
-
         .arrow-row {
             display: flex;
             justify-content: center;
             gap: 18px;
         }
-
         .ctrl-btn {
             background: #1e2a1aee;
             backdrop-filter: blur(6px);
@@ -135,18 +122,13 @@
             min-width: 80px;
             font-family: monospace;
         }
-
         .ctrl-btn:active {
             transform: translateY(4px);
             box-shadow: 0 2px 0 #0e3b0e;
         }
-
         @media (min-width: 901px) {
-            .touch-panel {
-                display: none;
-            }
+            .touch-panel { display: none; }
         }
-
         .sidebar {
             flex: 1;
             min-width: 130px;
@@ -160,7 +142,6 @@
             gap: 20px;
             border: 1px solid #ffda88;
         }
-
         .score-console {
             text-align: center;
             background: #000000aa;
@@ -169,14 +150,12 @@
             padding: 8px 5px;
             border-bottom: 2px solid #ffcc55;
         }
-
         .score-label {
             font-size: 14px;
             color: #ffe6b3;
             letter-spacing: 1px;
             font-weight: 500;
         }
-
         .score-value {
             font-size: 36px;
             font-weight: bold;
@@ -185,7 +164,6 @@
             font-family: monospace;
             line-height: 1;
         }
-
         .button-group {
             display: flex;
             flex-direction: column;
@@ -193,8 +171,7 @@
             width: 100%;
             align-items: center;
         }
-
-        .settings-btn, .external-btn {
+        .settings-btn, .external-btn, .leaderboard-btn {
             background: #ffb347dd;
             border: none;
             font-size: 28px;
@@ -209,26 +186,20 @@
             text-decoration: none;
             display: inline-block;
         }
-
         .external-btn {
             background: #5a7a4add;
             box-shadow: 0 5px 0 #2e4a2e;
             font-size: 24px;
-            width: 70px;
         }
-        
         .leaderboard-btn {
             background: #4a6a4add;
             box-shadow: 0 5px 0 #2e4a2e;
             font-size: 28px;
-            width: 70px;
         }
-
         .settings-btn:active, .external-btn:active, .leaderboard-btn:active {
             transform: translateY(3px);
             box-shadow: 0 2px 0 #9b551a;
         }
-
         .modal {
             position: fixed;
             top: 0;
@@ -245,12 +216,10 @@
             opacity: 0;
             transition: visibility 0.2s, opacity 0.2s;
         }
-
         .modal.active {
             visibility: visible;
             opacity: 1;
         }
-
         .modal-content {
             background: #0f1a0f;
             border-radius: 56px;
@@ -263,7 +232,6 @@
             color: #ffffdd;
             position: relative;
         }
-
         .modal-close-row {
             text-align: right;
             margin-bottom: 6px;
@@ -281,14 +249,12 @@
             color: #ffaa55;
             transform: scale(1.1);
         }
-
         .modal-content h2 {
             font-size: 30px;
             margin: 0 0 16px;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-
         .modal-stats {
             font-size: 22px;
             margin: 18px 0;
@@ -296,11 +262,9 @@
             padding: 12px;
             border-radius: 40px;
         }
-
         .modal-stats p {
             margin: 8px 0;
         }
-
         .modal-btn {
             background: #ffb347;
             border: none;
@@ -315,12 +279,10 @@
             box-shadow: 0 5px 0 #9b551a;
             transition: 0.05s linear;
         }
-
         .modal-btn:active {
             transform: translateY(3px);
             box-shadow: 0 1px 0 #9b551a;
         }
-
         .setting-row {
             display: flex;
             justify-content: space-between;
@@ -329,17 +291,14 @@
             gap: 12px;
             flex-wrap: wrap;
         }
-
         .setting-row label {
             font-size: 16px;
             font-weight: bold;
         }
-
         input[type="range"] {
             flex: 2;
             min-width: 130px;
         }
-
         .value-display {
             background: black;
             padding: 3px 10px;
@@ -347,7 +306,6 @@
             font-weight: bold;
             font-size: 14px;
         }
-
         .hotkeys-hint {
             text-align: center;
             font-size: 11px;
@@ -371,9 +329,7 @@
             <div class="canvas-area">
                 <canvas id="snakeCanvas" width="600" height="600"></canvas>
                 <div class="touch-panel">
-                    <div class="arrow-row">
-                        <button class="ctrl-btn" data-dir="UP">↑</button>
-                    </div>
+                    <div class="arrow-row"><button class="ctrl-btn" data-dir="UP">↑</button></div>
                     <div class="arrow-row">
                         <button class="ctrl-btn" data-dir="LEFT">←</button>
                         <button class="ctrl-btn" data-dir="DOWN">↓</button>
@@ -397,11 +353,10 @@
     </div>
 </div>
 
+<!-- Модальные окна (без изменений) -->
 <div id="gameOverModal" class="modal">
     <div class="modal-content">
-        <div class="modal-close-row">
-            <span class="modal-close" id="closeGameOverModal">✖</span>
-        </div>
+        <div class="modal-close-row"><span class="modal-close" id="closeGameOverModal">✖</span></div>
         <h2 id="modalTitle">💀GAME OVER💀</h2>
         <div class="modal-stats">
             <p>🐍 Счёт: <span id="finalScore">0</span></p>
@@ -413,9 +368,7 @@
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <div class="modal-close-row">
-            <span class="modal-close" id="closeSettingsModal">✖</span>
-        </div>
+        <div class="modal-close-row"><span class="modal-close" id="closeSettingsModal">✖</span></div>
         <h2>НАСТРОЙКИ</h2>
         <div class="setting-row">
             <label>📐 РАЗМЕР СЕТКИ </label>
@@ -431,7 +384,7 @@
         <button class="modal-btn" id="resetSettingsBtn" style="background:#5f4a2e;">⟳ СБРОС </button>
     </div>
 </div>
-    
+
 <div id="nameModal" class="modal">
     <div class="modal-content" style="max-width: 300px;">
         <div class="modal-close-row"><span class="modal-close" id="closeNameModal">✖</span></div>
@@ -442,7 +395,7 @@
         <button id="submitScoreBtn" class="modal-btn" style="margin-top: 20px;">ОТПРАВИТЬ</button>
     </div>
 </div>
-    
+
 <div id="leaderboardModal" class="modal">
     <div class="modal-content">
         <div class="modal-close-row"><span class="modal-close" id="closeLeaderboardModal">✖</span></div>
@@ -451,63 +404,87 @@
         <button id="refreshLeaderboardBtn" class="modal-btn">ОБНОВИТЬ</button>
     </div>
 </div>
-    
+
 <script>
     (function(){
-        // ⚠️ ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ URL ВЕБ-ПРИЛОЖЕНИЯ
-        const LEADERBOARD_API_URL = 'https://script.google.com/macros/s/AKfycbx8ZN619xV7ki6zN_kcwgazpQR_WSZd3itfX9eCaNyAqfOKz70W4ij3YrIvdl4cWwGanA/exec'; 
-        let pendingScore = null; 
-        
-        async function isHighScore(score) {
+        // ======================= НАСТРОЙКИ API БОТА =======================
+        const BOT_API_URL = 'https://by-atoo.onrender.com'; // ваш бот на Render
+        // -----------------------------------------------------------------
+
+        // ----- РАБОТА С ТАБЛИЦЕЙ ЛИДЕРОВ (API бота) -----
+        let pendingScore = null;
+        let pendingDuration = null;
+
+        // Получить текущий топ-20 рекордов
+        async function fetchLeaderboard() {
             try {
-                const response = await fetch(LEADERBOARD_API_URL);
+                const response = await fetch(`${BOT_API_URL}/leaderboard`);
+                if (!response.ok) throw new Error('Ошибка загрузки');
                 const records = await response.json();
-                if (records.length < 20) return true;
-                const worst = records[records.length-1]?.score || 0;
-                return score > worst;
-            } catch(e) { return false; }
+                return records; // ожидаем [{ name, score, duration }, ...]
+            } catch(e) {
+                console.error('fetchLeaderboard error:', e);
+                return null;
+            }
         }
-        
-        async function submitScore(name, score, duration) {
+
+        // Отправить новый рекорд на сервер
+        async function submitRecord(name, score, duration) {
             try {
-                const response = await fetch(LEADERBOARD_API_URL, {
+                const response = await fetch(`${BOT_API_URL}/record`, {
                     method: 'POST',
-                    mode: 'cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, score: score, duration: duration })
+                    body: JSON.stringify({ name, score, duration })
                 });
                 const result = await response.json();
-                return result.success;
+                return result.success === true;
             } catch(e) {
-                console.error('Ошибка отправки:', e);
+                console.error('submitRecord error:', e);
                 return false;
             }
         }
-        
-        async function loadAndShowLeaderboard() {
-            try {
-                const response = await fetch(LEADERBOARD_API_URL);
-                const records = await response.json();
-                const container = document.getElementById('leaderboardList');
-                if (!container) return;
-                if (records.length === 0) {
-                    container.innerHTML = '<p>Пока нет рекордов :(</p>';
-                } else {
-                    let html = '<ol style="margin: 0; padding-left: 20px;">';
-                    records.forEach(rec => {
-                        const durationText = rec.duration ? `${rec.duration} сек.` : '—';
-                        html += `<li><strong>${escapeHtml(rec.name)}</strong> — ${rec.score} очков <span style="font-size: 12px;">(${durationText})</span></li>`;
-                    });
-                    html += '</ol>';
-                    container.innerHTML = html;
-                }
-            } catch(e) {
-                console.error(e);
-                const container = document.getElementById('leaderboardList');
-                if (container) container.innerHTML = '<p>Не удалось загрузить рекорды</p>';
+
+        // Проверка, попадает ли счёт в топ-20 (загружаем текущий список)
+        async function isHighScore(score) {
+            const records = await fetchLeaderboard();
+            if (!records) return false; // если не загрузилось – не предлагаем рекорд
+            if (records.length < 20) return true;
+            const worst = records[records.length-1]?.score || 0;
+            return score > worst;
+        }
+
+        // Показать окно ввода имени, если счёт рекордный
+        async function checkAndPromptHighScore(currentScore, currentDuration) {
+            if (currentScore <= 0) return;
+            const isHigh = await isHighScore(currentScore);
+            if (isHigh) {
+                pendingScore = currentScore;
+                pendingDuration = currentDuration;
+                document.getElementById('newScoreSpan').innerText = currentScore;
+                document.getElementById('nameModal').classList.add('active');
             }
         }
-        
+
+        // Отобразить таблицу лидеров в модальном окне
+        async function loadAndShowLeaderboard() {
+            const records = await fetchLeaderboard();
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+            if (!records || records.length === 0) {
+                container.innerHTML = '<p>Пока нет рекордов :(</p>';
+                return;
+            }
+            let html = '<ol style="margin: 0; padding-left: 20px;">';
+            records.forEach(rec => {
+                const name = escapeHtml(rec.name);
+                const score = rec.score;
+                const duration = rec.duration;
+                html += `<li><strong>${name}</strong> — ${score} очков <span style="font-size: 12px;">(${duration} сек.)</span></li>`;
+            });
+            html += '</ol>';
+            container.innerHTML = html;
+        }
+
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -517,56 +494,8 @@
                 return m;
             });
         }
-        
-        function checkAndPromptHighScore(currentScore, currentDuration) {
-            if (currentScore > 0) {
-                isHighScore(currentScore).then(isHigh => {
-                    if (isHigh) {
-                        pendingScore = currentScore;
-                        document.getElementById('newScoreSpan').innerText = currentScore;
-                        document.getElementById('nameModal').classList.add('active');
-                        // сохраним duration для отправки
-                        window._pendingDuration = currentDuration;
-                    }
-                });
-            }
-        }
-        
-        document.getElementById('submitScoreBtn').onclick = async () => {
-            const name = document.getElementById('playerName').value.trim();
-            if (name === "") {
-                alert("Введите имя");
-                return;
-            }
-            const duration = window._pendingDuration || 0;
-            const success = await submitScore(name, pendingScore, duration);
-            if (success) {
-                document.getElementById('nameModal').classList.remove('active');
-                alert("Рекорд сохранён!");
-            } else {
-                alert("Ошибка сохранения. Попробуйте позже.");
-            }
-            pendingScore = null;
-            window._pendingDuration = null;
-            document.getElementById('playerName').value = "";
-        };
-        document.getElementById('closeNameModal').onclick = () => {
-            document.getElementById('nameModal').classList.remove('active');
-            pendingScore = null;
-            window._pendingDuration = null;
-        };
-        document.getElementById('openLeaderboardBtn').onclick = () => {
-            loadAndShowLeaderboard();
-            document.getElementById('leaderboardModal').classList.add('active');
-        };
-        document.getElementById('closeLeaderboardModal').onclick = () => {
-            document.getElementById('leaderboardModal').classList.remove('active');
-        };
-        document.getElementById('refreshLeaderboardBtn').onclick = () => {
-            loadAndShowLeaderboard();
-        };
-        
-        // ----- ОСНОВНОЙ КОД ИГРЫ -----
+
+        // ----- ОСНОВНОЙ КОД ИГРЫ (без изменений в логике, только вызов checkAndPromptHighScore) -----
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
@@ -619,13 +548,8 @@
         appleImage.onerror = () => { appleLoaded = false; drawGame(); };
         appleImage.src = APPLE_URL;
         
-        function updateCellSize() {
-            CELL_SIZE = canvas.width / GRID_SIZE;
-        }
-        
-        function isPartOfSnake(x, y) {
-            return snake.some(seg => seg.x === x && seg.y === y);
-        }
+        function updateCellSize() { CELL_SIZE = canvas.width / GRID_SIZE; }
+        function isPartOfSnake(x, y) { return snake.some(seg => seg.x === x && seg.y === y); }
         
         function generateValidFood() {
             const maxAttempts = 5000;
@@ -648,18 +572,9 @@
             gameWin();
         }
         
-        function updateScoreUI() {
-            scoreSpan.innerText = score;
-        }
-        
-        function startSessionTimer() {
-            sessionStartTime = Date.now();
-        }
-        
-        function getSessionDuration() {
-            if(!sessionStartTime) return 0;
-            return Math.floor((Date.now() - sessionStartTime) / 1000);
-        }
+        function updateScoreUI() { scoreSpan.innerText = score; }
+        function startSessionTimer() { sessionStartTime = Date.now(); }
+        function getSessionDuration() { return sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0; }
         
         function initGame(resetTimer = true) {
             const startX = Math.floor(GRID_SIZE / 2);
@@ -682,7 +597,6 @@
         
         function moveSnake() {
             if(!gameRunning || isPaused) return false;
-            
             let newDir = nextDirection;
             if((newDir === 'RIGHT' && direction === 'LEFT') ||
                (newDir === 'LEFT' && direction === 'RIGHT') ||
@@ -691,7 +605,6 @@
                 newDir = direction;
             }
             direction = newDir;
-            
             let newHead = { ...snake[0] };
             switch(direction) {
                 case 'RIGHT': newHead.x += 1; break;
@@ -699,27 +612,14 @@
                 case 'UP':    newHead.y -= 1; break;
                 case 'DOWN':  newHead.y += 1; break;
             }
-            
             const willEat = (newHead.x === food.x && newHead.y === food.y);
             snake.unshift(newHead);
-            if(!willEat) {
-                snake.pop();
-            } else {
-                score++;
-                updateScoreUI();
-                generateValidFood();
-            }
-            
+            if(!willEat) snake.pop();
+            else { score++; updateScoreUI(); generateValidFood(); }
             const head = snake[0];
-            if(head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
-                gameOver();
-                return false;
-            }
+            if(head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) { gameOver(); return false; }
             for(let i = 1; i < snake.length; i++) {
-                if(snake[i].x === head.x && snake[i].y === head.y) {
-                    gameOver();
-                    return false;
-                }
+                if(snake[i].x === head.x && snake[i].y === head.y) { gameOver(); return false; }
             }
             return true;
         }
@@ -728,10 +628,7 @@
             if(!gameRunning) return;
             gameRunning = false;
             isPaused = false;
-            if(gameLoopId) {
-                cancelAnimationFrame(gameLoopId);
-                gameLoopId = null;
-            }
+            if(gameLoopId) { cancelAnimationFrame(gameLoopId); gameLoopId = null; }
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
@@ -745,10 +642,7 @@
             if(!gameRunning) return;
             gameRunning = false;
             isPaused = false;
-            if(gameLoopId) {
-                cancelAnimationFrame(gameLoopId);
-                gameLoopId = null;
-            }
+            if(gameLoopId) { cancelAnimationFrame(gameLoopId); gameLoopId = null; }
             const duration = getSessionDuration();
             finalScoreSpan.innerText = score;
             gameTimeSpan.innerText = duration;
@@ -763,7 +657,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#0a1a0a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
             ctx.strokeStyle = '#5eff5e';
             ctx.lineWidth = 1.5;
             for(let i = 0; i <= GRID_SIZE; i++) {
@@ -775,7 +668,6 @@
                 ctx.lineTo(canvas.width, i * CELL_SIZE);
                 ctx.stroke();
             }
-            
             const fx = food.x * CELL_SIZE;
             const fy = food.y * CELL_SIZE;
             const size = CELL_SIZE;
@@ -792,7 +684,6 @@
                 ctx.arc(fx + size/2 - 3, fy + size/2 - 4, 3.5, 0, Math.PI*2);
                 ctx.fill();
             }
-            
             for(let i = 0; i < snake.length; i++) {
                 const seg = snake[i];
                 const x = seg.x * CELL_SIZE;
@@ -809,7 +700,6 @@
                 ctx.beginPath();
                 ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, radius);
                 ctx.stroke();
-                
                 if(i === 0) {
                     const eyeSize = Math.max(3, CELL_SIZE * 0.18);
                     const pupilSize = Math.max(1.5, eyeSize * 0.6);
@@ -818,7 +708,6 @@
                     const leftEyeX = x + eyeOffsetX;
                     const rightEyeX = x + CELL_SIZE - eyeOffsetX;
                     const eyeY = y + eyeOffsetY;
-                    
                     let pupilShiftX = 0, pupilShiftY = 0;
                     const shiftAmount = eyeSize * 0.3;
                     switch(direction) {
@@ -827,7 +716,6 @@
                         case 'UP':    pupilShiftY = -shiftAmount; break;
                         case 'DOWN':  pupilShiftY = shiftAmount; break;
                     }
-                    
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
                     ctx.arc(leftEyeX, eyeY, eyeSize, 0, Math.PI*2);
@@ -835,7 +723,6 @@
                     ctx.beginPath();
                     ctx.arc(rightEyeX, eyeY, eyeSize, 0, Math.PI*2);
                     ctx.fill();
-                    
                     ctx.fillStyle = '#000000';
                     ctx.beginPath();
                     ctx.arc(leftEyeX + pupilShiftX, eyeY + pupilShiftY, pupilSize, 0, Math.PI*2);
@@ -843,7 +730,6 @@
                     ctx.beginPath();
                     ctx.arc(rightEyeX + pupilShiftX, eyeY + pupilShiftY, pupilSize, 0, Math.PI*2);
                     ctx.fill();
-                    
                     ctx.fillStyle = '#ffffff';
                     const highlightSize = pupilSize * 0.4;
                     ctx.beginPath();
@@ -877,53 +763,24 @@
         function gameTick(now) {
             if(!gameRunning || isPaused) {
                 drawGame();
-                if(gameLoopId && (isPaused || !gameRunning)) {
-                    gameLoopId = requestAnimationFrame(gameTick);
-                }
+                if(gameLoopId && (isPaused || !gameRunning)) { gameLoopId = requestAnimationFrame(gameTick); }
                 return;
             }
-            if(!lastMoveTime) {
-                lastMoveTime = now;
-                requestAnimationFrame(gameTick);
-                drawGame();
-                return;
-            }
+            if(!lastMoveTime) { lastMoveTime = now; requestAnimationFrame(gameTick); drawGame(); return; }
             const elapsed = now - lastMoveTime;
             if(elapsed >= gameSpeed) {
                 const success = moveSnake();
                 lastMoveTime = now;
                 drawGame();
-                if(!success) {
-                    if(gameLoopId) cancelAnimationFrame(gameLoopId);
-                    gameLoopId = null;
-                    drawGame();
-                    return;
-                }
+                if(!success) { if(gameLoopId) cancelAnimationFrame(gameLoopId); gameLoopId = null; drawGame(); return; }
             }
             drawGame();
             gameLoopId = requestAnimationFrame(gameTick);
         }
         
-        function startGameLoop() {
-            if(gameLoopId) cancelAnimationFrame(gameLoopId);
-            lastMoveTime = 0;
-            gameRunning = true;
-            isPaused = false;
-            gameLoopId = requestAnimationFrame(gameTick);
-        }
-        
-        function pauseGame() {
-            if(gameRunning && !isPaused && gameLoopId) {
-                isPaused = true;
-            }
-        }
-        
-        function resumeGame() {
-            if(gameRunning && isPaused) {
-                isPaused = false;
-                lastMoveTime = 0;
-            }
-        }
+        function startGameLoop() { if(gameLoopId) cancelAnimationFrame(gameLoopId); lastMoveTime = 0; gameRunning = true; isPaused = false; gameLoopId = requestAnimationFrame(gameTick); }
+        function pauseGame() { if(gameRunning && !isPaused && gameLoopId) isPaused = true; }
+        function resumeGame() { if(gameRunning && isPaused) { isPaused = false; lastMoveTime = 0; } }
         
         function setDirection(newDir) {
             if(!gameRunning || isPaused) return;
@@ -936,34 +793,14 @@
         }
         
         let touchStart = null;
-        function handleTouchStart(e) {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            touchStart = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
-        }
-        function handleTouchMove(e) {
-            e.preventDefault();
-            if(!touchStart || !gameRunning || isPaused) return;
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const dx = (touch.clientX - rect.left) - touchStart.x;
-            const dy = (touch.clientY - rect.top) - touchStart.y;
-            if(Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
-            let newDir = null;
-            if(Math.abs(dx) > Math.abs(dy)) newDir = dx > 0 ? 'RIGHT' : 'LEFT';
-            else newDir = dy > 0 ? 'DOWN' : 'UP';
-            if(newDir) setDirection(newDir);
-            touchStart = null;
-        }
+        function handleTouchStart(e) { e.preventDefault(); const rect = canvas.getBoundingClientRect(); const touch = e.touches[0]; touchStart = { x: touch.clientX - rect.left, y: touch.clientY - rect.top }; }
+        function handleTouchMove(e) { e.preventDefault(); if(!touchStart || !gameRunning || isPaused) return; const rect = canvas.getBoundingClientRect(); const touch = e.touches[0]; const dx = (touch.clientX - rect.left) - touchStart.x; const dy = (touch.clientY - rect.top) - touchStart.y; if(Math.abs(dx) < 12 && Math.abs(dy) < 12) return; let newDir = null; if(Math.abs(dx) > Math.abs(dy)) newDir = dx > 0 ? 'RIGHT' : 'LEFT'; else newDir = dy > 0 ? 'DOWN' : 'UP'; if(newDir) setDirection(newDir); touchStart = null; }
         function handleTouchEnd(e) { e.preventDefault(); touchStart = null; }
         
         function fullRestart() {
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             initGame(true);
-            gameRunning = true;
-            isPaused = false;
-            lastMoveTime = 0;
+            gameRunning = true; isPaused = false; lastMoveTime = 0;
             startGameLoop();
             gameOverModal.classList.remove('active');
             settingsModal.classList.remove('active');
@@ -971,19 +808,13 @@
         }
         
         function resetToDefaultSettings() {
-            GRID_SIZE = DEFAULT_GRID;
-            gameSpeed = DEFAULT_SPEED;
+            GRID_SIZE = DEFAULT_GRID; gameSpeed = DEFAULT_SPEED;
             updateCellSize();
-            gridSizeSlider.value = GRID_SIZE;
-            gridSizeValueSpan.innerText = GRID_SIZE;
+            gridSizeSlider.value = GRID_SIZE; gridSizeValueSpan.innerText = GRID_SIZE;
             const sliderVal = 70 + 220 - gameSpeed;
-            speedSlider.value = sliderVal;
-            speedValueSpan.innerText = gameSpeed;
+            speedSlider.value = sliderVal; speedValueSpan.innerText = gameSpeed;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
-            initGame(true);
-            gameRunning = true;
-            isPaused = false;
-            lastMoveTime = 0;
+            initGame(true); gameRunning = true; isPaused = false; lastMoveTime = 0;
             startGameLoop();
             settingsModal.classList.remove('active');
         }
@@ -995,16 +826,11 @@
             newGrid = Math.min(35, Math.max(10, newGrid));
             let newSpeed = 70 + 220 - sliderValue;
             newSpeed = Math.min(220, Math.max(70, newSpeed));
-            GRID_SIZE = newGrid;
-            gameSpeed = newSpeed;
-            gridSizeValueSpan.innerText = GRID_SIZE;
-            speedValueSpan.innerText = gameSpeed;
+            GRID_SIZE = newGrid; gameSpeed = newSpeed;
+            gridSizeValueSpan.innerText = GRID_SIZE; speedValueSpan.innerText = gameSpeed;
             updateCellSize();
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
-            initGame(true);
-            gameRunning = true;
-            isPaused = false;
-            lastMoveTime = 0;
+            initGame(true); gameRunning = true; isPaused = false; lastMoveTime = 0;
             startGameLoop();
             settingsModal.classList.remove('active');
         }
@@ -1025,13 +851,8 @@
                 else if(key === 's' || key === 'S') mapped = 'DOWN';
                 else if(key === 'a' || key === 'A') mapped = 'LEFT';
                 else if(key === 'd' || key === 'D') mapped = 'RIGHT';
-                if(mapped) {
-                    e.preventDefault();
-                    setDirection(mapped);
-                    return;
-                }
+                if(mapped) { e.preventDefault(); setDirection(mapped); return; }
             }
-            
             if(key === 'Escape') {
                 e.preventDefault();
                 if(settingsModal.classList.contains('active')) {
@@ -1039,41 +860,63 @@
                     if(gameRunning && isPaused) resumeGame();
                 } else {
                     if(gameRunning && !isPaused) pauseGame();
-                    gridSizeSlider.value = GRID_SIZE;
-                    gridSizeValueSpan.innerText = GRID_SIZE;
+                    gridSizeSlider.value = GRID_SIZE; gridSizeValueSpan.innerText = GRID_SIZE;
                     const sliderVal = 70 + 220 - gameSpeed;
-                    speedSlider.value = sliderVal;
-                    speedValueSpan.innerText = gameSpeed;
+                    speedSlider.value = sliderVal; speedValueSpan.innerText = gameSpeed;
                     settingsModal.classList.add('active');
                 }
                 return;
             }
-            
             if(key === 'Enter' || key === ' ' || key === 'Space') {
                 e.preventDefault();
-                if(gameOverModal.classList.contains('active') || settingsModal.classList.contains('active')) {
-                    fullRestart();
-                }
+                if(gameOverModal.classList.contains('active') || settingsModal.classList.contains('active')) fullRestart();
                 return;
             }
         }
+        
+        // ----- ОБРАБОТЧИКИ СОБЫТИЙ (включая отправку рекорда через бота) -----
+        document.getElementById('submitScoreBtn').onclick = async () => {
+            const name = document.getElementById('playerName').value.trim();
+            if (name === "") { alert("Введите имя"); return; }
+            const success = await submitRecord(name, pendingScore, pendingDuration);
+            if (success) {
+                document.getElementById('nameModal').classList.remove('active');
+                alert("Рекорд сохранён! 🎉");
+            } else {
+                alert("Ошибка сохранения. Попробуйте позже.");
+            }
+            pendingScore = null;
+            pendingDuration = null;
+            document.getElementById('playerName').value = "";
+        };
+        document.getElementById('closeNameModal').onclick = () => {
+            document.getElementById('nameModal').classList.remove('active');
+            pendingScore = null;
+            pendingDuration = null;
+        };
+        document.getElementById('openLeaderboardBtn').onclick = () => {
+            loadAndShowLeaderboard();
+            document.getElementById('leaderboardModal').classList.add('active');
+        };
+        document.getElementById('closeLeaderboardModal').onclick = () => {
+            document.getElementById('leaderboardModal').classList.remove('active');
+        };
+        document.getElementById('refreshLeaderboardBtn').onclick = () => {
+            loadAndShowLeaderboard();
+        };
         
         function attachEvents() {
             canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
             canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
             canvas.addEventListener('touchend', handleTouchEnd);
             window.addEventListener('keydown', handleKeydown);
-            
             document.querySelectorAll('.ctrl-btn').forEach(btn => {
                 const dir = btn.getAttribute('data-dir');
                 if(!dir) return;
                 btn.addEventListener('click', (e) => { e.preventDefault(); setDirection(dir); });
                 btn.addEventListener('touchstart', (e) => { e.preventDefault(); setDirection(dir); });
             });
-            
-            document.getElementById('closeGameOverModal').onclick = () => {
-                gameOverModal.classList.remove('active');
-            };
+            document.getElementById('closeGameOverModal').onclick = () => gameOverModal.classList.remove('active');
             document.getElementById('closeSettingsModal').onclick = () => {
                 settingsModal.classList.remove('active');
                 if(gameRunning && isPaused) resumeGame();
@@ -1081,30 +924,21 @@
             document.getElementById('restartFromDeathBtn').onclick = () => fullRestart();
             document.getElementById('openSettingsBtn').onclick = () => {
                 if(gameRunning && !isPaused) pauseGame();
-                gridSizeSlider.value = GRID_SIZE;
-                gridSizeValueSpan.innerText = GRID_SIZE;
+                gridSizeSlider.value = GRID_SIZE; gridSizeValueSpan.innerText = GRID_SIZE;
                 const sliderVal = 70 + 220 - gameSpeed;
-                speedSlider.value = sliderVal;
-                speedValueSpan.innerText = gameSpeed;
+                speedSlider.value = sliderVal; speedValueSpan.innerText = gameSpeed;
                 settingsModal.classList.add('active');
             };
             document.getElementById('applySettingsBtn').onclick = () => applySettingsAndRestart();
             document.getElementById('resetSettingsBtn').onclick = () => resetToDefaultSettings();
-            
-            gridSizeSlider.oninput = () => {
-                gridSizeValueSpan.innerText = gridSizeSlider.value;
-            };
+            gridSizeSlider.oninput = () => { gridSizeValueSpan.innerText = gridSizeSlider.value; };
             speedSlider.oninput = () => {
                 const val = parseInt(speedSlider.value, 10);
                 const speedMs = 70 + 220 - val;
                 speedValueSpan.innerText = speedMs;
             };
-            
             const externalLinks = document.querySelectorAll('.external-btn');
-            const placeholderUrl = 'ССЫЛКА-ПОД-ЗАМЕНУ1';
-            externalLinks.forEach(link => {
-                link.href = placeholderUrl;
-            });
+            externalLinks.forEach(link => { link.href = '#'; });
         }
         
         function start() {
@@ -1118,4 +952,4 @@
     })();
 </script>
 </body>
-    </html>
+ </html>
