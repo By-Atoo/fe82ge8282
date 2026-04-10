@@ -1,109 +1,84 @@
 import os
 import sqlite3
 import time
-import threading
 from datetime import datetime
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import telebot
+import threading
 
-# --- КОНФИГУРАЦИЯ ---
 BOT_TOKEN = os.environ.get('8799985932:AAEDRskmgfdvZFpr4Oe-xiOefPvPVrvvV1o')
 ADMIN_CHAT_ID = '5372601405'
 API_PORT = int(os.environ.get('PORT', 8080))
-# -----------------
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 
-# --- БАЗА ДАННЫХ (SQLite) ---
+# --- База данных ---
 def init_db():
     conn = sqlite3.connect('leaderboard.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            player_name TEXT,
-            score INTEGER,
-            duration INTEGER,
-            timestamp INTEGER
-        )
-    ''')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS records
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT, score INTEGER, duration INTEGER, timestamp INTEGER)''')
     conn.commit()
     conn.close()
 
-def save_record(player_name, score, duration):
+def save_record(name, score, duration):
     conn = sqlite3.connect('leaderboard.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO records (player_name, score, duration, timestamp)
-        VALUES (?, ?, ?, ?)
-    ''', (player_name, score, duration, int(time.time())))
+    c = conn.cursor()
+    c.execute('INSERT INTO records (name, score, duration, timestamp) VALUES (?,?,?,?)',
+              (name, score, duration, int(time.time())))
     conn.commit()
     conn.close()
 
 def get_top_records(limit=20):
     conn = sqlite3.connect('leaderboard.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT player_name, score, duration, timestamp
-        FROM records
-        ORDER BY score DESC
-        LIMIT ?
-    ''', (limit,))
-    results = cursor.fetchall()
+    c = conn.cursor()
+    c.execute('SELECT name, score, duration FROM records ORDER BY score DESC LIMIT ?', (limit,))
+    rows = c.fetchall()
     conn.close()
-    return results
+    return [{'name': r[0], 'score': r[1], 'duration': r[2]} for r in rows]
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Привет! Я занимаюсь хернёй, не трогай меня.")
+# --- API для сайта ---
+@app.route('/leaderboard', methods=['GET'])
+def leaderboard():
+    return jsonify(get_top_records())
 
-@bot.message_handler(commands=['top'])
-def show_top(message):
-    records = get_top_records()
-    if not records:
-        bot.reply_to(message, "Пока нет рекордов :(")
-        return
-    response = "🏆 **ТАБЛИЦА ЛИДЕРОВ** 🏆\n\n"
-    for idx, rec in enumerate(records, 1):
-        name, score, duration, ts = rec
-        date_str = datetime.fromtimestamp(ts).strftime("%d.%m.%Y %H:%M")
-        response += f"{idx}. **{name}** — {score} очков ({duration} сек.)\n   _{date_str}_\n\n"
-    bot.reply_to(message, response, parse_mode='Markdown')
-
-@bot.message_handler(func=lambda message: True, content_types=['text'])
-def handle_game_record(message):
-    if message.text.startswith('RECORD|'):
-        try:
-            _, name, score_str, duration_str = message.text.split('|')
-            score = int(score_str)
-            duration = int(duration_str)
-            top_records = get_top_records(20)
-            is_top = (len(top_records) < 20 or score > top_records[-1][1])
-            if is_top:
-                save_record(name, score, duration)
-                bot.reply_to(message, f"✅ Рекорд сохранён!\n{name} — {score} очков ({duration} сек.)\n/top — таблица")
-            else:
-                bot.reply_to(message, f"😔 Счёт {score} не попал в топ-20.")
-        except Exception as e:
-            bot.reply_to(message, f"❌ Ошибка: {str(e)}")
-
-@app.route('/leaderboard')
-def leaderboard_api():
-    records = get_top_records()
-    result = [{'name': name, 'score': score, 'duration': duration} for name, score, duration, _ in records]
-    return jsonify(result)
+@app.route('/record', methods=['POST'])
+def add_record():
+    data = request.get_json()
+    if not data or 'name' not in data or 'score' not in data or 'duration' not in data:
+        return jsonify({'success': False, 'error': 'Missing fields'}), 400
+    name = data['name'][:20]
+    score = int(data['score'])
+    duration = int(data['duration'])
+    save_record(name, score, duration)
+    return jsonify({'success': True})
 
 @app.route('/')
 def index():
-    return "Bot is running!"
+    return "Snake Leaderboard Bot is running"
+
+# --- Telegram bot commands ---
+@bot.message_handler(commands=['start'])
+def start_msg(m):
+    bot.reply_to(m, "Привет! Я бездарь!")
+
+@bot.message_handler(commands=['top'])
+def top_msg(m):
+    records = get_top_records()
+    if not records:
+        bot.reply_to(m, "Пока нет рекордов.")
+        return
+    text = "🏆 ТАБЛИЦА ЛИДЕРОВ 🏆\n\n"
+    for i, r in enumerate(records, 1):
+        text += f"{i}. {r['name']} — {r['score']} очков ({r['duration']} сек.)\n"
+    bot.reply_to(m, text)
 
 def run_bot():
     bot.infinity_polling()
 
 if __name__ == '__main__':
     init_db()
-    print("Бот и API запускаются...")
-    bot_thread = threading.Thread(target=run_bot)
-    bot_thread.start()
-    app.run(host='0.0.0.0', port=API_PORT, debug=False)
+    threading.Thread(target=run_bot, daemon=True).start()
+    app.run(host='0.0.0.0', port=API_PORT)
