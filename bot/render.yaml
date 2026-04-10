@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: telegram-snake-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: @Atoo_o
+        value: 8799985932:AAEDRskmgfdvZFpr4Oe-xiOefPvPVrvvV1o
+      - key: PORT
+        value: 8080
