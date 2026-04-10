@@ -9,7 +9,6 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import threading
 
-# --- КОНФИГУРАЦИЯ ---
 BOT_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 ADMIN_CHAT_ID = 5372601405
 API_PORT = int(os.environ.get('PORT', 8080))
@@ -130,7 +129,7 @@ def index():
 
 @bot.message_handler(commands=['start'])
 def start_msg(m):
-    bot.reply_to(m, "Привет, Я бездарь!")
+    bot.reply_to(m, "Привет, Я Бездарь!")
 
 @bot.message_handler(commands=['top'])
 def top_msg(m):
@@ -170,6 +169,7 @@ def handle_admin_callbacks(call):
         bot.answer_callback_query(call.id, "⛔ Нет прав")
         return
     data = call.data
+    
     if data == 'admin_list':
         show_records_list(call.message.chat.id, page=0)
     elif data == 'admin_search':
@@ -187,12 +187,14 @@ def handle_admin_callbacks(call):
         page = int(data.split('_')[-1])
         show_records_list(call.message.chat.id, page)
     elif data.startswith('admin_edit_'):
+        # Формат: admin_edit_123
         record_id = int(data.split('_')[-1])
         show_edit_menu(call.message.chat.id, record_id)
     elif data.startswith('admin_edit_field_'):
+        # Формат: admin_edit_field_123_name
         parts = data.split('_')
         record_id = int(parts[3])
-        field = parts[4]  # name, score, duration
+        field = parts[4]
         ask_for_new_value(call.message.chat.id, record_id, field)
     elif data.startswith('admin_delete_one_'):
         record_id = int(data.split('_')[-1])
@@ -204,6 +206,9 @@ def handle_admin_callbacks(call):
     elif data == 'admin_delete_all_no':
         bot.send_message(call.message.chat.id, "Операция отменена.")
         show_admin_menu(call.message.chat.id)
+    elif data == 'admin_back_to_menu':
+        show_admin_menu(call.message.chat.id)
+    
     bot.answer_callback_query(call.id)
 
 def show_records_list(chat_id, page=0, records=None, per_page=5):
@@ -220,7 +225,7 @@ def show_records_list(chat_id, page=0, records=None, per_page=5):
     for r in page_records:
         date_str = datetime.fromtimestamp(r['timestamp']).strftime("%d.%m.%y %H:%M")
         text += f"`ID: {r['id']}`\n👤 {r['name']} | 🍎 {r['score']} | ⏱️ {r['duration']} сек.\n_{date_str}_\n\n"
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(row_width=2)
     if page > 0:
         markup.add(InlineKeyboardButton("◀ Назад", callback_data=f"admin_page_{page-1}"))
     if end < total:
@@ -236,7 +241,7 @@ def show_edit_menu(chat_id, record_id):
         bot.send_message(chat_id, "Запись не найдена.")
         return
     text = f"✏️ **Редактирование ID {rec['id']}**\n\n👤 Имя: `{rec['name']}`\n🍎 Очки: `{rec['score']}`\n⏱️ Время: `{rec['duration']}` сек.\n\nЧто хотите изменить?"
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(row_width=2)
     markup.add(InlineKeyboardButton("📝 Имя", callback_data=f"admin_edit_field_{record_id}_name"))
     markup.add(InlineKeyboardButton("🔢 Очки", callback_data=f"admin_edit_field_{record_id}_score"))
     markup.add(InlineKeyboardButton("⏱️ Время", callback_data=f"admin_edit_field_{record_id}_duration"))
@@ -327,14 +332,6 @@ def process_search_query(message):
         bot.send_message(message.chat.id, f"Ничего не найдено по запросу `{query}`.", parse_mode='Markdown')
         return
     show_records_list(message.chat.id, page=0, records=records)
-
-@bot.callback_query_handler(func=lambda call: call.data == 'admin_back_to_menu')
-def back_to_menu(call):
-    if not is_admin(call.message.chat.id):
-        bot.answer_callback_query(call.id, "⛔ Нет прав")
-        return
-    show_admin_menu(call.message.chat.id)
-    bot.answer_callback_query(call.id)
 
 def run_bot():
     bot.infinity_polling()
