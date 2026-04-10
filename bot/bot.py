@@ -8,7 +8,7 @@ import telebot
 
 # --- КОНФИГУРАЦИЯ ---
 BOT_TOKEN = os.environ.get('8799985932:AAEDRskmgfdvZFpr4Oe-xiOefPvPVrvvV1o')
-ADMIN_CHAT_ID = '@Atoo_o'
+ADMIN_CHAT_ID = '5372601405'
 API_PORT = int(os.environ.get('PORT', 8080))
 # -----------------
 
