@@ -3,6 +3,7 @@ import sqlite3
 import time
 from datetime import datetime
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import telebot
 import threading
 
@@ -12,8 +13,8 @@ API_PORT = int(os.environ.get('PORT', 8080))
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
+CORS(app)
 
-# --- База данных ---
 def init_db():
     conn = sqlite3.connect('leaderboard.db')
     c = conn.cursor()
@@ -39,13 +40,16 @@ def get_top_records(limit=20):
     conn.close()
     return [{'name': r[0], 'score': r[1], 'duration': r[2]} for r in rows]
 
-# --- API для сайта ---
-@app.route('/leaderboard', methods=['GET'])
+@app.route('/leaderboard', methods=['GET', 'OPTIONS'])
 def leaderboard():
+    if request.method == 'OPTIONS':
+        return '', 200
     return jsonify(get_top_records())
 
-@app.route('/record', methods=['POST'])
+@app.route('/record', methods=['POST', 'OPTIONS'])
 def add_record():
+    if request.method == 'OPTIONS':
+        return '', 200
     data = request.get_json()
     if not data or 'name' not in data or 'score' not in data or 'duration' not in data:
         return jsonify({'success': False, 'error': 'Missing fields'}), 400
@@ -59,10 +63,9 @@ def add_record():
 def index():
     return "Snake Leaderboard Bot is running"
 
-# --- Telegram bot commands ---
 @bot.message_handler(commands=['start'])
 def start_msg(m):
-    bot.reply_to(m, "Привет! Я бездарь!")
+    bot.reply_to(m, "Привет! Я бездать.")
 
 @bot.message_handler(commands=['top'])
 def top_msg(m):
@@ -70,7 +73,7 @@ def top_msg(m):
     if not records:
         bot.reply_to(m, "Пока нет рекордов.")
         return
-    text = "🏆 ТАБЛИЦА ЛИДЕРОВ 🏆\n\n"
+    text = "🏆ТАБЛИЦА ЛИДЕРОВ🏆\n\n"
     for i, r in enumerate(records, 1):
         text += f"{i}. {r['name']} — {r['score']} очков ({r['duration']} сек.)\n"
     bot.reply_to(m, text)
