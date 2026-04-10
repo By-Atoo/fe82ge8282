@@ -454,8 +454,8 @@
     
 <script>
     (function(){
-        // ----- ГЛОБАЛЬНАЯ ТАБЛИЦА ЛИДЕРОВ -----
-        const LEADERBOARD_API_URL = 'https://script.google.com/macros/s/AKfycbyJJmp749I8gVZOfFF3_B3xpmU4PVLfA_LZLNGrgZimv-0rWY65gE_W8hZebbH_6x9HFA/exec'; 
+        // ⚠️ ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ URL ВЕБ-ПРИЛОЖЕНИЯ
+        const LEADERBOARD_API_URL = 'https://script.google.com/macros/s/AKfycbx8ZN619xV7ki6zN_kcwgazpQR_WSZd3itfX9eCaNyAqfOKz70W4ij3YrIvdl4cWwGanA/exec'; 
         let pendingScore = null; 
         
         async function isHighScore(score) {
@@ -468,13 +468,13 @@
             } catch(e) { return false; }
         }
         
-        async function submitScore(name, score) {
+        async function submitScore(name, score, duration) {
             try {
                 const response = await fetch(LEADERBOARD_API_URL, {
                     method: 'POST',
                     mode: 'cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, score: score })
+                    body: JSON.stringify({ name: name, score: score, duration: duration })
                 });
                 const result = await response.json();
                 return result.success;
@@ -495,7 +495,8 @@
                 } else {
                     let html = '<ol style="margin: 0; padding-left: 20px;">';
                     records.forEach(rec => {
-                        html += `<li><strong>${escapeHtml(rec.name)}</strong> — ${rec.score} очков <span style="font-size: 12px;">(${rec.date})</span></li>`;
+                        const durationText = rec.duration ? `${rec.duration} сек.` : '—';
+                        html += `<li><strong>${escapeHtml(rec.name)}</strong> — ${rec.score} очков <span style="font-size: 12px;">(${durationText})</span></li>`;
                     });
                     html += '</ol>';
                     container.innerHTML = html;
@@ -517,27 +518,28 @@
             });
         }
         
-        // Функция проверки и вызова окна рекорда
-        function checkAndPromptHighScore(currentScore) {
+        function checkAndPromptHighScore(currentScore, currentDuration) {
             if (currentScore > 0) {
                 isHighScore(currentScore).then(isHigh => {
                     if (isHigh) {
                         pendingScore = currentScore;
                         document.getElementById('newScoreSpan').innerText = currentScore;
                         document.getElementById('nameModal').classList.add('active');
+                        // сохраним duration для отправки
+                        window._pendingDuration = currentDuration;
                     }
                 });
             }
         }
         
-        // Обработчики для таблицы лидеров
         document.getElementById('submitScoreBtn').onclick = async () => {
             const name = document.getElementById('playerName').value.trim();
             if (name === "") {
                 alert("Введите имя");
                 return;
             }
-            const success = await submitScore(name, pendingScore);
+            const duration = window._pendingDuration || 0;
+            const success = await submitScore(name, pendingScore, duration);
             if (success) {
                 document.getElementById('nameModal').classList.remove('active');
                 alert("Рекорд сохранён!");
@@ -545,11 +547,13 @@
                 alert("Ошибка сохранения. Попробуйте позже.");
             }
             pendingScore = null;
+            window._pendingDuration = null;
             document.getElementById('playerName').value = "";
         };
         document.getElementById('closeNameModal').onclick = () => {
             document.getElementById('nameModal').classList.remove('active');
             pendingScore = null;
+            window._pendingDuration = null;
         };
         document.getElementById('openLeaderboardBtn').onclick = () => {
             loadAndShowLeaderboard();
@@ -734,8 +738,7 @@
             modalTitle.innerHTML = '💀GAME OVER💀';
             gameOverModal.classList.add('active');
             drawGame();
-            // Проверка рекорда
-            checkAndPromptHighScore(score);
+            checkAndPromptHighScore(score, duration);
         }
         
         function gameWin() {
@@ -752,8 +755,7 @@
             modalTitle.innerHTML = '🏆YOU WIN🏆';
             gameOverModal.classList.add('active');
             drawGame();
-            // Проверка рекорда
-            checkAndPromptHighScore(score);
+            checkAndPromptHighScore(score, duration);
         }
         
         function drawGame() {
