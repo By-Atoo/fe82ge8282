@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request
 import telebot
 import threading
 
-BOT_TOKEN = os.environ.get('8799985932:AAEDRskmgfdvZFpr4Oe-xiOefPvPVrvvV1o')
+BOT_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 ADMIN_CHAT_ID = '5372601405'
 API_PORT = int(os.environ.get('PORT', 8080))
 
