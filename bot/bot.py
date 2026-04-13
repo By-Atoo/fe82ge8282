@@ -9,26 +9,33 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import threading
 
+# ==================== КОНФИГУРАЦИЯ ====================
 BOT_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 ADMIN_CHAT_ID = 5372601405
 API_PORT = int(os.environ.get('PORT', 8080))
-# -----------------
+
+DB_PATH = os.environ.get('DB_PATH', '/data/leaderboard.db')
+if DB_PATH == '/data/leaderboard.db' and not os.path.exists('/data'):
+    DB_PATH = 'leaderboard.db'
+# ======================================================
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 CORS(app)
 
+# ------------------- РАБОТА С БАЗОЙ ДАННЫХ -------------------
 def init_db():
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS records
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   name TEXT, score INTEGER, duration INTEGER, timestamp INTEGER)''')
     conn.commit()
     conn.close()
+    print(f"База данных инициализирована: {DB_PATH}")
 
 def save_record(name, score, duration):
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('INSERT INTO records (name, score, duration, timestamp) VALUES (?,?,?,?)',
               (name, score, duration, int(time.time())))
@@ -36,7 +43,7 @@ def save_record(name, score, duration):
     conn.close()
 
 def get_top_records(limit=20):
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT id, name, score, duration, timestamp FROM records ORDER BY score DESC LIMIT ?', (limit,))
     rows = c.fetchall()
@@ -44,7 +51,7 @@ def get_top_records(limit=20):
     return [{'id': r[0], 'name': r[1], 'score': r[2], 'duration': r[3], 'timestamp': r[4]} for r in rows]
 
 def get_all_records(order_by='score DESC'):
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(f'SELECT id, name, score, duration, timestamp FROM records ORDER BY {order_by}')
     rows = c.fetchall()
@@ -52,28 +59,28 @@ def get_all_records(order_by='score DESC'):
     return [{'id': r[0], 'name': r[1], 'score': r[2], 'duration': r[3], 'timestamp': r[4]} for r in rows]
 
 def delete_record(record_id):
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('DELETE FROM records WHERE id = ?', (record_id,))
     conn.commit()
     conn.close()
 
 def delete_all_records():
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('DELETE FROM records')
     conn.commit()
     conn.close()
 
 def update_record(record_id, field, value):
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(f'UPDATE records SET {field} = ? WHERE id = ?', (value, record_id))
     conn.commit()
     conn.close()
 
 def get_record_by_id(record_id):
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT id, name, score, duration, timestamp FROM records WHERE id = ?', (record_id,))
     row = c.fetchone()
@@ -83,7 +90,7 @@ def get_record_by_id(record_id):
     return None
 
 def search_records_by_name(query):
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT id, name, score, duration, timestamp FROM records WHERE name LIKE ? ORDER BY score DESC', (f'%{query}%',))
     rows = c.fetchall()
@@ -91,7 +98,7 @@ def search_records_by_name(query):
     return [{'id': r[0], 'name': r[1], 'score': r[2], 'duration': r[3], 'timestamp': r[4]} for r in rows]
 
 def get_statistics():
-    conn = sqlite3.connect('leaderboard.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT COUNT(*), AVG(score), MAX(score), MIN(score) FROM records')
     count, avg, max_score, min_score = c.fetchone()
@@ -103,6 +110,21 @@ def get_statistics():
         'min': min_score or 0
     }
 
+# ------------------- ОТПРАВКА УВЕДОМЛЕНИЯ АДМИНИСТРАТОРУ -------------------
+def notify_admin_new_record(name, score, duration):
+    """Отправляет сообщение админу о новом рекорде"""
+    if not ADMIN_CHAT_ID:
+        return
+    text = (f"НОВЫЙ РЕКОРД\n\n"
+            f"👤 Имя: {name}\n"
+            f"🍎 Очки: {score}\n"
+            f"⏱️ Время: {duration} сек.\n\n"
+    try:
+        bot.send_message(ADMIN_CHAT_ID, text, parse_mode='Markdown')
+    except Exception as e:
+        print(f"Не удалось отправить уведомление: {e}")
+
+# ------------------- API ДЛЯ САЙТА -------------------
 @app.route('/leaderboard', methods=['GET', 'OPTIONS'])
 def leaderboard():
     if request.method == 'OPTIONS':
@@ -121,15 +143,20 @@ def add_record():
     score = int(data['score'])
     duration = int(data['duration'])
     save_record(name, score, duration)
+    notify_admin_new_record(name, score, duration)
     return jsonify({'success': True})
 
 @app.route('/')
 def index():
-    return "Snake Leaderboard Bot with Admin Panel"
+    return "Snake Leaderboard Bot with Admin Panel & Notifications"
+
+# ------------------- TELEGRAM БОТ (КОМАНДЫ И АДМИНКА) -------------------
+def is_admin(chat_id):
+    return chat_id == ADMIN_CHAT_ID
 
 @bot.message_handler(commands=['start'])
 def start_msg(m):
-    bot.reply_to(m, "Привет, Я Бездарь!")
+    bot.reply_to(m, "Привет! Я бездарь.")
 
 @bot.message_handler(commands=['top'])
 def top_msg(m):
@@ -137,13 +164,10 @@ def top_msg(m):
     if not records:
         bot.reply_to(m, "Пока нет рекордов.")
         return
-    text = "🏆ТАБЛИЦА ЛИДЕРОВ🏆\n\n"
+    text = "🏆 ТАБЛИЦА ЛИДЕРОВ 🏆\n\n"
     for i, r in enumerate(records, 1):
         text += f"{i}. {r['name']} — {r['score']} очков ({r['duration']} сек.)\n"
     bot.reply_to(m, text)
-
-def is_admin(chat_id):
-    return chat_id == ADMIN_CHAT_ID
 
 @bot.message_handler(commands=['admin'])
 def admin_panel(m):
@@ -187,14 +211,12 @@ def handle_admin_callbacks(call):
         page = int(data.split('_')[-1])
         show_records_list(call.message.chat.id, page)
     elif data.startswith('admin_edit_'):
-        # Формат: admin_edit_123
         record_id = int(data.split('_')[-1])
         show_edit_menu(call.message.chat.id, record_id)
     elif data.startswith('admin_edit_field_'):
-        # Формат: admin_edit_field_123_name
         parts = data.split('_')
         record_id = int(parts[3])
-        field = parts[4]
+        field = parts[4]   # name, score, duration
         ask_for_new_value(call.message.chat.id, record_id, field)
     elif data.startswith('admin_delete_one_'):
         record_id = int(data.split('_')[-1])
