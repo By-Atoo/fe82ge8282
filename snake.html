@@ -608,7 +608,8 @@
             const key = e.key;
             if (gameRunning && !isPaused) {
                 const map = { 'ArrowUp':'UP','ArrowDown':'DOWN','ArrowLeft':'LEFT','ArrowRight':'RIGHT',
-                              'w':'UP','W':'UP','s':'DOWN','S':'DOWN','a':'LEFT','A':'LEFT','d':'RIGHT','D':'RIGHT' };
+                              'w':'UP','W':'UP','s':'DOWN','S':'DOWN','a':'LEFT','A':'LEFT','d':'RIGHT','D':'RIGHT':'RIGHT',
+                              'ц':'UP','Ц':'UP','ы':'DOWN','Ы':'DOWN','ф':'LEFT','Ф':'LEFT','в':'RIGHT','В':'RIGHT' };
                 if (map[key]) { e.preventDefault(); setDirection(map[key]); return; }
             }
             if (key === 'Escape') {
