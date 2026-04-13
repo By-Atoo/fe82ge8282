@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🐍 Змейка </title>
+    <title> Змейка 🐍</title>
     <link rel="icon" href="https://raw.githubusercontent.com/By-Atoo/fe82ge8282/main/.res/apple.png" type="image/png">
     <style>
         * {
@@ -101,6 +101,8 @@
         .modal-close { font-size: 28px; cursor: pointer; color: #ffdd99; display: inline-block; padding: 0 6px; }
         .modal-close:hover { color: #ffaa55; transform: scale(1.1); }
         .modal-content h2 { font-size: 30px; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 2px; }
+        .modal-stats { font-size: 22px; margin: 18px 0; background: #00000099; padding: 12px; border-radius: 40px; }
+        .modal-stats p { margin: 8px 0; }
         .modal-btn {
             background: #ffb347; border: none; font-size: 22px; font-weight: bold;
             padding: 10px 16px; border-radius: 60px; font-family: monospace;
@@ -113,6 +115,7 @@
         input[type="range"] { flex: 2; min-width: 130px; }
         .value-display { background: black; padding: 3px 10px; border-radius: 30px; font-weight: bold; font-size: 14px; }
         #leaderboardList { max-height: 300px; overflow-y: auto; text-align: left; margin: 15px 0; }
+        .server-status { font-size: 12px; margin-top: 5px; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -142,6 +145,7 @@
                     <button class="settings-btn" id="openSettingsBtn">⚙️</button>
                     <button class="leaderboard-btn" id="openLeaderboardBtn">🏆</button>
                 </div>
+                <div id="serverStatus" class="server-status"></div>
             </div>
         </div>
     </div>
@@ -199,10 +203,23 @@
 
 <script>
     (function(){
-        const SERVER_IP = '192.168.1.133';
+        const SERVER_IP = '192.168.1.133'; 
         const SERVER_PORT = '8080';
         const API_SECRET = 'G3o2aY2uMuJ02dirkzD71MsiTa0i2BmPSI0rk7';
-        const BOT_API_URL = `http://${SERVER_IP}:${SERVER_PORT}`;
+        
+        function getBaseUrl() {
+            if (SERVER_IP) {
+                return `http://${SERVER_IP}:${SERVER_PORT}`;
+            }
+            const host = window.location.hostname;
+            if (host && host !== 'localhost' && host !== '127.0.0.1') {
+                return `http://${host}:${SERVER_PORT}`;
+            }
+            return `http://192.168.1.133:${SERVER_PORT}`;
+        }
+        
+        const BOT_API_URL = getBaseUrl();
+        console.log('API URL:', BOT_API_URL);
 
         const STORAGE_KEY = 'snake_player';
         let playerName = localStorage.getItem('snake_nick') || '';
@@ -222,16 +239,22 @@
             }
         }
 
-        async function isServerAvailable() {
+        async function checkServerStatus() {
+            const statusEl = document.getElementById('serverStatus');
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 2000);
                 const response = await fetch(`${BOT_API_URL}/leaderboard`, { signal: controller.signal });
                 clearTimeout(timeoutId);
-                return response.ok;
-            } catch {
-                return false;
-            }
+                if (response.ok) {
+                    statusEl.innerHTML = '🟢 Сервер онлайн';
+                    statusEl.style.color = '#8bc34a';
+                    return true;
+                }
+            } catch (e) {}
+            statusEl.innerHTML = '🔴 Сервер офлайн';
+            statusEl.style.color = '#ff8a80';
+            return false;
         }
 
         async function syncRecordToServer(name, score, duration) {
@@ -295,7 +318,7 @@
             return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
         }
 
-       function initPlayer() {
+        function initPlayer() {
             if (playerName) {
                 localBestScore = loadLocalBest();
                 return;
@@ -312,6 +335,7 @@
             document.getElementById('nameModal').classList.remove('active');
         }
 
+        // ------------------- ИГРОВАЯ ЛОГИКА (БЕЗ ИЗМЕНЕНИЙ) -------------------
         const canvas = document.getElementById('snakeCanvas');
         const ctx = canvas.getContext('2d');
         const scoreSpan = document.getElementById('scoreValue');
@@ -558,6 +582,7 @@
             fullRestart();
         }
 
+        // ------------------- ПРИВЯЗКА СОБЫТИЙ -------------------
         document.getElementById('saveNameBtn').onclick = () => {
             setPlayerName(document.getElementById('playerNameInput').value);
         };
@@ -608,10 +633,12 @@
         gridSizeSlider.oninput = () => gridSizeValueSpan.innerText = gridSizeSlider.value;
         speedSlider.oninput = () => speedValueSpan.innerText = 70 + 220 - speedSlider.value;
 
+        // Старт
         updateCellSize();
         initGame(true);
         startGameLoop();
         initPlayer();
+        checkServerStatus();
     })();
 </script>
 </body>
