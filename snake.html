@@ -209,7 +209,7 @@
         
         function getBaseUrl() {
             if (SERVER_IP) {
-                return `http://${SERVER_IP}:${SERVER_PORT}`;
+                return `http://${SERVER_IP}`;
             }
             const host = window.location.hostname;
             if (host && host !== 'localhost' && host !== '127.0.0.1') {
