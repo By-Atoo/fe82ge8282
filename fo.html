@@ -1,145 +1,982 @@
-<!doctype html>
+```html
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VOID//OS — неизвестный процесс</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap');
-:root{--bg:#080a0d;--panel:#0d1116;--line:#26313b;--text:#d9e4e8;--dim:#6e7d85;--acid:#c7ff3d;--cyan:#4deaff;--red:#ff536b}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:"IBM Plex Mono",monospace}
-button{font:inherit;color:inherit}.scan{position:fixed;inset:0;pointer-events:none;z-index:99;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.018) 4px);mix-blend-mode:screen}
-.noise{position:fixed;inset:-100%;opacity:.025;pointer-events:none;z-index:100;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='a'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");animation:n .2s steps(2) infinite}@keyframes n{to{transform:translate(2%,-2%)}}
-.app{height:100%;display:grid;grid-template-columns:255px 1fr;grid-template-rows:58px 1fr 31px}
-.top{grid-column:1/3;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#090c10}
-.brand{font-weight:600;letter-spacing:.12em}.brand b{color:var(--acid)}.status{font-size:11px;color:var(--dim)}.status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--acid);box-shadow:0 0 9px var(--acid);margin-right:8px}
-.side{border-right:1px solid var(--line);padding:18px 12px;background:#090c10;display:flex;flex-direction:column}
-.group{font-size:9px;color:#45535b;letter-spacing:.15em;padding:12px 10px 8px}.item{height:38px;border:1px solid transparent;padding:0 10px;display:flex;align-items:center;gap:10px;color:#738188;font-size:11px;cursor:pointer}.item:hover{background:#10161b;color:#d8e1e4}.item.active{background:#12191f;border-color:#293740;color:var(--acid)}.ico{width:17px;text-align:center}
-.sidebottom{margin-top:auto;border-top:1px solid var(--line);padding:15px 10px;font-size:9px;color:#465159;line-height:1.8}
-.main{position:relative;overflow:hidden;background:radial-gradient(circle at 70% 30%,rgba(77,234,255,.035),transparent 30%),#080a0d}
-.page{position:absolute;inset:0;padding:25px 28px;overflow:auto;display:none}.page.active{display:block}
-h1{font-family:"Space Grotesk";font-size:clamp(34px,5vw,67px);font-weight:500;letter-spacing:-.055em;margin:8px 0 10px;color:#e8f0f2}.lead{font-size:11px;color:#68777e;max-width:650px;line-height:1.8}.meta{font-size:9px;color:#47545b;margin-top:16px}
-.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:25px}.box{border:1px solid var(--line);background:rgba(13,17,22,.8);padding:16px;min-height:150px}.boxhead{display:flex;justify-content:space-between;font-size:9px;color:#66747b;margin-bottom:16px}.acid{color:var(--acid)}.cyan{color:var(--cyan)}
-.big{font-family:"Space Grotesk";font-size:38px}.small{font-size:10px;color:#6b7980;line-height:1.8}
-.bars{height:110px;display:flex;align-items:end;gap:3px}.bar{flex:1;background:#24313a;min-width:2px;transition:.3s}.bar.hot{background:var(--cyan)}
-.term{height:310px;border:1px solid var(--line);background:#050709;margin-top:12px;padding:13px;overflow:auto;font-size:10px;line-height:1.8;color:#74848b}.term .ok{color:var(--acid)}.term .warn{color:#ffcb5c}.term .cmd{color:#dbe5e7}.term .pink{color:#ff6eaa}
-.row{display:flex;gap:8px;margin-top:13px}.btn{background:#11181e;border:1px solid #2b3942;padding:10px 13px;font-size:10px;cursor:pointer}.btn:hover{border-color:#71818a;background:#172128}.btn.primary{border-color:#728e29;color:var(--acid)}
-.monitor{height:calc(100vh - 155px);min-height:400px;border:1px solid var(--line);position:relative;background:#05080a;overflow:hidden}.monitor canvas{width:100%;height:100%}.monitor-label{position:absolute;top:13px;left:14px;font-size:9px;color:#59666c;pointer-events:none}.readout{position:absolute;right:14px;top:13px;text-align:right;font-size:9px;line-height:1.8;color:#65747a;pointer-events:none}.readout b{color:var(--acid);font-weight:400}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:25px}.card{border:1px solid var(--line);padding:18px;min-height:170px;background:#0c1115;position:relative;overflow:hidden}.card:hover{border-color:#43545d}.card h3{font-size:13px;font-weight:500;margin:0 0 12px}.card p{font-size:10px;line-height:1.8;color:#6f7d83}.num{position:absolute;right:12px;top:10px;font-size:9px;color:#344048}.meter{height:2px;background:#1b252b;margin-top:18px}.meter i{display:block;height:100%;background:var(--acid)}
-.footer{grid-column:1/3;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 15px;font-size:8px;color:#46535a;background:#090c10}
-.popup{position:fixed;z-index:120;right:25px;bottom:45px;width:310px;border:1px solid #40505a;background:#0b1014;padding:16px;box-shadow:0 20px 60px #000;transform:translateY(130%);transition:.5s}.popup.show{transform:translateY(0)}.popup strong{font-size:10px;color:var(--acid)}.popup p{font-size:9px;color:#728087;line-height:1.7}.close{float:right;background:none;border:0;color:#68757b;cursor:pointer}
-@media(max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:58px 1fr 31px}.side{display:none}.top,.footer{grid-column:1}.grid,.cards{grid-template-columns:1fr}.page{padding:18px}.monitor{height:calc(100vh - 125px)}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ЛАБОРАТОРИЯ АСТРОФИЗИКИ // ЭФИР-X</title>
+    
+    <!-- CDN Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-.outline{color:transparent;-webkit-text-stroke:1px #66757c}.extra-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:25px}.xbox{border:1px solid var(--line);background:#0c1115;padding:18px;min-height:145px}.xbox b{display:block;font-size:8px;color:#596870}.xbox strong{display:block;font-family:"Space Grotesk";font-size:31px;margin-top:20px;font-weight:500}.xbox i{display:block;height:3px;background:#19242a;margin-top:20px}.xbox em{display:block;height:100%;width:40%;background:var(--acid);transition:.5s}.wavebox{border:1px solid var(--line);background:#06090b;margin-top:10px;height:320px;padding:14px}.wavebox canvas{width:100%;height:270px}.events{border-top:1px solid var(--line);margin-top:22px}.event{display:grid;grid-template-columns:80px 75px 1fr 60px;padding:12px 5px;border-bottom:1px solid #141e24;font-size:8px;color:#718087}.event b{color:#aab6bb;font-weight:400}.event .bad{color:var(--red)}.event .warn{color:var(--orange)}.settings{max-width:760px;margin-top:25px}.setting{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);font-size:9px}.setting small{display:block;color:#536169;margin-top:6px;font-size:8px}.toggle{width:40px;height:22px;border:1px solid #36444c;background:#0b1115;color:#536169;border-radius:20px;cursor:pointer;font-size:9px}.toggle.on{color:var(--acid);border-color:#506825}.setting.danger button{border:1px solid #4b3036;background:#100c0e;color:var(--red);padding:8px 10px;font:8px "IBM Plex Mono";cursor:pointer}.modalx{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:200;display:none;place-items:center}.modalx.show{display:grid}.modalcard{width:min(600px,90vw);border:1px solid #394951;background:#080d11;padding:22px;box-shadow:0 30px 100px #000}.modalcard h2{font:500 43px "Space Grotesk";letter-spacing:-.06em;margin:25px 0 8px}.modalcard p{font-size:9px;color:#69777e;line-height:1.9}.modalcard button{border:1px solid #35444c;background:#0d151a;color:#8e9ba0;padding:9px 12px;font-size:8px;cursor:pointer}.modalcard .green{color:var(--acid)}
-@media(max-width:760px){.extra-grid{grid-template-columns:1fr}.event{grid-template-columns:55px 55px 1fr}.event span:last-child{display:none}}
-</style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff0055;
+            --neon-gold: #ffb700;
+            --bg-void: #020208;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-void);
+            font-family: 'Share Tech Mono', monospace;
+            color: #d1f7ff;
+            user-select: none;
+        }
+
+        h1, h2, h3, .brand-title {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Glassmorphism UI Panels */
+        .glass-panel {
+            background: rgba(8, 12, 24, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 243, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7),
+                        inset 0 0 15px rgba(0, 243, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(0, 243, 255, 0.35);
+        }
+
+        /* Scanlines Overlay */
+        .scanline-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.3) 50%,
+                rgba(0, 0, 0, 0.3)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 20;
+            opacity: 0.6;
+        }
+
+        /* Custom Scrollbar for HUD logs */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.4);
+            border-radius: 2px;
+        }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: rgba(0, 243, 255, 0.1);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--neon-cyan);
+            transition: all 0.2s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #fff;
+        }
+
+        /* Button Hover & Active States */
+        .btn-cyber {
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--neon-cyan);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-cyber:hover {
+            background: rgba(0, 243, 255, 0.25);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+            color: #fff;
+        }
+        .btn-cyber.active {
+            background: var(--neon-cyan);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.7);
+        }
+
+        /* Canvas Wrapper */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Glow Text Effect */
+        .glow-text {
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+        }
+        .glow-text-gold {
+            text-shadow: 0 0 8px rgba(255, 183, 0, 0.6);
+        }
+        .glow-text-magenta {
+            text-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .pulse {
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+    </style>
 </head>
-<body>
-<div class="scan"></div><div class="noise"></div>
-<div class="app">
-<header class="top"><div class="brand">VOID<span>//</span><b>OS</b></div><div class="status"><i></i>SYSTEM NOMINAL · <span id="time">00:00:00</span></div></header>
-<aside class="side">
-<div class="group">NAVIGATION</div>
-<div class="item active" data-page="home"><span class="ico">◈</span> overview</div>
-<div class="item" data-page="signal"><span class="ico">⌁</span> signal map</div>
-<div class="item" data-page="archive"><span class="ico">▦</span> archive</div>
-<div class="group">SYSTEM</div>
-<div class="item" id="random"><span class="ico">⟳</span> randomize</div>
-<div class="item" data-page="telemetry"><span class="ico">⌁</span> telemetry</div>
-<div class="item" data-page="archive"><span class="ico">▦</span> archive</div>
-<div class="item" data-page="events"><span class="ico">≡</span> event log</div>
-<div class="item" data-page="settings"><span class="ico">⚙</span> settings</div>
-<div class="item" id="notify"><span class="ico">!</span> anomaly log</div>
-<div class="sidebottom">NODE 07A<br>LATENCY 12ms<br>UPTIME <span id="uptime">000:00:00</span><br><br>NO EXTERNAL CONTROL</div>
-</aside>
-<main class="main">
-<section class="page active" id="home">
-<div class="meta">NODE 07A / INTERNAL DASHBOARD / ACCESS LEVEL: UNKNOWN</div>
-<h1>Something is<br><span class="acid">watching the static.</span></h1>
-<p class="lead">Это не сайт. По крайней мере, система не считает его сайтом. Ниже находится состояние одного узла, который почему-то продолжает работать после отключения сети.</p>
-<div class="grid">
-<div class="box"><div class="boxhead"><span>ACTIVITY / 60 SEC</span><span class="cyan">LIVE</span></div><div class="bars" id="bars"></div></div>
-<div class="box"><div class="boxhead"><span>CORE TEMPERATURE</span><span>°C</span></div><div class="big" id="temp">37.4</div><div class="small">within expected range<br>cooling system: <span class="acid">ACTIVE</span></div></div>
-</div>
-<div class="term" id="terminal"></div>
-<div class="row"><button class="btn primary" id="scan">RUN DEEP SCAN</button><button class="btn" id="clear">CLEAR TERMINAL</button></div>
-</section>
+<body class="select-none">
 
-<section class="page" id="signal">
-<div class="meta">SENSOR ARRAY / PASSIVE MODE</div><h1>Signal map.</h1>
-<p class="lead">Карта строится в реальном времени. Движение точек не имеет известного источника.</p>
-<div class="monitor"><canvas id="map"></canvas><div class="monitor-label">SPECTRUM // LIVE</div><div class="readout">PEAK <b id="peak">--</b><br>NOISE <b id="noisev">--</b><br>PACKETS <b id="packets">--</b></div></div>
-</section>
+    <!-- Scanline Layer -->
+    <div class="scanline-overlay"></div>
 
-<section class="page" id="archive">
-<div class="meta">RECOVERED MATERIAL / FRAGMENTS</div><h1>Archive.</h1><p class="lead">Некоторые записи система почему-то не удаляет.</p>
-<div class="cards">
-<div class="card"><span class="num">#001</span><h3>THE FIRST PING</h3><p>Источник появился ровно в 03:17. Ответить на него не получилось. Второй ping пришёл раньше первого.</p><div class="meter"><i style="width:83%"></i></div></div>
-<div class="card"><span class="num">#014</span><h3>EMPTY ROOM</h3><p>Камера показывала пустое помещение 11 часов. Датчик присутствия всё это время показывал значение 1.</p><div class="meter"><i style="width:41%"></i></div></div>
-<div class="card"><span class="num">#077</span><h3>UNKNOWN NAME</h3><p>В журнале появилась строка, которой не было в исходном файле. Система не смогла определить автора.</p><div class="meter"><i style="width:97%"></i></div></div>
-</div>
-</section>
-<section class="page" id="telemetry"><div class="meta">SENSORS / TELEMETRY / REAL-TIME</div><h1>Machine <span class="outline">telemetry.</span></h1><p class="lead">Датчики не сообщают о неисправностях. Один из них иногда присылает данные на 17 миллисекунд раньше, чем происходит измерение.</p><div class="extra-grid"><div class="xbox"><b>CPU LOAD</b><strong id="cpu2">42.8%</strong><i><em id="cpufill"></em></i></div><div class="xbox"><b>VOLTAGE</b><strong id="volt2">11.98V</strong><i><em id="voltfill"></em></i></div><div class="xbox"><b>FREQUENCY</b><strong id="freq2">4.812 GHz</strong><i><em id="freqfill"></em></i></div></div><div class="wavebox"><div class="boxhead"><span>WAVEFORM / SENSOR 04</span><span class="pink">UNSTABLE</span></div><canvas id="wave2"></canvas></div></section>
-<section class="page" id="events"><div class="meta">SYSTEM / EVENT LOG / 24H</div><h1>Event <span class="outline">log.</span></h1><p class="lead">Нормальные события смешаны с теми, которые система считает нормальными.</p><div class="events" id="events2"></div></section>
-<section class="page" id="settings"><div class="meta">SYSTEM / CONFIGURATION / LOCAL</div><h1>Control <span class="acid">panel.</span></h1><p class="lead">Некоторые параметры не должны здесь находиться.</p><div class="settings"><div class="setting"><span>SCANLINES<small>аналоговые линии поверх интерфейса</small></span><button class="toggle on" data-f="scan">●</button></div><div class="setting"><span>NOISE<small>слабый аналоговый шум</small></span><button class="toggle on" data-f="noise">●</button></div><div class="setting"><span>LIVE TELEMETRY<small>обновление датчиков</small></span><button class="toggle on" data-f="live">●</button></div><div class="setting danger"><span>DEVELOPER OVERRIDE<small>параметр отсутствует в документации</small></span><button id="root">UNAVAILABLE</button></div></div></section>
-</main>
-<footer><span>VOID//OS v0.7.13</span><span id="coord">000.000 / 000.000</span><span>LOCAL INSTANCE</span></footer>
-</div>
-<div class="popup" id="popup"><button class="close" onclick="popup.classList.remove('show')">×</button><strong>ANOMALY DETECTED</strong><p id="poptext">Неизвестный пакет данных обнаружен в локальном буфере.</p></div>
+    <!-- WebGL Canvas Container -->
+    <div id="canvas-container"></div>
 
-<script>
-const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-let start=Date.now(), terminal=$('#terminal');
-const lines=[
-['ok','[00:00:01] kernel initialized'],
-['cmd','[00:00:02] loading sensor array...'],
-['ok','[00:00:03] 128 sensors online'],
-['cmd','[00:00:04] checking external network'],
-['warn','[00:00:05] external network: NOT FOUND'],
-['cmd','[00:00:06] attempting local handshake...'],
-['ok','[00:00:07] handshake accepted'],
-['pink','[00:00:08] who accepted the handshake?'],
-['cmd','[00:00:09] continuing anyway...']
-];
-function printLines(arr=lines){
- terminal.innerHTML='';
- arr.forEach((x,i)=>setTimeout(()=>{terminal.innerHTML+=`<div class="${x[0]}">${x[1]}</div>`;terminal.scrollTop=terminal.scrollHeight},i*110));
-}
-printLines();
-function makeBars(){let b=$('#bars');b.innerHTML='';for(let i=0;i<48;i++){let e=document.createElement('i');e.className='bar';e.style.height=(10+Math.random()*80)+'%';if(Math.random()>.7)e.classList.add('hot');b.appendChild(e)}}
-makeBars();setInterval(makeBars,1300);
-setInterval(()=>$('#temp').textContent=(36+Math.random()*3).toFixed(1),1000);
-setInterval(()=>$('#time').textContent=new Date().toLocaleTimeString('en-GB'),1000);
-setInterval(()=>{let s=Math.floor((Date.now()-start)/1000),h=String(Math.floor(s/3600)).padStart(3,'0'),m=String(Math.floor(s/60)%60).padStart(2,'0'),x=String(s%60).padStart(2,'0');$('#uptime').textContent=`${h}:${m}:${x}`},1000);
+    <!-- UI Overlay Layer -->
+    <div class="relative z-10 w-full h-full pointer-events-none flex flex-col justify-between p-4 md:p-6">
 
-$$('.item[data-page]').forEach(i=>i.onclick=()=>{ $$('.item').forEach(x=>x.classList.remove('active'));i.classList.add('active');$$('.page').forEach(p=>p.classList.remove('active'));$('#'+i.dataset.page).classList.add('active')});
-$('#clear').onclick=()=>terminal.innerHTML='<span class="cmd">[terminal cleared]</span>';
-$('#scan').onclick=()=>{terminal.innerHTML='';let a=['[deep-scan] scanning memory sectors...','[deep-scan] 2,048,000 sectors checked','[deep-scan] searching for orphan processes...','[deep-scan] process found: <UNKNOWN>','[deep-scan] pid: 000','[deep-scan] status: RUNNING','[deep-scan] location: LOCAL','[deep-scan] recommendation: DO NOT INTERRUPT'];a.forEach((x,i)=>setTimeout(()=>{terminal.innerHTML+=`<div class="${i>3?'pink':'ok'}">${x}</div>`},i*300))};
-const popup=$('#popup');
-$('#notify').onclick=()=>{popup.classList.add('show');$('#poptext').textContent=['Пакет пришёл из закрытого порта.','Координаты источника совпадают с координатами узла.','Система получила ответ до отправки запроса.'][Math.floor(Math.random()*3)]};
-$('#random').onclick=()=>{document.body.style.filter=`hue-rotate(${Math.floor(Math.random()*360)}deg)`;setTimeout(()=>document.body.style.filter='',700);$('#notify').click()};
-let c=$('#map'),ctx=c.getContext('2d'),pts=[];
-function resize(){c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio;pts=Array.from({length:45},()=>({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}))}
-resize();addEventListener('resize',resize);
-function draw(){ctx.clearRect(0,0,c.width,c.height);for(let p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>c.width)p.vx*=-1;if(p.y<0||p.y>c.height)p.vy*=-1;
- for(let q of pts){let d=Math.hypot(p.x-q.x,p.y-q.y);if(d<120){ctx.strokeStyle=`rgba(77,234,255,${.09*(1-d/120)})`;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}}
- ctx.fillStyle='#c7ff3d';ctx.beginPath();ctx.arc(p.x,p.y,1.4*devicePixelRatio,0,7);ctx.fill()}
- let t=Date.now()/700;ctx.strokeStyle='rgba(199,255,61,.16)';ctx.beginPath();ctx.moveTo(0,(Math.sin(t)*.35+.5)*c.height);ctx.lineTo(c.width,(Math.sin(t+3)*.35+.5)*c.height);ctx.stroke();
- $('#peak').textContent=(70+Math.random()*28).toFixed(2);$('#noisev').textContent=(2+Math.random()*8).toFixed(2);$('#packets').textContent=Math.floor(300+Math.random()*900);requestAnimationFrame(draw)}
-draw();
-addEventListener('mousemove',e=>$('#coord').textContent=((e.clientX/innerWidth)*999).toFixed(3)+' / '+((e.clientY/innerHeight)*999).toFixed(3));
+        <!-- Header / Telemetry Bar -->
+        <header class="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pointer-events-auto">
+            <div class="glass-panel p-4 flex items-center gap-4 border-l-4 border-l-[#00f3ff]">
+                <div class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00f3ff] opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00f3ff]"></span>
+                </div>
+                <div>
+                    <h1 class="brand-title text-lg md:text-xl font-black tracking-wider text-white glow-text">
+                        АСТРО-ФИЗИКА <span class="text-[#00f3ff] text-sm font-normal">// ЭФИР-X</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">СИМУЛЯТОР ГРАВИТАЦИОННЫХ АНОМАЛИЙ И АККРЕЦИИ</p>
+                </div>
+            </div>
 
-/* extended VOID//OS layer */
-const extraItems=document.querySelectorAll('.item[data-page]');
-extraItems.forEach(x=>x.addEventListener('click',()=>{extraItems.forEach(y=>y.classList.remove('active'));x.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const p=document.getElementById(x.dataset.page);if(p)p.classList.add('active')}));
-const evs=[['03:17:04','NETWORK','First ping received','bad'],['03:17:04','SYSTEM','Kernel already running','warn'],['03:18:12','SENSOR','Presence = 1',''],['03:22:51','MEMORY','Sector 7A modified',''],['04:01:03','NETWORK','Packet returned','bad'],['05:44:09','SYSTEM','Clock synchronization',''],['07:12:33','UNKNOWN','Process 000 spawned','bad'],['09:51:10','SENSOR','Temperature nominal',''],['11:03:48','NETWORK','No external route',''],['13:22:17','UNKNOWN','Header changed','bad'],['17:40:01','SYSTEM','Archive indexed',''],['21:07:55','UNKNOWN','Signal detected','warn']];
-const el=document.getElementById('events2'); if(el)el.innerHTML=evs.map(e=>`<div class="event"><b>${e[0]}</b><span class="${e[3]}">${e[1]}</span><span>${e[2]}</span><span>LOCAL</span></div>`).join('');
-const wave=document.getElementById('wave2');let wc=wave&&wave.getContext('2d');function waveSize(){if(!wave)return;wave.width=wave.clientWidth*devicePixelRatio;wave.height=wave.clientHeight*devicePixelRatio}waveSize();addEventListener('resize',waveSize);function drawWave(){if(!wc)return;wc.clearRect(0,0,wave.width,wave.height);let w=wave.width,h=wave.height,t=Date.now()/350;wc.strokeStyle='rgba(72,232,255,.08)';for(let y=15;y<h;y+=35){wc.beginPath();wc.moveTo(0,y);wc.lineTo(w,y);wc.stroke()}wc.strokeStyle='#48e8ff';wc.beginPath();for(let x=0;x<w;x+=3){let y=h/2+Math.sin(x*.018+t)*h*.12+Math.sin(x*.05-t*1.7)*h*.07+Math.sin(x*.13+t*3)*h*.025;x?wc.lineTo(x,y):wc.moveTo(x,y)}wc.stroke();requestAnimationFrame(drawWave)}drawWave();
-setInterval(()=>{let cpu=25+Math.random()*60,volt=11.86+Math.random()*.24,freq=4.4+Math.random()*.8;let a=document.getElementById('cpu2'),b=document.getElementById('volt2'),c=document.getElementById('freq2');if(a){a.textContent=cpu.toFixed(1)+'%';document.getElementById('cpufill').style.width=cpu+'%';b.textContent=volt.toFixed(2)+'V';document.getElementById('voltfill').style.width=(volt/12.3*100)+'%';c.textContent=freq.toFixed(3)+' GHz';document.getElementById('freqfill').style.width=(freq/5.2*100)+'%'}},900);
-const root=document.getElementById('root'),modal=document.getElementById('modalx');if(root)root.onclick=()=>modal.classList.add('show');document.getElementById('closeRoot').onclick=()=>modal.classList.remove('show');
-document.querySelectorAll('.toggle').forEach(t=>t.onclick=()=>{t.classList.toggle('on');if(t.dataset.f==='scan'){document.querySelector('.scan').style.display=t.classList.contains('on')?'block':'none'}if(t.dataset.f==='noise'){document.querySelector('.noise').style.display=t.classList.contains('on')?'block':'none'}if(t.dataset.f==='live'&&!t.classList.contains('on')){document.body.classList.add('frozen');setTimeout(()=>document.body.classList.remove('frozen'),3500)}});
-/* hidden command: type 'wake' anywhere */
-let hidden='';addEventListener('keydown',e=>{if(e.key.length===1){hidden+=e.key.toLowerCase();if(hidden.length>12)hidden=hidden.slice(-12);if(hidden.endsWith('wake')){hidden='';document.body.style.filter='hue-rotate(95deg)';setTimeout(()=>document.body.style.filter='',1800);if(typeof toast==='function')toast('WAKE SIGNAL','Локальный узел вышел из режима ожидания. Кто-то уже был здесь.')}}});
-</script>
-<div class="modalx" id="modalx"><div class="modalcard"><div style="font:8px IBM Plex Mono;color:#65737a;border-bottom:1px solid #202d35;padding-bottom:12px">ROOT / DEVELOPER OVERRIDE</div><h2>There is no root.</h2><p>Ты действительно нашёл скрытый параметр. Но у этого узла нет root-пользователя. Нет администратора. Нет владельца.</p><p class="green">[ system ] request accepted<br>[ system ] request rejected<br>[ system ] request accepted<br>[ system ] request rejected</p><button id="closeRoot">CLOSE</button></div></div></body>
+            <!-- Top Realtime Metrics -->
+            <div class="glass-panel px-6 py-3 flex items-center gap-6 text-xs md:text-sm">
+                <div>
+                    <span class="text-gray-400 block text-[10px]">ЗАМЕДЛЕНИЕ ВРЕМЕНИ</span>
+                    <span id="metric-dilation" class="font-mono text-[#00f3ff] font-bold text-base glow-text">1.000x</span>
+                </div>
+                <div class="h-8 w-[1px] bg-cyan-900/50"></div>
+                <div>
+                    <span class="text-gray-400 block text-[10px]">РАДИУС ШВАРЦШИЛЬДА</span>
+                    <span id="metric-rs" class="font-mono text-[#ffb700] font-bold text-base glow-text-gold">14.77 км</span>
+                </div>
+                <div class="h-8 w-[1px] bg-cyan-900/50"></div>
+                <div>
+                    <span class="text-gray-400 block text-[10px]">АКТИВНЫХ ЧАСТИЦ</span>
+                    <span id="metric-particles" class="font-mono text-[#ff0055] font-bold text-base glow-text-magenta">35,000</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Center Area (Interactive Canvas space) -->
+        <div class="flex-1 flex justify-between items-center my-4 pointer-events-none">
+            
+            <!-- Left Panel: Diagnostics & Physics Controls -->
+            <div class="glass-panel p-5 w-80 max-h-[80vh] flex flex-col gap-5 overflow-y-auto pointer-events-auto transition-all duration-300">
+                <div class="flex justify-between items-center border-b border-cyan-500/20 pb-2">
+                    <h2 class="text-sm font-bold tracking-wider text-[#00f3ff] flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        ПАРАМЕТРЫ ФИЗИКИ
+                    </h2>
+                    <span class="text-[10px] text-cyan-400/60 font-mono">v4.0.9</span>
+                </div>
+
+                <!-- Mass Slider -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-300">Масса Центра (M☉)</span>
+                        <span id="val-mass" class="text-[#00f3ff] font-bold">5.0 M☉</span>
+                    </div>
+                    <input type="range" id="slider-mass" min="0.5" max="25" step="0.1" value="5.0">
+                </div>
+
+                <!-- Simulation Speed -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-300">Скорость Времени</span>
+                        <span id="val-speed" class="text-[#00f3ff] font-bold">1.0x</span>
+                    </div>
+                    <input type="range" id="slider-speed" min="0.0" max="3.0" step="0.1" value="1.0">
+                </div>
+
+                <!-- Particle Density -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-300">Количество Частиц</span>
+                        <span id="val-particles" class="text-[#00f3ff] font-bold">35,000</span>
+                    </div>
+                    <input type="range" id="slider-particles" min="5000" max="60000" step="5000" value="35000">
+                </div>
+
+                <!-- Gravitational Turbulence -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-300">Турбулентность Поля</span>
+                        <span id="val-turbulence" class="text-[#00f3ff] font-bold">0.35</span>
+                    </div>
+                    <input type="range" id="slider-turbulence" min="0" max="1" step="0.05" value="0.35">
+                </div>
+
+                <!-- Visual Mode Selection -->
+                <div class="space-y-2 pt-2 border-t border-cyan-500/20">
+                    <label class="text-xs text-gray-300 font-bold block mb-2">РЕЖИМ АНОМАЛИИ</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button class="btn-cyber active py-2 px-3 rounded text-xs text-left flex justify-between items-center" data-mode="blackhole">
+                            <span>1. Черная Дыра</span>
+                            <span class="text-[10px] opacity-70">Аккреция</span>
+                        </button>
+                        <button class="btn-cyber py-2 px-3 rounded text-xs text-left flex justify-between items-center" data-mode="pulsar">
+                            <span>2. Нейтронный Пульсар</span>
+                            <span class="text-[10px] opacity-70">Джеты</span>
+                        </button>
+                        <button class="btn-cyber py-2 px-3 rounded text-xs text-left flex justify-between items-center" data-mode="supernova">
+                            <span>3. Вспышка Сверхновой</span>
+                            <span class="text-[10px] opacity-70">Взрыв</span>
+                        </button>
+                        <button class="btn-cyber py-2 px-3 rounded text-xs text-left flex justify-between items-center" data-mode="nebula">
+                            <span>4. Космическая Туманность</span>
+                            <span class="text-[10px] opacity-70">Газ</span>
+                        </button>
+                        <button class="btn-cyber py-2 px-3 rounded text-xs text-left flex justify-between items-center" data-mode="solar">
+                            <span>5. Звездный Шторм</span>
+                            <span class="text-[10px] opacity-70">Плазма</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audio Controls -->
+                <div class="pt-2 border-t border-cyan-500/20 flex items-center justify-between">
+                    <span class="text-xs text-gray-300">Акустический Синтез</span>
+                    <button id="btn-audio" class="btn-cyber py-1.5 px-3 rounded text-xs">
+                        ВКЛ. АУДИО
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Realtime Charts & Telemetry Log -->
+            <div class="glass-panel p-5 w-80 max-h-[80vh] flex flex-col gap-4 pointer-events-auto hidden md:flex">
+                <div class="flex justify-between items-center border-b border-cyan-500/20 pb-2">
+                    <h2 class="text-sm font-bold tracking-wider text-[#00f3ff] flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        АНАЛИЗАТОР СКОРОСТЕЙ
+                    </h2>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="w-full h-36 relative">
+                    <canvas id="velocityChart"></canvas>
+                </div>
+
+                <!-- System Logs Container -->
+                <div class="flex flex-col gap-1 border-t border-cyan-500/20 pt-3">
+                    <span class="text-[11px] text-gray-400 font-bold mb-1">ТЕЛЕМЕТРИЯ СОБЫТИЙ:</span>
+                    <div id="log-container" class="h-32 overflow-y-auto text-[11px] font-mono space-y-1.5 pr-1 text-cyan-200/80">
+                        <div class="text-cyan-400">[00:00:00] Инициализация ядра Three.js WebGL...</div>
+                        <div>[00:00:01] Загружен гравитационный вектор.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer / Interactive Hints -->
+        <footer class="w-full flex justify-between items-center pointer-events-auto">
+            <div class="glass-panel px-4 py-2 text-xs text-gray-300 flex items-center gap-4">
+                <span class="flex items-center gap-1.5"><kbd class="bg-cyan-900/60 px-1.5 py-0.5 rounded text-[10px] text-cyan-300 border border-cyan-500/30">ЛКМ + Перетаскивание</kbd> Вращение</span>
+                <span class="hidden sm:inline-flex items-center gap-1.5"><kbd class="bg-cyan-900/60 px-1.5 py-0.5 rounded text-[10px] text-cyan-300 border border-cyan-500/30">ПКМ</kbd> Смещение</span>
+                <span class="flex items-center gap-1.5"><kbd class="bg-cyan-900/60 px-1.5 py-0.5 rounded text-[10px] text-cyan-300 border border-cyan-500/30">Клик по космосу</kbd> Грави-узел</span>
+            </div>
+
+            <button id="btn-reset" class="glass-panel btn-cyber px-4 py-2 text-xs rounded-lg flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                СБРОС СИСТЕМЫ
+            </button>
+        </footer>
+
+    </div>
+
+    <!-- MAIN SIMULATION LOGIC -->
+    <script>
+        // Configuration state
+        const CONFIG = {
+            particleCount: 35000,
+            centralMass: 5.0,
+            simSpeed: 1.0,
+            turbulence: 0.35,
+            mode: 'blackhole',
+            audioEnabled: false
+        };
+
+        // Telemetry Logging Helper
+        function logEvent(msg, colorClass = '') {
+            const container = document.getElementById('log-container');
+            if (!container) return;
+            const timeStr = new Date().toISOString().substr(11, 8);
+            const entry = document.createElement('div');
+            if (colorClass) entry.className = colorClass;
+            entry.innerText = `[${timeStr}] ${msg}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        class CosmicAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.droneOsc = null;
+                this.droneGain = null;
+                this.filter = null;
+                this.isInitialized = false;
+            }
+
+            init() {
+                if (this.isInitialized) return;
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+
+                // Main Low Frequency Ambient Oscillator
+                this.droneOsc = this.ctx.createOscillator();
+                this.droneOsc.type = 'sawtooth';
+                this.droneOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // A1 note
+
+                // Lowpass filter for deep space hum
+                this.filter = this.ctx.createBiquadFilter();
+                this.filter.type = 'lowpass';
+                this.filter.frequency.setValueAtTime(180, this.ctx.currentTime);
+
+                // Master gain
+                this.droneGain = this.ctx.createGain();
+                this.droneGain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+
+                this.droneOsc.connect(this.filter);
+                this.filter.connect(this.droneGain);
+                this.droneGain.connect(this.ctx.destination);
+
+                this.droneOsc.start();
+                this.isInitialized = true;
+            }
+
+            updatePitchBasedOnMass(mass) {
+                if (!this.isInitialized || !CONFIG.audioEnabled) return;
+                // Higher mass = lower pitch space rumble
+                const targetFreq = Math.max(30, 80 - mass * 2);
+                this.droneOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.1);
+            }
+
+            playWarpPulse() {
+                if (!this.isInitialized || !CONFIG.audioEnabled) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.5);
+
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.5);
+            }
+
+            toggle(state) {
+                if (state && !this.isInitialized) this.init();
+                if (this.ctx) {
+                    if (state) {
+                        this.ctx.resume();
+                        this.droneGain.gain.setTargetAtTime(0.05, this.ctx.currentTime, 0.1);
+                    } else {
+                        this.droneGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.1);
+                    }
+                }
+            }
+        }
+
+        const audioEngine = new CosmicAudioEngine();
+
+        const container = document.getElementById('canvas-container');
+        
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020208, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 45, 90);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxDistance = 400;
+        controls.minDistance = 10;
+
+        // Custom Shader for Glowing Interactive Particles
+        const particleVertexShader = `
+            attribute float size;
+            attribute vec3 customColor;
+            attribute float velocity;
+            varying vec3 vColor;
+            varying float vVel;
+
+            void main() {
+                vColor = customColor;
+                vVel = velocity;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (220.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+
+        const particleFragmentShader = `
+            varying vec3 vColor;
+            varying float vVel;
+
+            void main() {
+                // Soft radial particle glow
+                float dist = length(gl_PointCoord - vec2(0.5));
+                if (dist > 0.5) discard;
+                
+                float alpha = smoothstep(0.5, 0.0, dist);
+                vec3 finalColor = mix(vColor, vec3(1.0, 1.0, 1.0), vVel * 0.3);
+                
+                gl_FragColor = vec4(finalColor, alpha * 0.85);
+            }
+        `;
+
+        let particleGeometry, particleSystem;
+        let positions, velocities, colors, sizes, speedData;
+        let anomalyNodes = []; // Temporary interactive gravitational anomalies
+
+        function initParticleSystem() {
+            if (particleSystem) scene.remove(particleSystem);
+
+            const count = CONFIG.particleCount;
+            particleGeometry = new THREE.BufferGeometry();
+
+            positions = new Float32Array(count * 3);
+            velocities = new Float32Array(count * 3);
+            colors = new Float32Array(count * 3);
+            sizes = new Float32Array(count);
+            speedData = new Float32Array(count);
+
+            resetParticlesByMode();
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('customColor', new THREE.BufferAttribute(colors, 3));
+            particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            particleGeometry.setAttribute('velocity', new THREE.BufferAttribute(speedData, 1));
+
+            const shaderMaterial = new THREE.ShaderMaterial({
+                vertexShader: particleVertexShader,
+                fragmentShader: particleFragmentShader,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                transparent: true
+            });
+
+            particleSystem = new THREE.Points(particleGeometry, shaderMaterial);
+            scene.add(particleSystem);
+        }
+
+        function resetParticlesByMode() {
+            const count = CONFIG.particleCount;
+            const colorCyan = new THREE.Color(0x00f3ff);
+            const colorGold = new THREE.Color(0xffb700);
+            const colorMagenta = new THREE.Color(0xff0055);
+            const colorWhite = new THREE.Color(0xffffff);
+
+            for (let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                let r, angle, y;
+
+                switch (CONFIG.mode) {
+                    case 'blackhole':
+                        // Keplerian accretion disk layout
+                        r = 8 + Math.pow(Math.random(), 2) * 55;
+                        angle = Math.random() * Math.PI * 2;
+                        positions[i3] = Math.cos(angle) * r;
+                        positions[i3 + 1] = (Math.random() - 0.5) * (r * 0.08);
+                        positions[i3 + 2] = Math.sin(angle) * r;
+
+                        // Orbital Tangential Velocity
+                        const orbitalSpeed = Math.sqrt((CONFIG.centralMass * 8.0) / r);
+                        velocities[i3] = -Math.sin(angle) * orbitalSpeed;
+                        velocities[i3 + 1] = (Math.random() - 0.5) * 0.1;
+                        velocities[i3 + 2] = Math.cos(angle) * orbitalSpeed;
+
+                        // Color gradient based on distance from Event Horizon
+                        let mixRatio = (r - 8) / 55;
+                        let c = new THREE.Color().copy(colorGold).lerp(colorCyan, mixRatio);
+                        colors[i3] = c.r; colors[i3 + 1] = c.g; colors[i3 + 2] = c.b;
+                        sizes[i] = Math.random() * 1.8 + 0.8;
+                        break;
+
+                    case 'pulsar':
+                        // Relativistic Polar Jets + Compact core
+                        if (Math.random() < 0.4) {
+                            // Polar jet streams
+                            const dir = Math.random() > 0.5 ? 1 : -1;
+                            const h = Math.random() * 70 * dir;
+                            const spread = Math.abs(h) * 0.08 + 0.2;
+                            positions[i3] = (Math.random() - 0.5) * spread;
+                            positions[i3 + 1] = h;
+                            positions[i3 + 2] = (Math.random() - 0.5) * spread;
+
+                            velocities[i3] = (Math.random() - 0.5) * 0.2;
+                            velocities[i3 + 1] = dir * (Math.random() * 2.0 + 1.5);
+                            velocities[i3 + 2] = (Math.random() - 0.5) * 0.2;
+
+                            colors[i3] = colorMagenta.r; colors[i3 + 1] = colorMagenta.g; colors[i3 + 2] = colorMagenta.b;
+                        } else {
+                            r = 4 + Math.random() * 30;
+                            angle = Math.random() * Math.PI * 2;
+                            positions[i3] = Math.cos(angle) * r;
+                            positions[i3 + 1] = (Math.random() - 0.5) * 2;
+                            positions[i3 + 2] = Math.sin(angle) * r;
+
+                            velocities[i3] = -Math.sin(angle) * 1.2;
+                            velocities[i3 + 1] = 0;
+                            velocities[i3 + 2] = Math.cos(angle) * 1.2;
+
+                            colors[i3] = colorCyan.r; colors[i3 + 1] = colorCyan.g; colors[i3 + 2] = colorCyan.b;
+                        }
+                        sizes[i] = Math.random() * 2.2 + 0.5;
+                        break;
+
+                    case 'supernova':
+                        // Expanding spherical shockwave
+                        r = Math.random() * 5 + 0.1;
+                        const u = Math.random();
+                        const v = Math.random();
+                        const theta = u * 2.0 * Math.PI;
+                        const phi = Math.acos(2.0 * v - 1.0);
+                        const sinPhi = Math.sin(phi);
+
+                        const dx = sinPhi * Math.cos(theta);
+                        const dy = sinPhi * Math.sin(theta);
+                        const dz = Math.cos(phi);
+
+                        positions[i3] = dx * r;
+                        positions[i3 + 1] = dy * r;
+                        positions[i3 + 2] = dz * r;
+
+                        const speed = Math.random() * 2.5 + 0.5;
+                        velocities[i3] = dx * speed;
+                        velocities[i3 + 1] = dy * speed;
+                        velocities[i3 + 2] = dz * speed;
+
+                        let snCol = new THREE.Color().copy(colorGold).lerp(colorMagenta, Math.random());
+                        colors[i3] = snCol.r; colors[i3 + 1] = snCol.g; colors[i3 + 2] = snCol.b;
+                        sizes[i] = Math.random() * 2.5 + 1.0;
+                        break;
+
+                    case 'nebula':
+                    case 'solar':
+                    default:
+                        // Chaotic cosmic gas cloud
+                        r = Math.random() * 60;
+                        angle = Math.random() * Math.PI * 2;
+                        y = (Math.random() - 0.5) * 40;
+                        positions[i3] = Math.cos(angle) * r;
+                        positions[i3 + 1] = y;
+                        positions[i3 + 2] = Math.sin(angle) * r;
+
+                        velocities[i3] = (Math.random() - 0.5) * 0.3;
+                        velocities[i3 + 1] = (Math.random() - 0.5) * 0.3;
+                        velocities[i3 + 2] = (Math.random() - 0.5) * 0.3;
+
+                        let nebCol = (CONFIG.mode === 'solar') 
+                            ? new THREE.Color().copy(colorGold).lerp(colorMagenta, Math.random() * 0.7)
+                            : new THREE.Color().copy(colorCyan).lerp(colorMagenta, Math.random());
+                        colors[i3] = nebCol.r; colors[i3 + 1] = nebCol.g; colors[i3 + 2] = nebCol.b;
+                        sizes[i] = Math.random() * 2.0 + 0.6;
+                        break;
+                }
+            }
+        }
+
+        let centralMesh, accretionGlowMesh;
+
+        function initCentralObject() {
+            if (centralMesh) scene.remove(centralMesh);
+            if (accretionGlowMesh) scene.remove(accretionGlowMesh);
+
+            // Black hole core sphere
+            const coreGeo = new THREE.SphereGeometry(3.5, 64, 64);
+            const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            centralMesh = new THREE.Mesh(coreGeo, coreMat);
+
+            // Halo Event Horizon Glow
+            const glowGeo = new THREE.SphereGeometry(4.2, 32, 32);
+            const glowMat = new THREE.ShaderMaterial({
+                vertexShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 2.5);
+                        gl_FragColor = vec4(0.0, 0.95, 1.0, 1.0) * intensity;
+                    }
+                `,
+                blendDst: THREE.OneFactor,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                side: THREE.BackSide
+            });
+
+            accretionGlowMesh = new THREE.Mesh(glowGeo, glowMat);
+            centralMesh.add(accretionGlowMesh);
+            scene.add(centralMesh);
+        }
+
+        let velocityChart;
+        function initChart() {
+            const ctx = document.getElementById('velocityChart').getContext('2d');
+            velocityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0', '20', '40', '60', '80', '100'],
+                    datasets: [{
+                        label: 'Распределение Скоростей (км/с)',
+                        data: [10, 45, 80, 50, 25, 5],
+                        borderColor: '#00f3ff',
+                        borderWidth: 1.5,
+                        backgroundColor: 'rgba(0, 243, 255, 0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            display: true,
+                            grid: { color: 'rgba(0, 243, 255, 0.1)' },
+                            ticks: { color: '#00f3ff', font: { size: 9, family: 'Share Tech Mono' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        const clock = new THREE.Clock();
+
+        function updatePhysics() {
+            const delta = clock.getDelta() * CONFIG.simSpeed;
+            if (delta === 0) return;
+
+            const posAttr = particleGeometry.attributes.position;
+            const velAttr = particleGeometry.attributes.velocity;
+            const posArray = posAttr.array;
+            
+            const G = CONFIG.centralMass * 12.0;
+            const count = CONFIG.particleCount;
+            let sampleVelocities = [0, 0, 0, 0, 0, 0];
+
+            for (let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                let x = posArray[i3];
+                let y = posArray[i3 + 1];
+                let z = posArray[i3 + 2];
+
+                // Calculate distance to central mass
+                let distSq = x * x + y * y + z * z + 0.1;
+                let dist = Math.sqrt(distSq);
+
+                // Gravitational force formula
+                let force = G / distSq;
+                
+                // Accelerations
+                let ax = -(x / dist) * force;
+                let ay = -(y / dist) * force;
+                let az = -(z / dist) * force;
+
+                // Add gravitational turbulence
+                if (CONFIG.turbulence > 0) {
+                    ax += (Math.random() - 0.5) * CONFIG.turbulence * 2;
+                    ay += (Math.random() - 0.5) * CONFIG.turbulence * 2;
+                    az += (Math.random() - 0.5) * CONFIG.turbulence * 2;
+                }
+
+                // Interactive Gravitational Anomalies
+                for (let a = 0; a < anomalyNodes.length; a++) {
+                    const node = anomalyNodes[a];
+                    let dx = node.x - x;
+                    let dy = node.y - y;
+                    let dz = node.z - z;
+                    let aDistSq = dx * dx + dy * dy + dz * dz + 1.0;
+                    let aForce = (G * 0.8) / aDistSq;
+                    ax += (dx / Math.sqrt(aDistSq)) * aForce;
+                    ay += (dy / Math.sqrt(aDistSq)) * aForce;
+                    az += (dz / Math.sqrt(aDistSq)) * aForce;
+                }
+
+                // Update velocities
+                velocities[i3] += ax * delta;
+                velocities[i3 + 1] += ay * delta;
+                velocities[i3 + 2] += az * delta;
+
+                // Position update
+                posArray[i3] += velocities[i3] * delta;
+                posArray[i3 + 1] += velocities[i3 + 1] * delta;
+                posArray[i3 + 2] += velocities[i3 + 2] * delta;
+
+                // Calculate scalar velocity for shader/chart
+                let curVel = Math.sqrt(velocities[i3]**2 + velocities[i3+1]**2 + velocities[i3+2]**2);
+                speedData[i] = Math.min(curVel / 10.0, 1.0);
+
+                // Sample velocity for live chart
+                if (i < 6) sampleVelocities[i] = Math.round(curVel * 12);
+
+                // Event Horizon recycling
+                if (dist < 3.2 || dist > 350) {
+                    // Respawn particle at outer orbit edge
+                    const newAngle = Math.random() * Math.PI * 2;
+                    const newR = 30 + Math.random() * 40;
+                    posArray[i3] = Math.cos(newAngle) * newR;
+                    posArray[i3 + 1] = (Math.random() - 0.5) * 4;
+                    posArray[i3 + 2] = Math.sin(newAngle) * newR;
+
+                    const orbSpeed = Math.sqrt(G / newR);
+                    velocities[i3] = -Math.sin(newAngle) * orbSpeed;
+                    velocities[i3 + 1] = 0;
+                    velocities[i3 + 2] = Math.cos(newAngle) * orbSpeed;
+                }
+            }
+
+            posAttr.needsUpdate = true;
+            particleGeometry.attributes.velocity.needsUpdate = true;
+
+            // Animate Anomaly nodes lifetime
+            for (let a = anomalyNodes.length - 1; a >= 0; a--) {
+                anomalyNodes[a].life -= delta;
+                if (anomalyNodes[a].life <= 0) {
+                    scene.remove(anomalyNodes[a].mesh);
+                    anomalyNodes.splice(a, 1);
+                }
+            }
+
+            // Update Realtime Charts & Metrics
+            updateMetrics(sampleVelocities);
+        }
+
+        let lastChartUpdate = 0;
+        function updateMetrics(sampleVelocities) {
+            // Time Dilation: Relativistic factor based on central mass
+            const rs = (2 * 2.95 * CONFIG.centralMass).toFixed(2);
+            const dilation = (1 / Math.sqrt(Math.max(0.01, 1 - (rs / 50)))).toFixed(3);
+
+            document.getElementById('metric-dilation').innerText = `${dilation}x`;
+            document.getElementById('metric-rs').innerText = `${rs} км`;
+
+            // Throttle chart update to 10fps for performance
+            const now = performance.now();
+            if (now - lastChartUpdate > 100 && velocityChart) {
+                velocityChart.data.datasets[0].data = sampleVelocities;
+                velocityChart.update('none');
+                lastChartUpdate = now;
+            }
+        }
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        window.addEventListener('pointerdown', (e) => {
+            // Check if click was on UI elements
+            if (e.target.closest('.glass-panel') || e.target.closest('button') || e.target.closest('input')) return;
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const targetPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            const intersectPoint = new THREE.Vector3();
+            
+            if (raycaster.ray.intersectPlane(targetPlane, intersectPoint)) {
+                // Spawn gravitational anomaly mesh
+                const geom = new THREE.SphereGeometry(1.5, 16, 16);
+                const mat = new THREE.MeshBasicMaterial({ color: 0xff0055, wireframe: true });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.copy(intersectPoint);
+                scene.add(mesh);
+
+                anomalyNodes.push({
+                    x: intersectPoint.x,
+                    y: intersectPoint.y,
+                    z: intersectPoint.z,
+                    life: 4.0, // seconds
+                    mesh: mesh
+                });
+
+                audioEngine.playWarpPulse();
+                logEvent(`Создана грав-аномалия в [${intersectPoint.x.toFixed(0)}, ${intersectPoint.z.toFixed(0)}]`, 'text-pink-400');
+            }
+        });
+
+        document.getElementById('slider-mass').addEventListener('input', (e) => {
+            CONFIG.centralMass = parseFloat(e.target.value);
+            document.getElementById('val-mass').innerText = `${CONFIG.centralMass.toFixed(1)} M☉`;
+            if (centralMesh) {
+                const scale = 0.5 + CONFIG.centralMass * 0.15;
+                centralMesh.scale.set(scale, scale, scale);
+            }
+            audioEngine.updatePitchBasedOnMass(CONFIG.centralMass);
+        });
+
+        document.getElementById('slider-speed').addEventListener('input', (e) => {
+            CONFIG.simSpeed = parseFloat(e.target.value);
+            document.getElementById('val-speed').innerText = `${CONFIG.simSpeed.toFixed(1)}x`;
+        });
+
+        document.getElementById('slider-particles').addEventListener('input', (e) => {
+            CONFIG.particleCount = parseInt(e.target.value);
+            document.getElementById('val-particles').innerText = CONFIG.particleCount.toLocaleString();
+            document.getElementById('metric-particles').innerText = CONFIG.particleCount.toLocaleString();
+            initParticleSystem();
+            logEvent(`Количество частиц изменено на ${CONFIG.particleCount}`);
+        });
+
+        document.getElementById('slider-turbulence').addEventListener('input', (e) => {
+            CONFIG.turbulence = parseFloat(e.target.value);
+            document.getElementById('val-turbulence').innerText = CONFIG.turbulence.toFixed(2);
+        });
+
+        // Mode Switching
+        document.querySelectorAll('[data-mode]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+                const target = e.currentTarget;
+                target.classList.add('active');
+
+                CONFIG.mode = target.getAttribute('data-mode');
+                resetParticlesByMode();
+                audioEngine.playWarpPulse();
+                logEvent(`Активирован режим: ${CONFIG.mode.toUpperCase()}`, 'text-cyan-300');
+            });
+        });
+
+        // Audio Button Toggle
+        const audioBtn = document.getElementById('btn-audio');
+        audioBtn.addEventListener('click', () => {
+            CONFIG.audioEnabled = !CONFIG.audioEnabled;
+            audioEngine.toggle(CONFIG.audioEnabled);
+            
+            if (CONFIG.audioEnabled) {
+                audioBtn.classList.add('active');
+                audioBtn.innerText = 'ВЫКЛ. АУДИО';
+                logEvent('Акустический синтез включен', 'text-green-400');
+            } else {
+                audioBtn.classList.remove('active');
+                audioBtn.innerText = 'ВКЛ. АУДИО';
+                logEvent('Акустический синтез отключен');
+            }
+        });
+
+        // System Reset
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            CONFIG.centralMass = 5.0;
+            CONFIG.simSpeed = 1.0;
+            CONFIG.turbulence = 0.35;
+            
+            document.getElementById('slider-mass').value = 5.0;
+            document.getElementById('val-mass').innerText = '5.0 M☉';
+            document.getElementById('slider-speed').value = 1.0;
+            document.getElementById('val-speed').innerText = '1.0x';
+            document.getElementById('slider-turbulence').value = 0.35;
+            document.getElementById('val-turbulence').innerText = '0.35';
+
+            if (centralMesh) centralMesh.scale.set(1, 1, 1);
+            resetParticlesByMode();
+            logEvent('Система сброшена к стандартным значениям', 'text-yellow-400');
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Main Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate central core
+            if (centralMesh) {
+                centralMesh.rotation.y += 0.005 * CONFIG.simSpeed;
+            }
+
+            // Slowly spin background particle system
+            if (particleSystem) {
+                particleSystem.rotation.y += 0.0005 * CONFIG.simSpeed;
+            }
+
+            controls.update();
+            updatePhysics();
+            renderer.render(scene, camera);
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            initCentralObject();
+            initParticleSystem();
+            initChart();
+            logEvent('СИСТЕМА ГОТОВА К РАБОТЕ. Кликните для создания аномалии.');
+            animate();
+        };
+    </script>
+</body>
 </html>
+```
