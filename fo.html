@@ -1,329 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>НИИ «КОСМОС-84» // ЭФИР-7</title>
-    <style>
-        :root {
-            --glow: #00ff66;
-            --dim: #004411;
-            --bg: #050a05;
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VOID//OS — неизвестный процесс</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap');
+:root{--bg:#080a0d;--panel:#0d1116;--line:#26313b;--text:#d9e4e8;--dim:#6e7d85;--acid:#c7ff3d;--cyan:#4deaff;--red:#ff536b}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:"IBM Plex Mono",monospace}
+button{font:inherit;color:inherit}.scan{position:fixed;inset:0;pointer-events:none;z-index:99;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.018) 4px);mix-blend-mode:screen}
+.noise{position:fixed;inset:-100%;opacity:.025;pointer-events:none;z-index:100;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='a'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");animation:n .2s steps(2) infinite}@keyframes n{to{transform:translate(2%,-2%)}}
+.app{height:100%;display:grid;grid-template-columns:255px 1fr;grid-template-rows:58px 1fr 31px}
+.top{grid-column:1/3;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#090c10}
+.brand{font-weight:600;letter-spacing:.12em}.brand b{color:var(--acid)}.status{font-size:11px;color:var(--dim)}.status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--acid);box-shadow:0 0 9px var(--acid);margin-right:8px}
+.side{border-right:1px solid var(--line);padding:18px 12px;background:#090c10;display:flex;flex-direction:column}
+.group{font-size:9px;color:#45535b;letter-spacing:.15em;padding:12px 10px 8px}.item{height:38px;border:1px solid transparent;padding:0 10px;display:flex;align-items:center;gap:10px;color:#738188;font-size:11px;cursor:pointer}.item:hover{background:#10161b;color:#d8e1e4}.item.active{background:#12191f;border-color:#293740;color:var(--acid)}.ico{width:17px;text-align:center}
+.sidebottom{margin-top:auto;border-top:1px solid var(--line);padding:15px 10px;font-size:9px;color:#465159;line-height:1.8}
+.main{position:relative;overflow:hidden;background:radial-gradient(circle at 70% 30%,rgba(77,234,255,.035),transparent 30%),#080a0d}
+.page{position:absolute;inset:0;padding:25px 28px;overflow:auto;display:none}.page.active{display:block}
+h1{font-family:"Space Grotesk";font-size:clamp(34px,5vw,67px);font-weight:500;letter-spacing:-.055em;margin:8px 0 10px;color:#e8f0f2}.lead{font-size:11px;color:#68777e;max-width:650px;line-height:1.8}.meta{font-size:9px;color:#47545b;margin-top:16px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:25px}.box{border:1px solid var(--line);background:rgba(13,17,22,.8);padding:16px;min-height:150px}.boxhead{display:flex;justify-content:space-between;font-size:9px;color:#66747b;margin-bottom:16px}.acid{color:var(--acid)}.cyan{color:var(--cyan)}
+.big{font-family:"Space Grotesk";font-size:38px}.small{font-size:10px;color:#6b7980;line-height:1.8}
+.bars{height:110px;display:flex;align-items:end;gap:3px}.bar{flex:1;background:#24313a;min-width:2px;transition:.3s}.bar.hot{background:var(--cyan)}
+.term{height:310px;border:1px solid var(--line);background:#050709;margin-top:12px;padding:13px;overflow:auto;font-size:10px;line-height:1.8;color:#74848b}.term .ok{color:var(--acid)}.term .warn{color:#ffcb5c}.term .cmd{color:#dbe5e7}.term .pink{color:#ff6eaa}
+.row{display:flex;gap:8px;margin-top:13px}.btn{background:#11181e;border:1px solid #2b3942;padding:10px 13px;font-size:10px;cursor:pointer}.btn:hover{border-color:#71818a;background:#172128}.btn.primary{border-color:#728e29;color:var(--acid)}
+.monitor{height:calc(100vh - 155px);min-height:400px;border:1px solid var(--line);position:relative;background:#05080a;overflow:hidden}.monitor canvas{width:100%;height:100%}.monitor-label{position:absolute;top:13px;left:14px;font-size:9px;color:#59666c;pointer-events:none}.readout{position:absolute;right:14px;top:13px;text-align:right;font-size:9px;line-height:1.8;color:#65747a;pointer-events:none}.readout b{color:var(--acid);font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:25px}.card{border:1px solid var(--line);padding:18px;min-height:170px;background:#0c1115;position:relative;overflow:hidden}.card:hover{border-color:#43545d}.card h3{font-size:13px;font-weight:500;margin:0 0 12px}.card p{font-size:10px;line-height:1.8;color:#6f7d83}.num{position:absolute;right:12px;top:10px;font-size:9px;color:#344048}.meter{height:2px;background:#1b252b;margin-top:18px}.meter i{display:block;height:100%;background:var(--acid)}
+.footer{grid-column:1/3;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 15px;font-size:8px;color:#46535a;background:#090c10}
+.popup{position:fixed;z-index:120;right:25px;bottom:45px;width:310px;border:1px solid #40505a;background:#0b1014;padding:16px;box-shadow:0 20px 60px #000;transform:translateY(130%);transition:.5s}.popup.show{transform:translateY(0)}.popup strong{font-size:10px;color:var(--acid)}.popup p{font-size:9px;color:#728087;line-height:1.7}.close{float:right;background:none;border:0;color:#68757b;cursor:pointer}
+@media(max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:58px 1fr 31px}.side{display:none}.top,.footer{grid-column:1}.grid,.cards{grid-template-columns:1fr}.page{padding:18px}.monitor{height:calc(100vh - 125px)}}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Courier New', Courier, monospace;
-            user-select: none;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--glow);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
-        }
-
-        /* Эффект старого CRT-экрана */
-        .crt-container {
-            width: 95vw;
-            height: 90vh;
-            max-width: 1000px;
-            border: 20px solid #1a1a1a;
-            border-radius: 40px;
-            position: relative;
-            background: #020d04;
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.9), 0 0 50px rgba(0,255,102,0.1);
-            overflow: hidden;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Линии сканирования экрана */
-        .scanlines {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.25) 50%
-            );
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        /* Выпуклость и блики */
-        .crt-glass {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.5) 90%);
-            pointer-events: none;
-            z-index: 11;
-        }
-
-        header {
-            border-bottom: 2px solid var(--glow);
-            padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        .terminal-body {
-            flex-grow: 1;
-            margin: 20px 0;
-            overflow-y: auto;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .log-entry {
-            margin-bottom: 8px;
-            opacity: 0;
-            animation: fadeIn 0.1s forwards;
-        }
-
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-
-        .radar-box {
-            position: absolute;
-            top: 80px;
-            right: 40px;
-            width: 140px;
-            height: 140px;
-            border: 1px solid var(--glow);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.7;
-        }
-
-        .radar-sweep {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent 80%, var(--glow));
-            animation: spin 4s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .controls {
-            border-top: 1px dashed var(--glow);
-            padding-top: 15px;
-            display: flex;
-            gap: 15px;
-        }
-
-        input {
-            background: transparent;
-            border: none;
-            color: var(--glow);
-            font-family: inherit;
-            font-size: 1rem;
-            flex-grow: 1;
-            outline: none;
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
-        }
-
-        .btn {
-            background: var(--dim);
-            color: var(--glow);
-            border: 1px solid var(--glow);
-            padding: 5px 15px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: var(--glow);
-            color: var(--bg);
-            box-shadow: 0 0 10px var(--glow);
-        }
-
-        /* Эффект мерцания экрана при сбоях */
-        .glitch {
-            animation: glitch-anim 0.2s 3;
-        }
-
-        @keyframes glitch-anim {
-            0% { transform: translate(0) }
-            20% { transform: translate(-3px, 3px) }
-            40% { transform: translate(-3px, -3px) }
-            60% { transform: translate(3px, 3px) }
-            80% { transform: translate(3px, -3px) }
-            100% { transform: translate(0) }
-        }
-    </style>
+.outline{color:transparent;-webkit-text-stroke:1px #66757c}.extra-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:25px}.xbox{border:1px solid var(--line);background:#0c1115;padding:18px;min-height:145px}.xbox b{display:block;font-size:8px;color:#596870}.xbox strong{display:block;font-family:"Space Grotesk";font-size:31px;margin-top:20px;font-weight:500}.xbox i{display:block;height:3px;background:#19242a;margin-top:20px}.xbox em{display:block;height:100%;width:40%;background:var(--acid);transition:.5s}.wavebox{border:1px solid var(--line);background:#06090b;margin-top:10px;height:320px;padding:14px}.wavebox canvas{width:100%;height:270px}.events{border-top:1px solid var(--line);margin-top:22px}.event{display:grid;grid-template-columns:80px 75px 1fr 60px;padding:12px 5px;border-bottom:1px solid #141e24;font-size:8px;color:#718087}.event b{color:#aab6bb;font-weight:400}.event .bad{color:var(--red)}.event .warn{color:var(--orange)}.settings{max-width:760px;margin-top:25px}.setting{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);font-size:9px}.setting small{display:block;color:#536169;margin-top:6px;font-size:8px}.toggle{width:40px;height:22px;border:1px solid #36444c;background:#0b1115;color:#536169;border-radius:20px;cursor:pointer;font-size:9px}.toggle.on{color:var(--acid);border-color:#506825}.setting.danger button{border:1px solid #4b3036;background:#100c0e;color:var(--red);padding:8px 10px;font:8px "IBM Plex Mono";cursor:pointer}.modalx{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:200;display:none;place-items:center}.modalx.show{display:grid}.modalcard{width:min(600px,90vw);border:1px solid #394951;background:#080d11;padding:22px;box-shadow:0 30px 100px #000}.modalcard h2{font:500 43px "Space Grotesk";letter-spacing:-.06em;margin:25px 0 8px}.modalcard p{font-size:9px;color:#69777e;line-height:1.9}.modalcard button{border:1px solid #35444c;background:#0d151a;color:#8e9ba0;padding:9px 12px;font-size:8px;cursor:pointer}.modalcard .green{color:var(--acid)}
+@media(max-width:760px){.extra-grid{grid-template-columns:1fr}.event{grid-template-columns:55px 55px 1fr}.event span:last-child{display:none}}
+</style>
 </head>
 <body>
-
-<div class="crt-container" id="terminal">
-    <div class="scanlines"></div>
-    <div class="crt-glass"></div>
-
-    <header>
-        <span>[ СТАНЦИЯ ЭФИР-7 ]</span>
-        <span id="clock">00:00:00</span>
-        <span>СТАТУС: АНОМАЛИЯ</span>
-    </header>
-
-    <div class="radar-box">
-        <div class="radar-sweep"></div>
-        <div style="width: 4px; height: 4px; background: var(--glow); border-radius: 50%;"></div>
-    </div>
-
-    <div class="terminal-body" id="output">
-        <div class="log-entry">>>>> ИНИЦИАЛИЗАЦИЯ БОРТОВОЙ СИСТЕМЫ 1984.09.12...</div>
-        <div class="log-entry">>>>> СВЯЗЬ С ЗЕМЛЕЙ УТЕРЯНА 14 209 ДНЕЙ НАЗАД.</div>
-        <div class="log-entry">>>>> ОБНАРУЖЕН НЕОПОЗНАННЫЙ СИГНАЛ В СЕКТОРЕ 12-Б.</div>
-        <div class="log-entry" style="color: #ffaa00;">>>>> ВНИМАНИЕ: Для взаимодействия кликните в любом месте и введите команду (попробуйте 'помощь').</div>
-    </div>
-
-    <div class="controls">
-        <span>&gt;</span>
-        <input type="text" id="commandInput" placeholder="Введите команду..." autofocus autocomplete="off">
-        <button class="btn" onclick="handleCommand()">ОТПРАВКА</button>
-    </div>
+<div class="scan"></div><div class="noise"></div>
+<div class="app">
+<header class="top"><div class="brand">VOID<span>//</span><b>OS</b></div><div class="status"><i></i>SYSTEM NOMINAL · <span id="time">00:00:00</span></div></header>
+<aside class="side">
+<div class="group">NAVIGATION</div>
+<div class="item active" data-page="home"><span class="ico">◈</span> overview</div>
+<div class="item" data-page="signal"><span class="ico">⌁</span> signal map</div>
+<div class="item" data-page="archive"><span class="ico">▦</span> archive</div>
+<div class="group">SYSTEM</div>
+<div class="item" id="random"><span class="ico">⟳</span> randomize</div>
+<div class="item" data-page="telemetry"><span class="ico">⌁</span> telemetry</div>
+<div class="item" data-page="archive"><span class="ico">▦</span> archive</div>
+<div class="item" data-page="events"><span class="ico">≡</span> event log</div>
+<div class="item" data-page="settings"><span class="ico">⚙</span> settings</div>
+<div class="item" id="notify"><span class="ico">!</span> anomaly log</div>
+<div class="sidebottom">NODE 07A<br>LATENCY 12ms<br>UPTIME <span id="uptime">000:00:00</span><br><br>NO EXTERNAL CONTROL</div>
+</aside>
+<main class="main">
+<section class="page active" id="home">
+<div class="meta">NODE 07A / INTERNAL DASHBOARD / ACCESS LEVEL: UNKNOWN</div>
+<h1>Something is<br><span class="acid">watching the static.</span></h1>
+<p class="lead">Это не сайт. По крайней мере, система не считает его сайтом. Ниже находится состояние одного узла, который почему-то продолжает работать после отключения сети.</p>
+<div class="grid">
+<div class="box"><div class="boxhead"><span>ACTIVITY / 60 SEC</span><span class="cyan">LIVE</span></div><div class="bars" id="bars"></div></div>
+<div class="box"><div class="boxhead"><span>CORE TEMPERATURE</span><span>°C</span></div><div class="big" id="temp">37.4</div><div class="small">within expected range<br>cooling system: <span class="acid">ACTIVE</span></div></div>
 </div>
+<div class="term" id="terminal"></div>
+<div class="row"><button class="btn primary" id="scan">RUN DEEP SCAN</button><button class="btn" id="clear">CLEAR TERMINAL</button></div>
+</section>
+
+<section class="page" id="signal">
+<div class="meta">SENSOR ARRAY / PASSIVE MODE</div><h1>Signal map.</h1>
+<p class="lead">Карта строится в реальном времени. Движение точек не имеет известного источника.</p>
+<div class="monitor"><canvas id="map"></canvas><div class="monitor-label">SPECTRUM // LIVE</div><div class="readout">PEAK <b id="peak">--</b><br>NOISE <b id="noisev">--</b><br>PACKETS <b id="packets">--</b></div></div>
+</section>
+
+<section class="page" id="archive">
+<div class="meta">RECOVERED MATERIAL / FRAGMENTS</div><h1>Archive.</h1><p class="lead">Некоторые записи система почему-то не удаляет.</p>
+<div class="cards">
+<div class="card"><span class="num">#001</span><h3>THE FIRST PING</h3><p>Источник появился ровно в 03:17. Ответить на него не получилось. Второй ping пришёл раньше первого.</p><div class="meter"><i style="width:83%"></i></div></div>
+<div class="card"><span class="num">#014</span><h3>EMPTY ROOM</h3><p>Камера показывала пустое помещение 11 часов. Датчик присутствия всё это время показывал значение 1.</p><div class="meter"><i style="width:41%"></i></div></div>
+<div class="card"><span class="num">#077</span><h3>UNKNOWN NAME</h3><p>В журнале появилась строка, которой не было в исходном файле. Система не смогла определить автора.</p><div class="meter"><i style="width:97%"></i></div></div>
+</div>
+</section>
+<section class="page" id="telemetry"><div class="meta">SENSORS / TELEMETRY / REAL-TIME</div><h1>Machine <span class="outline">telemetry.</span></h1><p class="lead">Датчики не сообщают о неисправностях. Один из них иногда присылает данные на 17 миллисекунд раньше, чем происходит измерение.</p><div class="extra-grid"><div class="xbox"><b>CPU LOAD</b><strong id="cpu2">42.8%</strong><i><em id="cpufill"></em></i></div><div class="xbox"><b>VOLTAGE</b><strong id="volt2">11.98V</strong><i><em id="voltfill"></em></i></div><div class="xbox"><b>FREQUENCY</b><strong id="freq2">4.812 GHz</strong><i><em id="freqfill"></em></i></div></div><div class="wavebox"><div class="boxhead"><span>WAVEFORM / SENSOR 04</span><span class="pink">UNSTABLE</span></div><canvas id="wave2"></canvas></div></section>
+<section class="page" id="events"><div class="meta">SYSTEM / EVENT LOG / 24H</div><h1>Event <span class="outline">log.</span></h1><p class="lead">Нормальные события смешаны с теми, которые система считает нормальными.</p><div class="events" id="events2"></div></section>
+<section class="page" id="settings"><div class="meta">SYSTEM / CONFIGURATION / LOCAL</div><h1>Control <span class="acid">panel.</span></h1><p class="lead">Некоторые параметры не должны здесь находиться.</p><div class="settings"><div class="setting"><span>SCANLINES<small>аналоговые линии поверх интерфейса</small></span><button class="toggle on" data-f="scan">●</button></div><div class="setting"><span>NOISE<small>слабый аналоговый шум</small></span><button class="toggle on" data-f="noise">●</button></div><div class="setting"><span>LIVE TELEMETRY<small>обновление датчиков</small></span><button class="toggle on" data-f="live">●</button></div><div class="setting danger"><span>DEVELOPER OVERRIDE<small>параметр отсутствует в документации</small></span><button id="root">UNAVAILABLE</button></div></div></section>
+</main>
+<footer><span>VOID//OS v0.7.13</span><span id="coord">000.000 / 000.000</span><span>LOCAL INSTANCE</span></footer>
+</div>
+<div class="popup" id="popup"><button class="close" onclick="popup.classList.remove('show')">×</button><strong>ANOMALY DETECTED</strong><p id="poptext">Неизвестный пакет данных обнаружен в локальном буфере.</p></div>
 
 <script>
-    // Генерация ламповых звуков клавиатуры и кликов на лету (без внешних файлов)
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    function playBeep(freq = 800, type = 'sine', duration = 0.05) {
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-    }
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+let start=Date.now(), terminal=$('#terminal');
+const lines=[
+['ok','[00:00:01] kernel initialized'],
+['cmd','[00:00:02] loading sensor array...'],
+['ok','[00:00:03] 128 sensors online'],
+['cmd','[00:00:04] checking external network'],
+['warn','[00:00:05] external network: NOT FOUND'],
+['cmd','[00:00:06] attempting local handshake...'],
+['ok','[00:00:07] handshake accepted'],
+['pink','[00:00:08] who accepted the handshake?'],
+['cmd','[00:00:09] continuing anyway...']
+];
+function printLines(arr=lines){
+ terminal.innerHTML='';
+ arr.forEach((x,i)=>setTimeout(()=>{terminal.innerHTML+=`<div class="${x[0]}">${x[1]}</div>`;terminal.scrollTop=terminal.scrollHeight},i*110));
+}
+printLines();
+function makeBars(){let b=$('#bars');b.innerHTML='';for(let i=0;i<48;i++){let e=document.createElement('i');e.className='bar';e.style.height=(10+Math.random()*80)+'%';if(Math.random()>.7)e.classList.add('hot');b.appendChild(e)}}
+makeBars();setInterval(makeBars,1300);
+setInterval(()=>$('#temp').textContent=(36+Math.random()*3).toFixed(1),1000);
+setInterval(()=>$('#time').textContent=new Date().toLocaleTimeString('en-GB'),1000);
+setInterval(()=>{let s=Math.floor((Date.now()-start)/1000),h=String(Math.floor(s/3600)).padStart(3,'0'),m=String(Math.floor(s/60)%60).padStart(2,'0'),x=String(s%60).padStart(2,'0');$('#uptime').textContent=`${h}:${m}:${x}`},1000);
 
-    // Часы терминала
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
-    }, 1000);
+$$('.item[data-page]').forEach(i=>i.onclick=()=>{ $$('.item').forEach(x=>x.classList.remove('active'));i.classList.add('active');$$('.page').forEach(p=>p.classList.remove('active'));$('#'+i.dataset.page).classList.add('active')});
+$('#clear').onclick=()=>terminal.innerHTML='<span class="cmd">[terminal cleared]</span>';
+$('#scan').onclick=()=>{terminal.innerHTML='';let a=['[deep-scan] scanning memory sectors...','[deep-scan] 2,048,000 sectors checked','[deep-scan] searching for orphan processes...','[deep-scan] process found: <UNKNOWN>','[deep-scan] pid: 000','[deep-scan] status: RUNNING','[deep-scan] location: LOCAL','[deep-scan] recommendation: DO NOT INTERRUPT'];a.forEach((x,i)=>setTimeout(()=>{terminal.innerHTML+=`<div class="${i>3?'pink':'ok'}">${x}</div>`},i*300))};
+const popup=$('#popup');
+$('#notify').onclick=()=>{popup.classList.add('show');$('#poptext').textContent=['Пакет пришёл из закрытого порта.','Координаты источника совпадают с координатами узла.','Система получила ответ до отправки запроса.'][Math.floor(Math.random()*3)]};
+$('#random').onclick=()=>{document.body.style.filter=`hue-rotate(${Math.floor(Math.random()*360)}deg)`;setTimeout(()=>document.body.style.filter='',700);$('#notify').click()};
+let c=$('#map'),ctx=c.getContext('2d'),pts=[];
+function resize(){c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio;pts=Array.from({length:45},()=>({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}))}
+resize();addEventListener('resize',resize);
+function draw(){ctx.clearRect(0,0,c.width,c.height);for(let p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>c.width)p.vx*=-1;if(p.y<0||p.y>c.height)p.vy*=-1;
+ for(let q of pts){let d=Math.hypot(p.x-q.x,p.y-q.y);if(d<120){ctx.strokeStyle=`rgba(77,234,255,${.09*(1-d/120)})`;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}}
+ ctx.fillStyle='#c7ff3d';ctx.beginPath();ctx.arc(p.x,p.y,1.4*devicePixelRatio,0,7);ctx.fill()}
+ let t=Date.now()/700;ctx.strokeStyle='rgba(199,255,61,.16)';ctx.beginPath();ctx.moveTo(0,(Math.sin(t)*.35+.5)*c.height);ctx.lineTo(c.width,(Math.sin(t+3)*.35+.5)*c.height);ctx.stroke();
+ $('#peak').textContent=(70+Math.random()*28).toFixed(2);$('#noisev').textContent=(2+Math.random()*8).toFixed(2);$('#packets').textContent=Math.floor(300+Math.random()*900);requestAnimationFrame(draw)}
+draw();
+addEventListener('mousemove',e=>$('#coord').textContent=((e.clientX/innerWidth)*999).toFixed(3)+' / '+((e.clientY/innerHeight)*999).toFixed(3));
 
-    const input = document.getElementById('commandInput');
-    const output = document.getElementById('output');
-    const terminal = document.getElementById('terminal');
-
-    // Озвучка ввода
-    input.addEventListener('keydown', (e) => {
-        playBeep(400 + Math.random() * 200, 'square', 0.03);
-        if (e.key === 'Enter') {
-            handleCommand();
-        }
-    });
-
-    // Реакция на клик по экрану
-    document.body.addEventListener('click', () => {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    });
-
-    function printLog(text, color = 'var(--glow)') {
-        const div = document.createElement('div');
-        div.className = 'log-entry';
-        div.style.color = color;
-        div.innerText = `> ${text}`;
-        output.appendChild(div);
-        output.scrollTop = output.scrollHeight;
-    }
-
-    function triggerGlitch() {
-        terminal.classList.add('glitch');
-        playBeep(150, 'sawtooth', 0.2);
-        setTimeout(() => terminal.classList.remove('glitch'), 600);
-    }
-
-    // База команд
-    function handleCommand() {
-        const cmd = input.value.trim().toLowerCase();
-        if (!cmd) return;
-
-        printLog(input.value, '#ffffff');
-        input.value = '';
-
-        setTimeout(() => {
-            switch(cmd) {
-                case 'помощь':
-                case 'help':
-                    printLog('ДОСТУПНЫЕ КОМАНДЫ:');
-                    printLog('  статус   - проверка систем корабля');
-                    printLog('  скан     - сканирование сектора');
-                    printLog('  дневник  - последние записи бортового журнала');
-                    printLog('  сигнал   - попытка расшифровать аномалию');
-                    printLog('  очистить - очистка экрана');
-                    break;
-
-                case 'статус':
-                    printLog('КИСЛОРОД: 12% (КРИТИЧЕСКИ)');
-                    printLog('ОБШИВКА: 88%');
-                    printLog('РЕАКТОР: РАБОТАЕТ В АВАРИЙНОМ РЕЖИМЕ');
-                    printLog('ЭКИПАЖ: 0 ЧЕЛОВЕК (ОБНАРУЖЕНЫ БИОМАРСКЕРЫ...)', '#ffaa00');
-                    break;
-
-                case 'скан':
-                    printLog('СКАНИРОВАНИЕ...');
-                    triggerGlitch();
-                    setTimeout(() => {
-                        printLog('ОБНАРУЖЕН ОБЪЕКТ МАССИВНОГО РАЗМЕРА НА ДИСТАНЦИИ 400 КМ.');
-                        printLog('ФОРМА: НЕПРАВИЛЬНАЯ. МАТЕРИАЛ: НЕОПРЕДЕЛЕН.', '#ff3333');
-                    }, 1000);
-                    break;
-
-                case 'дневник':
-                    printLog('ЗАПИСЬ #412: "Оно не агрессивно. Оно просто поет на частоте 1420 МГц..."');
-                    printLog('ЗАПИСЬ #413: "Капитан вышел в открытый космос без скафандра. Он улыбался."');
-                    break;
-
-                case 'сигнал':
-                    triggerGlitch();
-                    printLog('ПРИЕМ СИГНАЛА:', '#ffaa00');
-                    printLog('"... . . . -- . . . -.-. .- -- . ... ... .- --. . . . . . . .."');
-                    playBeep(900, 'sine', 0.4);
-                    setTimeout(() => playBeep(300, 'sine', 0.6), 400);
-                    break;
-
-                case 'очистить':
-                case 'cls':
-                case 'clear':
-                    output.innerHTML = '';
-                    break;
-
-                default:
-                    printLog(`ОШИБКА: Команда "${cmd}" не распознана. Введите 'помощь'.`, '#ff3333');
-                    triggerGlitch();
-                    break;
-            }
-        }, 200);
-    }
+/* extended VOID//OS layer */
+const extraItems=document.querySelectorAll('.item[data-page]');
+extraItems.forEach(x=>x.addEventListener('click',()=>{extraItems.forEach(y=>y.classList.remove('active'));x.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const p=document.getElementById(x.dataset.page);if(p)p.classList.add('active')}));
+const evs=[['03:17:04','NETWORK','First ping received','bad'],['03:17:04','SYSTEM','Kernel already running','warn'],['03:18:12','SENSOR','Presence = 1',''],['03:22:51','MEMORY','Sector 7A modified',''],['04:01:03','NETWORK','Packet returned','bad'],['05:44:09','SYSTEM','Clock synchronization',''],['07:12:33','UNKNOWN','Process 000 spawned','bad'],['09:51:10','SENSOR','Temperature nominal',''],['11:03:48','NETWORK','No external route',''],['13:22:17','UNKNOWN','Header changed','bad'],['17:40:01','SYSTEM','Archive indexed',''],['21:07:55','UNKNOWN','Signal detected','warn']];
+const el=document.getElementById('events2'); if(el)el.innerHTML=evs.map(e=>`<div class="event"><b>${e[0]}</b><span class="${e[3]}">${e[1]}</span><span>${e[2]}</span><span>LOCAL</span></div>`).join('');
+const wave=document.getElementById('wave2');let wc=wave&&wave.getContext('2d');function waveSize(){if(!wave)return;wave.width=wave.clientWidth*devicePixelRatio;wave.height=wave.clientHeight*devicePixelRatio}waveSize();addEventListener('resize',waveSize);function drawWave(){if(!wc)return;wc.clearRect(0,0,wave.width,wave.height);let w=wave.width,h=wave.height,t=Date.now()/350;wc.strokeStyle='rgba(72,232,255,.08)';for(let y=15;y<h;y+=35){wc.beginPath();wc.moveTo(0,y);wc.lineTo(w,y);wc.stroke()}wc.strokeStyle='#48e8ff';wc.beginPath();for(let x=0;x<w;x+=3){let y=h/2+Math.sin(x*.018+t)*h*.12+Math.sin(x*.05-t*1.7)*h*.07+Math.sin(x*.13+t*3)*h*.025;x?wc.lineTo(x,y):wc.moveTo(x,y)}wc.stroke();requestAnimationFrame(drawWave)}drawWave();
+setInterval(()=>{let cpu=25+Math.random()*60,volt=11.86+Math.random()*.24,freq=4.4+Math.random()*.8;let a=document.getElementById('cpu2'),b=document.getElementById('volt2'),c=document.getElementById('freq2');if(a){a.textContent=cpu.toFixed(1)+'%';document.getElementById('cpufill').style.width=cpu+'%';b.textContent=volt.toFixed(2)+'V';document.getElementById('voltfill').style.width=(volt/12.3*100)+'%';c.textContent=freq.toFixed(3)+' GHz';document.getElementById('freqfill').style.width=(freq/5.2*100)+'%'}},900);
+const root=document.getElementById('root'),modal=document.getElementById('modalx');if(root)root.onclick=()=>modal.classList.add('show');document.getElementById('closeRoot').onclick=()=>modal.classList.remove('show');
+document.querySelectorAll('.toggle').forEach(t=>t.onclick=()=>{t.classList.toggle('on');if(t.dataset.f==='scan'){document.querySelector('.scan').style.display=t.classList.contains('on')?'block':'none'}if(t.dataset.f==='noise'){document.querySelector('.noise').style.display=t.classList.contains('on')?'block':'none'}if(t.dataset.f==='live'&&!t.classList.contains('on')){document.body.classList.add('frozen');setTimeout(()=>document.body.classList.remove('frozen'),3500)}});
+/* hidden command: type 'wake' anywhere */
+let hidden='';addEventListener('keydown',e=>{if(e.key.length===1){hidden+=e.key.toLowerCase();if(hidden.length>12)hidden=hidden.slice(-12);if(hidden.endsWith('wake')){hidden='';document.body.style.filter='hue-rotate(95deg)';setTimeout(()=>document.body.style.filter='',1800);if(typeof toast==='function')toast('WAKE SIGNAL','Локальный узел вышел из режима ожидания. Кто-то уже был здесь.')}}});
 </script>
-</body>
+<div class="modalx" id="modalx"><div class="modalcard"><div style="font:8px IBM Plex Mono;color:#65737a;border-bottom:1px solid #202d35;padding-bottom:12px">ROOT / DEVELOPER OVERRIDE</div><h2>There is no root.</h2><p>Ты действительно нашёл скрытый параметр. Но у этого узла нет root-пользователя. Нет администратора. Нет владельца.</p><p class="green">[ system ] request accepted<br>[ system ] request rejected<br>[ system ] request accepted<br>[ system ] request rejected</p><button id="closeRoot">CLOSE</button></div></div></body>
 </html>
