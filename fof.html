@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ГОРОД, КОТОРЫЙ ТЕБЯ НЕ ЖДАЛ</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    cursor: none;
+    font-family: 'Courier New', monospace;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  canvas {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  .cursor {
+    position: fixed;
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s, border-color 0.3s;
+    mix-blend-mode: difference;
+  }
+  .cursor::before,
+  .cursor::after {
+    content: '';
+    position: absolute;
+    background: rgba(255,255,255,0.5);
+  }
+  .cursor::before {
+    top: 50%; left: -8px;
+    width: 40px; height: 1px;
+    transform: translateY(-50%);
+  }
+  .cursor::after {
+    left: 50%; top: -8px;
+    width: 1px; height: 40px;
+    transform: translateX(-50%);
+  }
+  .cursor.grow {
+    width: 80px;
+    height: 80px;
+    border-color: rgba(255,120,60,0.9);
+  }
+
+  .hud {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    color: rgba(220,230,255,0.75);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(0,0,0,0.9);
+  }
+
+  .hud .corner {
+    position: absolute;
+    padding: 20px;
+  }
+  .hud .tl { top: 0; left: 0; }
+  .hud .tr { top: 0; right: 0; text-align: right; }
+  .hud .bl { bottom: 0; left: 0; }
+  .hud .br { bottom: 0; right: 0; text-align: right; }
+
+  .hud .v {
+    color: #fff;
+    text-shadow: 0 0 12px rgba(120,200,255,0.9);
+  }
+
+  .bar {
+    display: inline-block;
+    width: 80px;
+    height: 3px;
+    background: rgba(255,255,255,0.12);
+    margin-left: 8px;
+    vertical-align: middle;
+    position: relative;
+    overflow: hidden;
+  }
+  .bar i {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #4af, #f4a);
+    transition: width 0.3s;
+  }
+
+  .crosshair {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+    pointer-events: none;
+    width: 60px;
+    height: 60px;
+    opacity: 0.35;
+  }
+  .crosshair::before,
+  .crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(255,255,255,0.6);
+  }
+  .crosshair::before {
+    top: 50%; left: 0;
+    width: 100%; height: 1px;
+    transform: translateY(-50%);
+  }
+  .crosshair::after {
+    left: 50%; top: 0;
+    width: 1px; height: 100%;
+    transform: translateX(-50%);
+  }
+
+  .title {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 3s ease;
+  }
+  .title h1 {
+    font-size: clamp(24px, 6vw, 68px);
+    font-weight: 100;
+    letter-spacing: 0.4em;
+    text-indent: 0.4em;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(120,180,255,0.9), 0 0 80px rgba(255,80,180,0.5);
+  }
+  .title p {
+    margin-top: 22px;
+    font-size: 11px;
+    letter-spacing: 0.9em;
+    text-indent: 0.9em;
+    color: rgba(180,200,255,0.6);
+  }
+  .title.fade { opacity: 0; }
+
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 40;
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    text-shadow: 0 0 20px rgba(255,120,60,0.9), 0 0 40px rgba(255,60,120,0.5);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .flash.on { opacity: 1; }
+
+  .grain {
+    position: fixed;
+    inset: -50%;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grainmove 0.4s steps(2) infinite;
+  }
+  @keyframes grainmove {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(-5%,3%); }
+    50% { transform: translate(3%,-5%); }
+    75% { transform: translate(-3%,-3%); }
+    100% { transform: translate(5%,5%); }
+  }
+
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,0.85) 100%);
+  }
+
+  .scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    pointer-events: none;
+    opacity: 0.07;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(255,255,255,0.5) 3px,
+      transparent 4px
+    );
+  }
+
+  .chromatic {
+    position: fixed;
+    inset: 0;
+    z-index: 98;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    background:
+      linear-gradient(90deg, rgba(255,0,80,0.03), transparent 30%),
+      linear-gradient(270deg, rgba(0,120,255,0.03), transparent 30%);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div class="chromatic"></div>
+<div class="scanlines"></div>
+<div class="grain"></div>
+<div class="vignette"></div>
+<div class="flash" id="flash"></div>
+
+<div class="crosshair"></div>
+<div class="cursor" id="cursor"></div>
+
+<div class="hud">
+  <div class="corner tl">
+    сектор <span class="v" id="sector">A-01</span><br>
+    высота <span class="v" id="alt">0000</span> м
+  </div>
+  <div class="corner tr">
+    целостность <span class="v" id="integrity">100</span>%<br>
+    <span class="bar"><i id="integrityBar" style="width:100%"></i></span>
+  </div>
+  <div class="corner bl">
+    скорость <span class="v" id="speed">0.0</span> м/с<br>
+    курс <span class="v" id="heading">000</span>°
+  </div>
+  <div class="corner br">
+    объектов <span class="v" id="objCount">0</span><br>
+    сигнал <span class="v" id="signal">100</span>%
+  </div>
+</div>
+
+<div class="title" id="title">
+  <h1>ГОРОД</h1>
+  <p>двигай мышкой · кликай</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d', { alpha: false });
+let W, H, DPR;
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+const input = {
+  x: W/2, y: H/2,
+  tx: W/2, ty: H/2,
+  down: false,
+  active: false,
+};
+
+const cursor = document.getElementById('cursor');
+function movePointer(x, y) {
+  input.tx = x;
+  input.ty = y;
+  input.active = true;
+  cursor.style.left = x + 'px';
+  cursor.style.top = y + 'px';
+}
+window.addEventListener('mousemove', e => movePointer(e.clientX, e.clientY));
+window.addEventListener('touchmove', e => {
+  if (e.touches[0]) movePointer(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: true });
+window.addEventListener('touchstart', e => {
+  if (e.touches[0]) movePointer(e.touches[0].clientX, e.touches[0].clientY);
+  input.down = true;
+  cursor.classList.add('grow');
+}, { passive: true });
+window.addEventListener('touchend', () => {
+  input.down = false;
+  cursor.classList.remove('grow');
+});
+window.addEventListener('mousedown', () => {
+  input.down = true;
+  cursor.classList.add('grow');
+});
+window.addEventListener('mouseup', () => {
+  input.down = false;
+  cursor.classList.remove('grow');
+});
+
+const CAMERA = {
+  x: 0,
+  y: 120,
+  z: 400,
+  yaw: 0,
+  pitch: -0.25,
+  roll: 0,
+  fov: 800,
+  vx: 0,
+  vy: 0,
+  vz: 0,
+  targetYaw: 0,
+  targetPitch: -0.25,
+  shake: 0,
+};
+
+const WORLD = {
+  buildings: [],
+  cars: [],
+  stars: [],
+  rain: [],
+  birds: [],
+  neonSigns: [],
+  dataStreams: [],
+  smoke: [],
+};
+
+const PALETTE = {
+  skyTop: [8, 6, 24],
+  skyBot: [40, 15, 60],
+  fog: [18, 10, 40],
+  ground: [10, 8, 22],
+  neon: [
+    [255, 40, 120],
+    [80, 200, 255],
+    [255, 180, 60],
+    [180, 80, 255],
+    [60, 255, 180],
+  ],
+};
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+function randInt(a, b) { return Math.floor(rand(a, b + 1)); }
+
+function initWorld() {
+  WORLD.buildings = [];
+  WORLD.cars = [];
+  WORLD.stars = [];
+  WORLD.rain = [];
+  WORLD.birds = [];
+  WORLD.neonSigns = [];
+  WORLD.dataStreams = [];
+  WORLD.smoke = [];
+
+  const gridSize = 34;
+  const cellSize = 130;
+  const half = gridSize / 2;
+
+  for (let gx = -half; gx < half; gx++) {
+    for (let gz = -half; gz < half; gz++) {
+      const px = gx * cellSize + rand(-15, 15);
+      const pz = gz * cellSize + rand(-15, 15);
+
+      const distFromCenter = Math.hypot(gx, gz);
+      const chance = distFromCenter < 3 ? 0.15 : 0.82;
+      if (Math.random() > chance) continue;
+
+      const h = rand(60, 400) * (1 - Math.min(distFromCenter / half, 0.7));
+      const w = rand(30, 70);
+      const d = rand(30, 70);
+
+      const palette = PALETTE.neon[randInt(0, PALETTE.neon.length - 1)];
+      const hasWindows = Math.random() > 0.25;
+
+      WORLD.buildings.push({
+        x: px, z: pz,
+        w, h: Math.max(h, 40), d,
+        color: [rand(10, 30), rand(8, 25), rand(20, 45)],
+        neonColor: palette,
+        hasWindows,
+        windowSeed: Math.random() * 1000,
+        antennaH: Math.random() > 0.7 ? rand(20, 60) : 0,
+        damage: Math.random() > 0.85 ? rand(0.2, 0.6) : 0,
+      });
+
+      if (Math.random() > 0.5) {
+        WORLD.neonSigns.push({
+          x: px + rand(-w/2, w/2),
+          y: rand(20, Math.max(h - 20, 40)),
+          z: pz + d/2 + 1,
+          w: rand(8, 30),
+          h: rand(4, 12),
+          color: PALETTE.neon[randInt(0, PALETTE.neon.length - 1)],
+          blink: Math.random() * 10,
+          blinkSpeed: rand(0.02, 0.1),
+        });
+      }
+    }
+  }
+
+  for (let i = 0; i < 40; i++) {
+    WORLD.cars.push({
+      x: rand(-800, 800),
+      z: rand(-800, 800),
+      y: 12,
+      dir: Math.random() > 0.5 ? 0 : 1,
+      speed: rand(1.5, 4),
+      color: PALETTE.neon[randInt(0, PALETTE.neon.length - 1)],
+      lane: randInt(0, 2),
+      alive: true,
+    });
+  }
+
+  for (let i = 0; i < 400; i++) {
+    WORLD.stars.push({
+      x: rand(-2000, 2000),
+      y: rand(-800, -300),
+      z: rand(-2000, 2000),
+      r: rand(0.3, 1.4),
+      twinkle: Math.random() * Math.PI * 2,
+    });
+  }
+
+  for (let i = 0; i < 300; i++) {
+    WORLD.rain.push({
+      x: rand(-1200, 1200),
+      y: rand(0, 900),
+      z: rand(-1200, 1200),
+      len: rand(8, 22),
+      speed: rand(12, 24),
+    });
+  }
+
+  for (let i = 0; i < 15; i++) {
+    WORLD.birds.push({
+      x: rand(-1000, 1000),
+      y: rand(200, 500),
+      z: rand(-1000, 1000),
+      phase: Math.random() * Math.PI * 2,
+      speed: rand(0.4, 1.2),
+      dir: Math.random() * Math.PI * 2,
+      flap: Math.random() * Math.PI * 2,
+    });
+  }
+
+  for (let i = 0; i < 20; i++) {
+    WORLD.dataStreams.push({
+      x: rand(-600, 600),
+      z: rand(-600, 600),
+      y: 0,
+      h: rand(100, 400),
+      color: PALETTE.neon[randInt(0, PALETTE.neon.length - 1)],
+      offset: Math.random() * 100,
+      speed: rand(0.5, 2),
+    });
+  }
+
+  for (let i = 0; i < 30; i++) {
+    WORLD.smoke.push({
+      x: rand(-800, 800),
+      y: rand(0, 100),
+      z: rand(-800, 800),
+      r: rand(30, 80),
+      vy: rand(0.2, 0.6),
+      vx: rand(-0.1, 0.1),
+      vz: rand(-0.1, 0.1),
+      life: Math.random(),
+    });
+  }
+}
+
+function project(x, y, z) {
+  const dx = x - CAMERA.x;
+  const dy = y - CAMERA.y;
+  const dz = z - CAMERA.z;
+
+  const cy = Math.cos(CAMERA.yaw);
+  const sy = Math.sin(CAMERA.yaw);
+  const rx = dx * cy - dz * sy;
+  const rz = dx * sy + dz * cy;
+
+  const cp = Math.cos(CAMERA.pitch);
+  const sp = Math.sin(CAMERA.pitch);
+  const ry = dy * cp - rz * sp;
+  const rz2 = dy * sp + rz * cp;
+
+  if (rz2 < 1) return null;
+
+  const f = CAMERA.fov / rz2;
+  const sx = W / 2 + rx * f;
+  const sy2 = H / 2 - ry * f;
+
+  return { x: sx, y: sy2, z: rz2, scale: f };
+}
+
+let time = 0;
+let frame = 0;
+
+function drawSky() {
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  const t = Math.sin(time * 0.0003) * 0.5 + 0.5;
+  grad.addColorStop(0, `rgb(${Math.round(PALETTE.skyTop[0] + t * 10)}, ${Math.round(PALETTE.skyTop[1] + t * 5)}, ${Math.round(PALETTE.skyTop[2] + t * 20)})`);
+  grad.addColorStop(0.55, `rgb(${PALETTE.skyBot[0]}, ${PALETTE.skyBot[1]}, ${PALETTE.skyBot[2]})`);
+  grad.addColorStop(1, `rgb(${PALETTE.fog[0]}, ${PALETTE.fog[1]}, ${PALETTE.fog[2]})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawStars() {
+  for (const s of WORLD.stars) {
+    const p = project(s.x, s.y, s.z);
+    if (!p) continue;
+    const tw = 0.5 + Math.sin(s.twinkle + time * 0.002) * 0.5;
+    ctx.fillStyle = `rgba(200, 220, 255, ${tw * 0.8})`;
+    ctx.fillRect(p.x, p.y, s.r, s.r);
+  }
+}
+
+function drawGround() {
+  const size = 2000;
+  const step = 100;
+  ctx.strokeStyle = 'rgba(80, 40, 120, 0.15)';
+  ctx.lineWidth = 1;
+
+  for (let i = -size; i <= size; i += step) {
+    const a = project(i, 0, -size);
+    const b = project(i, 0, size);
+    if (a && b) {
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+    const c = project(-size, 0, i);
+    const d = project(size, 0, i);
+    if (c && d) {
+      ctx.beginPath();
+      ctx.moveTo(c.x, c.y);
+      ctx.lineTo(d.x, d.y);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawBuildings() {
+  const sorted = [];
+  for (const b of WORLD.buildings) {
+    const dist = Math.hypot(b.x - CAMERA.x, b.z - CAMERA.z);
+    if (dist < 1500) sorted.push({ b, dist });
+  }
+  sorted.sort((a, c) => c.dist - a.dist);
+
+  for (const { b, dist } of sorted) {
+    const corners = [
+      [b.x - b.w/2, 0, b.z - b.d/2],
+      [b.x + b.w/2, 0, b.z - b.d/2],
+      [b.x + b.w/2, 0, b.z + b.d/2],
+      [b.x - b.w/2, 0, b.z + b.d/2],
+      [b.x - b.w/2, b.h, b.z - b.d/2],
+      [b.x + b.w/2, b.h, b.z - b.d/2],
+      [b.x + b.w/2, b.h, b.z + b.d/2],
+      [b.x - b.w/2, b.h, b.z + b.d/2],
+    ];
+
+    const proj = corners.map(c => project(c[0], c[1], c[2]));
+    if (proj.some(p => !p)) continue;
+
+    const fog = Math.min(dist / 1400, 0.85);
+    const fogR = PALETTE.fog[0];
+    const fogG = PALETTE.fog[1];
+    const fogB = PALETTE.fog[2];
+
+    const mix = (c) => `rgb(${Math.round(c[0] * (1 - fog) + fogR * fog)}, ${Math.round(c[1] * (1 - fog) + fogG * fog)}, ${Math.round(c[2] * (1 - fog) + fogB * fog)})`;
+
+    const faces = [
+      { idx: [0, 1, 5, 4], shade: 0.55 },
+      { idx: [1, 2, 6, 5], shade: 0.85 },
+      { idx: [2, 3, 7, 6], shade: 0.65 },
+      { idx: [3, 0, 4, 7], shade: 1.0 },
+    ];
+
+    for (const face of faces) {
+      const pts = face.idx.map(i => proj[i]);
+      const base = b.color.map(c => c * face.shade);
+      ctx.fillStyle = mix(base);
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+      ctx.fill();
+
+      if (b.hasWindows && face.shade > 0.7) {
+        drawWindows(proj, face.idx, b, fog);
+      }
+    }
+
+    const topPts = [proj[4], proj[5], proj[6], proj[7]];
+    ctx.fillStyle = mix([b.color[0] * 0.4, b.color[1] * 0.4, b.color[2] * 0.4]);
+    ctx.beginPath();
+    ctx.moveTo(topPts[0].x, topPts[0].y);
+    for (let i = 1; i < topPts.length; i++) ctx.lineTo(topPts[i].x, topPts[i].y);
+    ctx.closePath();
+    ctx.fill();
+
+    if (b.antennaH > 0 && dist < 800) {
+      const baseP = project(b.x, b.h, b.z);
+      const topP = project(b.x, b.h + b.antennaH, b.z);
+      if (baseP && topP) {
+        ctx.strokeStyle = `rgba(120, 140, 180, ${0.6 * (1 - fog)})`;
+        ctx.lineWidth = Math.max(1, 2 * (1 - dist / 800));
+        ctx.beginPath();
+        ctx.moveTo(baseP.x, baseP.y);
+        ctx.lineTo(topP.x, topP.y);
+        ctx.stroke();
+
+        const blink = Math.sin(time * 0.008 + b.x) > 0.5;
+        if (blink) {
+          const g = ctx.createRadialGradient(topP.x, topP.y, 0, topP.x, topP.y, 8);
+          g.addColorStop(0, 'rgba(255, 60, 60, 0.9)');
+          g.addColorStop(1, 'transparent');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(topP.x, topP.y, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+}
+
+function drawWindows(proj, idx, b, fog) {
+  const cols = Math.max(2, Math.floor(b.w / 14));
+  const rows = Math.max(3, Math.floor(b.h / 22));
+
+  const [p0, p1, p2, p3] = idx.map(i => proj[i]);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const u = (c + 0.5) / cols;
+      const v = (r + 0.5) / rows;
+
+      const leftX = p0.x + (p3.x - p0.x) * u;
+      const leftY = p0.y + (p3.y - p0.y) * u;
+      const rightX = p1.x + (p2.x - p1.x) * u;
+      const rightY = p1.y + (p2.y - p1.y) * u;
+
+      const x = leftX + (rightX - leftX) * v;
+      const y = leftY + (rightY - leftY) * v;
+
+      const seed = b.windowSeed + r * 31 + c * 17;
+      const on = (Math.sin(seed) * 43758.5453) % 1;
+      if (Math.abs(on) < 0.5) continue;
+
+      const size = Math.max(1, (1 - fog) * 3);
+      const flicker = Math.sin(time * 0.005 + seed) > -0.9 ? 1 : 0.3;
+
+      ctx.fillStyle = `rgba(${b.neonColor[0]}, ${b.neonColor[1]}, ${b.neonColor[2]}, ${(1 - fog) * 0.7 * flicker})`;
+      ctx.fillRect(x, y, size, size * 1.3);
+    }
+  }
+}
+
+function drawNeonSigns() {
+  for (const s of WORLD.neonSigns) {
+    const p = project(s.x, s.y, s.z);
+    if (!p) continue;
+    const dist = Math.hypot(s.x - CAMERA.x, s.z - CAMERA.z);
+    if (dist > 900) continue;
+
+    const fog = Math.min(dist / 1000, 0.8);
+    s.blink += s.blinkSpeed;
+    const flicker = Math.sin(s.blink) > -0.7 ? 1 : 0.2;
+
+    const w = s.w * p.scale * 0.5;
+    const h = s.h * p.scale * 0.5;
+    if (w < 1) continue;
+
+    const glowSize = w * 2.5;
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowSize);
+    g.addColorStop(0, `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${(1 - fog) * 0.5 * flicker})`);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(p.x - glowSize, p.y - glowSize, glowSize * 2, glowSize * 2);
+
+    ctx.fillStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${(1 - fog) * flicker})`;
+    ctx.fillRect(p.x - w/2, p.y - h/2, w, h);
+  }
+}
+
+function drawDataStreams() {
+  for (const d of WORLD.dataStreams) {
+    const baseP = project(d.x, d.y, d.z);
+    const topP = project(d.x, d.y + d.h, d.z);
+    if (!baseP || !topP) continue;
+
+    const dist = Math.hypot(d.x - CAMERA.x, d.z - CAMERA.z);
+    if (dist > 1200) continue;
+
+    const fog = Math.min(dist / 1200, 0.85);
+    const segments = 20;
+
+    for (let i = 0; i < segments; i++) {
+      const t1 = (i / segments + (time * 0.001 * d.speed + d.offset) % 1) % 1;
+      const t2 = ((i + 1) / segments + (time * 0.001 * d.speed + d.offset) % 1) % 1;
+
+      const x1 = baseP.x + (topP.x - baseP.x) * t1;
+      const y1 = baseP.y + (topP.y - baseP.y) * t1;
+      const x2 = baseP.x + (topP.x - baseP.x) * t2;
+      const y2 = baseP.y + (topP.y - baseP.y) * t2;
+
+      const alpha = (1 - t1) * (1 - fog) * 0.7;
+      ctx.strokeStyle = `rgba(${d.color[0]}, ${d.color[1]}, ${d.color[2]}, ${alpha})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawCars() {
+  for (const car of WORLD.cars) {
+    const p = project(car.x, car.y, car.z);
+    if (!p) continue;
+    const dist = Math.hypot(car.x - CAMERA.x, car.z - CAMERA.z);
+    if (dist > 1000) continue;
+
+    const fog = Math.min(dist / 1000, 0.8);
+    const size = Math.max(2, p.scale * 4);
+    const flicker = Math.sin(time * 0.02 + car.x) > -0.8 ? 1 : 0.2;
+
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 4);
+    g.addColorStop(0, `rgba(${car.color[0]}, ${car.color[1]}, ${car.color[2]}, ${(1 - fog) * flicker})`);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(p.x - size*4, p.y - size*4, size*8, size*8);
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${(1 - fog) * flicker})`;
+    ctx.fillRect(p.x - size/2, p.y - size/2, size, size);
+  }
+}
+
+function drawBirds() {
+  for (const b of WORLD.birds) {
+    b.phase += 0.02;
+    b.flap += 0.15;
+    b.x += Math.cos(b.dir) * b.speed;
+    b.z += Math.sin(b.dir) * b.speed;
+    if (Math.abs(b.x) > 1200) b.dir = Math.PI - b.dir;
+    if (Math.abs(b.z) > 1200) b.dir = -b.dir;
+
+    const p = project(b.x, b.y + Math.sin(b.phase) * 5, b.z);
+    if (!p) continue;
+    const dist = Math.hypot(b.x - CAMERA.x, b.z - CAMERA.z);
+    if (dist > 900) continue;
+
+    const fog = Math.min(dist / 900, 0.8);
+    const size = Math.max(2, p.scale * 6);
+    const wing = Math.sin(b.flap) * 0.7 + 0.3;
+
+    ctx.strokeStyle = `rgba(20, 15, 40, ${(1 - fog) * 0.9})`;
+    ctx.lineWidth = Math.max(1, size * 0.15);
+    ctx.beginPath();
+    ctx.moveTo(p.x - size, p.y + size * wing * 0.5);
+    ctx.lineTo(p.x, p.y);
+    ctx.lineTo(p.x + size, p.y + size * wing * 0.5);
+    ctx.stroke();
+  }
+}
+
+function drawSmoke() {
+  for (const s of WORLD.smoke) {
+    s.life += 0.003;
+    if (s.life > 1) {
+      s.life = 0;
+      s.x = rand(-800, 800);
+      s.z = rand(-800, 800);
+      s.y = 0;
+    }
+    s.y += s.vy;
+    s.x += s.vx;
+    s.z += s.vz;
+
+    const p = project(s.x, s.y, s.z);
+    if (!p) continue;
+    const dist = Math.hypot(s.x - CAMERA.x, s.z - CAMERA.z);
+    if (dist > 700) continue;
+
+    const fog = Math.min(dist / 700, 0.8);
+    const r = s.r * p.scale * 0.5;
+    const a = Math.sin(s.life * Math.PI) * (1 - fog) * 0.15;
+    if (r < 2) continue;
+
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+    g.addColorStop(0, `rgba(120, 80, 180, ${a})`);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
+  }
+}
+
+function drawRain() {
+  ctx.strokeStyle = 'rgba(140, 180, 255, 0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (const r of WORLD.rain) {
+    r.y += r.speed;
+    if (r.y > 900) {
+      r.y = -100;
+      r.x = CAMERA.x + rand(-800, 800);
+      r.z = CAMERA.z + rand(-800, 800);
+    }
+    if (Math.abs(r.x - CAMERA.x) > 1000 || Math.abs(r.z - CAMERA.z) > 1000) {
+      r.x = CAMERA.x + rand(-600, 600);
+      r.z = CAMERA.z + rand(-600, 600);
+    }
+
+    const p1 = project(r.x, r.y, r.z);
+    const p2 = project(r.x, r.y + r.len, r.z);
+    if (p1 && p2) {
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+    }
+  }
+  ctx.stroke();
+}
+
+function drawScanEffect() {
+  const scanY = (time * 0.05) % H;
+  const g = ctx.createLinearGradient(0, scanY - 40, 0, scanY + 40);
+  g.addColorStop(0, 'transparent');
+  g.addColorStop(0.5, 'rgba(120, 200, 255, 0.05)');
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, scanY - 40, W, 80);
+}
+
+function drawReticle() {
+  const cx = W/2;
+  const cy = H/2;
+
+  const targets = [];
+  for (const b of WORLD.buildings) {
+    const p = project(b.x, b.h/2, b.z);
+    if (!p) continue;
+    const d = Math.hypot(p.x - cx, p.y - cy);
+    if (d < 200) {
+      targets.push({ p, b, d });
+    }
+  }
+  targets.sort((a, c) => a.d - c.d);
+
+  if (targets.length > 0) {
+    const t = targets[0];
+    const size = 30 + (1 - t.d / 200) * 30;
+    ctx.strokeStyle = `rgba(255, 100, 60, ${0.4 + (1 - t.d/200) * 0.5})`;
+    ctx.lineWidth = 1;
+
+    const corners = [
+      [t.p.x - size, t.p.y - size, 1, 1],
+      [t.p.x + size, t.p.y - size, -1, 1],
+      [t.p.x - size, t.p.y + size, 1, -1],
+      [t.p.x + size, t.p.y + size, -1, -1],
+    ];
+    for (const [x, y, sx, sy] of corners) {
+      ctx.beginPath();
+      ctx.moveTo(x + sx * 8, y);
+      ctx.lineTo(x, y);
+      ctx.lineTo(x, y + sy * 8);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = `rgba(255, 100, 60, ${0.7 + (1 - t.d/200) * 0.3})`;
+    ctx.font = '10px Courier New';
+    ctx.fillText(`ОБЪЕКТ ${Math.round(t.b.h)}M`, t.p.x + size + 8, t.p.y - 4);
+    ctx.fillText(`ДИСТ ${Math.round(Math.hypot(t.b.x - CAMERA.x, t.b.z - CAMERA.z))}M`, t.p.x + size + 8, t.p.y + 10);
+  }
+}
+
+function updateCamera(dt) {
+  const targetYaw = (input.x - W/2) / W * Math.PI * 1.2;
+  const targetPitch = ((input.y - H/2) / H) * Math.PI * 0.8 - 0.15;
+
+  CAMERA.targetYaw = targetYaw;
+  CAMERA.targetPitch = targetPitch;
+
+  CAMERA.yaw += (CAMERA.targetYaw - CAMERA.yaw) * 0.04;
+  CAMERA.pitch += (CAMERA.targetPitch - CAMERA.pitch) * 0.04;
+
+  const speed = input.down ? 2.5 : 0.35;
+
+  const forwardX = Math.sin(CAMERA.yaw);
+  const forwardZ = Math.cos(CAMERA.yaw);
+
+  CAMERA.vx += forwardX * speed * 0.05;
+  CAMERA.vz += forwardZ * speed * 0.05;
+
+  CAMERA.x += CAMERA.vx;
+  CAMERA.z += CAMERA.vz;
+  CAMERA.vx *= 0.95;
+  CAMERA.vz *= 0.95;
+
+  CAMERA.y = 120 + Math.sin(time * 0.001) * 15;
+
+  CAMERA.roll = (input.x - W/2) / W * 0.08;
+}
+
+function updateHUD() {
+  const heading = ((CAMERA.yaw * 180 / Math.PI) % 360 + 360) % 360;
+  document.getElementById('heading').textContent = String(Math.round(heading)).padStart(3, '0');
+
+  const speed = Math.hypot(CAMERA.vx, CAMERA.vz) * 20;
+  document.getElementById('speed').textContent = speed.toFixed(1);
+
+  const sectorX = Math.floor(CAMERA.x / 500);
+  const sectorZ = Math.floor(CAMERA.z / 500);
+  const sectorLetter = String.fromCharCode(65 + ((sectorX % 26 + 26) % 26));
+  const sectorNum = ((sectorZ % 99 + 99) % 99) + 1;
+  document.getElementById('sector').textContent = `${sectorLetter}-${String(sectorNum).padStart(2, '0')}`;
+
+  document.getElementById('alt').textContent = String(Math.round(CAMERA.y)).padStart(4, '0');
+
+  const dist = Math.hypot(CAMERA.x, CAMERA.z);
+  const integrity = Math.max(0, 100 - dist * 0.02);
+  document.getElementById('integrity').textContent = Math.round(integrity);
+  document.getElementById('integrityBar').style.width = integrity + '%';
+
+  document.getElementById('objCount').textContent = WORLD.buildings.length;
+
+  const signal = 100 - Math.min(60, dist * 0.01);
+  document.getElementById('signal').textContent = Math.round(signal);
+}
+
+function render() {
+  ctx.save();
+
+  const roll = CAMERA.roll || 0;
+  if (Math.abs(roll) > 0.001) {
+    ctx.translate(W/2, H/2);
+    ctx.rotate(roll);
+    ctx.translate(-W/2, -H/2);
+  }
+
+  drawSky();
+  drawStars();
+  drawGround();
+  drawSmoke();
+  drawBuildings();
+  drawNeonSigns();
+  drawDataStreams();
+  drawCars();
+  drawBirds();
+  drawRain();
+
+  ctx.restore();
+
+  drawScanEffect();
+  drawReticle();
+}
+
+let lastTime = performance.now();
+
+function loop(now) {
+  const dt = Math.min(now - lastTime, 50);
+  lastTime = now;
+  time = now;
+
+  updateCamera(dt);
+  render();
+  updateHUD();
+
+  requestAnimationFrame(loop);
+}
+
+let lastCarUpdate = 0;
+function updateCars(now) {
+  if (now - lastCarUpdate < 40) return;
+  lastCarUpdate = now;
+
+  for (const car of WORLD.cars) {
+    car.x += Math.cos(car.dir * Math.PI) * car.speed;
+    if (Math.abs(car.x) > 900) car.x = -Math.sign(car.x) * 900;
+  }
+}
+setInterval(() => updateCars(performance.now()), 40);
+
+const flash = document.getElementById('flash');
+const title = document.getElementById('title');
+const toast = document.getElementById('toast');
+
+let toastTimer = null;
+function showToast(text) {
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 900);
+}
+
+const messages = [
+  'связь установлена',
+  'обнаружен объект',
+  'сигнал прерван',
+  'перехожу в сектор',
+  'сбой навигации',
+  'система в норме',
+  'внимание: помехи',
+  'вхожу в зону тишины',
+  'данные получены',
+  'продолжаю движение',
+];
+
+window.addEventListener('click', e => {
+  showToast(messages[Math.floor(Math.random() * messages.length)]);
+
+  flash.classList.add('on');
+  setTimeout(() => flash.classList.remove('on'), 60);
+
+  for (const b of WORLD.buildings) {
+    if (Math.random() > 0.3) continue;
+    const p = project(b.x, b.h, b.z);
+    if (p && Math.hypot(p.x - e.clientX, p.y - e.clientY) < 100) {
+      b.neonColor = PALETTE.neon[randInt(0, PALETTE.neon.length - 1)];
+    }
+  }
+});
+
+setTimeout(() => title.classList.add('fade'), 6000);
+
+initWorld();
+render();
+requestAnimationFrame(loop);
+
+setTimeout(() => showToast('добро пожаловать домой'), 2000);
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'r' || e.key === 'R' || e.key === 'к' || e.key === 'К') {
+    flash.classList.add('on');
+    setTimeout(() => {
+      initWorld();
+      CAMERA.x = 0;
+      CAMERA.z = 400;
+      CAMERA.vx = 0;
+      CAMERA.vz = 0;
+      flash.classList.remove('on');
+      showToast('мир пересобран');
+    }, 150);
+  }
+});
+</script>
+</body>
+</html>
