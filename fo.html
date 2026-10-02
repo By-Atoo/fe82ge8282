@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VOID//OS — неизвестный процесс</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap');
+:root{--bg:#080a0d;--panel:#0d1116;--line:#26313b;--text:#d9e4e8;--dim:#6e7d85;--acid:#c7ff3d;--cyan:#4deaff;--red:#ff536b}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:"IBM Plex Mono",monospace}
+button{font:inherit;color:inherit}.scan{position:fixed;inset:0;pointer-events:none;z-index:99;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.018) 4px);mix-blend-mode:screen}
+.noise{position:fixed;inset:-100%;opacity:.025;pointer-events:none;z-index:100;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='a'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");animation:n .2s steps(2) infinite}@keyframes n{to{transform:translate(2%,-2%)}}
+.app{height:100%;display:grid;grid-template-columns:255px 1fr;grid-template-rows:58px 1fr 31px}
+.top{grid-column:1/3;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#090c10}
+.brand{font-weight:600;letter-spacing:.12em}.brand b{color:var(--acid)}.status{font-size:11px;color:var(--dim)}.status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--acid);box-shadow:0 0 9px var(--acid);margin-right:8px}
+.side{border-right:1px solid var(--line);padding:18px 12px;background:#090c10;display:flex;flex-direction:column}
+.group{font-size:9px;color:#45535b;letter-spacing:.15em;padding:12px 10px 8px}.item{height:38px;border:1px solid transparent;padding:0 10px;display:flex;align-items:center;gap:10px;color:#738188;font-size:11px;cursor:pointer}.item:hover{background:#10161b;color:#d8e1e4}.item.active{background:#12191f;border-color:#293740;color:var(--acid)}.ico{width:17px;text-align:center}
+.sidebottom{margin-top:auto;border-top:1px solid var(--line);padding:15px 10px;font-size:9px;color:#465159;line-height:1.8}
+.main{position:relative;overflow:hidden;background:radial-gradient(circle at 70% 30%,rgba(77,234,255,.035),transparent 30%),#080a0d}
+.page{position:absolute;inset:0;padding:25px 28px;overflow:auto;display:none}.page.active{display:block}
+h1{font-family:"Space Grotesk";font-size:clamp(34px,5vw,67px);font-weight:500;letter-spacing:-.055em;margin:8px 0 10px;color:#e8f0f2}.lead{font-size:11px;color:#68777e;max-width:650px;line-height:1.8}.meta{font-size:9px;color:#47545b;margin-top:16px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:25px}.box{border:1px solid var(--line);background:rgba(13,17,22,.8);padding:16px;min-height:150px}.boxhead{display:flex;justify-content:space-between;font-size:9px;color:#66747b;margin-bottom:16px}.acid{color:var(--acid)}.cyan{color:var(--cyan)}
+.big{font-family:"Space Grotesk";font-size:38px}.small{font-size:10px;color:#6b7980;line-height:1.8}
+.bars{height:110px;display:flex;align-items:end;gap:3px}.bar{flex:1;background:#24313a;min-width:2px;transition:.3s}.bar.hot{background:var(--cyan)}
+.term{height:310px;border:1px solid var(--line);background:#050709;margin-top:12px;padding:13px;overflow:auto;font-size:10px;line-height:1.8;color:#74848b}.term .ok{color:var(--acid)}.term .warn{color:#ffcb5c}.term .cmd{color:#dbe5e7}.term .pink{color:#ff6eaa}
+.row{display:flex;gap:8px;margin-top:13px}.btn{background:#11181e;border:1px solid #2b3942;padding:10px 13px;font-size:10px;cursor:pointer}.btn:hover{border-color:#71818a;background:#172128}.btn.primary{border-color:#728e29;color:var(--acid)}
+.monitor{height:calc(100vh - 155px);min-height:400px;border:1px solid var(--line);position:relative;background:#05080a;overflow:hidden}.monitor canvas{width:100%;height:100%}.monitor-label{position:absolute;top:13px;left:14px;font-size:9px;color:#59666c;pointer-events:none}.readout{position:absolute;right:14px;top:13px;text-align:right;font-size:9px;line-height:1.8;color:#65747a;pointer-events:none}.readout b{color:var(--acid);font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:25px}.card{border:1px solid var(--line);padding:18px;min-height:170px;background:#0c1115;position:relative;overflow:hidden}.card:hover{border-color:#43545d}.card h3{font-size:13px;font-weight:500;margin:0 0 12px}.card p{font-size:10px;line-height:1.8;color:#6f7d83}.num{position:absolute;right:12px;top:10px;font-size:9px;color:#344048}.meter{height:2px;background:#1b252b;margin-top:18px}.meter i{display:block;height:100%;background:var(--acid)}
+.footer{grid-column:1/3;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 15px;font-size:8px;color:#46535a;background:#090c10}
+.popup{position:fixed;z-index:120;right:25px;bottom:45px;width:310px;border:1px solid #40505a;background:#0b1014;padding:16px;box-shadow:0 20px 60px #000;transform:translateY(130%);transition:.5s}.popup.show{transform:translateY(0)}.popup strong{font-size:10px;color:var(--acid)}.popup p{font-size:9px;color:#728087;line-height:1.7}.close{float:right;background:none;border:0;color:#68757b;cursor:pointer}
+@media(max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:58px 1fr 31px}.side{display:none}.top,.footer{grid-column:1}.grid,.cards{grid-template-columns:1fr}.page{padding:18px}.monitor{height:calc(100vh - 125px)}}
+</style>
+</head>
+<body>
+<div class="scan"></div><div class="noise"></div>
+<div class="app">
+<header class="top"><div class="brand">VOID<span>//</span><b>OS</b></div><div class="status"><i></i>SYSTEM NOMINAL · <span id="time">00:00:00</span></div></header>
+<aside class="side">
+<div class="group">NAVIGATION</div>
+<div class="item active" data-page="home"><span class="ico">◈</span> overview</div>
+<div class="item" data-page="signal"><span class="ico">⌁</span> signal map</div>
+<div class="item" data-page="archive"><span class="ico">▦</span> archive</div>
+<div class="group">SYSTEM</div>
+<div class="item" id="random"><span class="ico">⟳</span> randomize</div>
+<div class="item" id="notify"><span class="ico">!</span> anomaly log</div>
+<div class="sidebottom">NODE 07A<br>LATENCY 12ms<br>UPTIME <span id="uptime">000:00:00</span><br><br>NO EXTERNAL CONTROL</div>
+</aside>
+<main class="main">
+<section class="page active" id="home">
+<div class="meta">NODE 07A / INTERNAL DASHBOARD / ACCESS LEVEL: UNKNOWN</div>
+<h1>Something is<br><span class="acid">watching the static.</span></h1>
+<p class="lead">Это не сайт. По крайней мере, система не считает его сайтом. Ниже находится состояние одного узла, который почему-то продолжает работать после отключения сети.</p>
+<div class="grid">
+<div class="box"><div class="boxhead"><span>ACTIVITY / 60 SEC</span><span class="cyan">LIVE</span></div><div class="bars" id="bars"></div></div>
+<div class="box"><div class="boxhead"><span>CORE TEMPERATURE</span><span>°C</span></div><div class="big" id="temp">37.4</div><div class="small">within expected range<br>cooling system: <span class="acid">ACTIVE</span></div></div>
+</div>
+<div class="term" id="terminal"></div>
+<div class="row"><button class="btn primary" id="scan">RUN DEEP SCAN</button><button class="btn" id="clear">CLEAR TERMINAL</button></div>
+</section>
+
+<section class="page" id="signal">
+<div class="meta">SENSOR ARRAY / PASSIVE MODE</div><h1>Signal map.</h1>
+<p class="lead">Карта строится в реальном времени. Движение точек не имеет известного источника.</p>
+<div class="monitor"><canvas id="map"></canvas><div class="monitor-label">SPECTRUM // LIVE</div><div class="readout">PEAK <b id="peak">--</b><br>NOISE <b id="noisev">--</b><br>PACKETS <b id="packets">--</b></div></div>
+</section>
+
+<section class="page" id="archive">
+<div class="meta">RECOVERED MATERIAL / FRAGMENTS</div><h1>Archive.</h1><p class="lead">Некоторые записи система почему-то не удаляет.</p>
+<div class="cards">
+<div class="card"><span class="num">#001</span><h3>THE FIRST PING</h3><p>Источник появился ровно в 03:17. Ответить на него не получилось. Второй ping пришёл раньше первого.</p><div class="meter"><i style="width:83%"></i></div></div>
+<div class="card"><span class="num">#014</span><h3>EMPTY ROOM</h3><p>Камера показывала пустое помещение 11 часов. Датчик присутствия всё это время показывал значение 1.</p><div class="meter"><i style="width:41%"></i></div></div>
+<div class="card"><span class="num">#077</span><h3>UNKNOWN NAME</h3><p>В журнале появилась строка, которой не было в исходном файле. Система не смогла определить автора.</p><div class="meter"><i style="width:97%"></i></div></div>
+</div>
+</section>
+</main>
+<footer><span>VOID//OS v0.7.13</span><span id="coord">000.000 / 000.000</span><span>LOCAL INSTANCE</span></footer>
+</div>
+<div class="popup" id="popup"><button class="close" onclick="popup.classList.remove('show')">×</button><strong>ANOMALY DETECTED</strong><p id="poptext">Неизвестный пакет данных обнаружен в локальном буфере.</p></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+let start=Date.now(), terminal=$('#terminal');
+const lines=[
+['ok','[00:00:01] kernel initialized'],
+['cmd','[00:00:02] loading sensor array...'],
+['ok','[00:00:03] 128 sensors online'],
+['cmd','[00:00:04] checking external network'],
+['warn','[00:00:05] external network: NOT FOUND'],
+['cmd','[00:00:06] attempting local handshake...'],
+['ok','[00:00:07] handshake accepted'],
+['pink','[00:00:08] who accepted the handshake?'],
+['cmd','[00:00:09] continuing anyway...']
+];
+function printLines(arr=lines){
+ terminal.innerHTML='';
+ arr.forEach((x,i)=>setTimeout(()=>{terminal.innerHTML+=`<div class="${x[0]}">${x[1]}</div>`;terminal.scrollTop=terminal.scrollHeight},i*110));
+}
+printLines();
+function makeBars(){let b=$('#bars');b.innerHTML='';for(let i=0;i<48;i++){let e=document.createElement('i');e.className='bar';e.style.height=(10+Math.random()*80)+'%';if(Math.random()>.7)e.classList.add('hot');b.appendChild(e)}}
+makeBars();setInterval(makeBars,1300);
+setInterval(()=>$('#temp').textContent=(36+Math.random()*3).toFixed(1),1000);
+setInterval(()=>$('#time').textContent=new Date().toLocaleTimeString('en-GB'),1000);
+setInterval(()=>{let s=Math.floor((Date.now()-start)/1000),h=String(Math.floor(s/3600)).padStart(3,'0'),m=String(Math.floor(s/60)%60).padStart(2,'0'),x=String(s%60).padStart(2,'0');$('#uptime').textContent=`${h}:${m}:${x}`},1000);
+
+$$('.item[data-page]').forEach(i=>i.onclick=()=>{ $$('.item').forEach(x=>x.classList.remove('active'));i.classList.add('active');$$('.page').forEach(p=>p.classList.remove('active'));$('#'+i.dataset.page).classList.add('active')});
+$('#clear').onclick=()=>terminal.innerHTML='<span class="cmd">[terminal cleared]</span>';
+$('#scan').onclick=()=>{terminal.innerHTML='';let a=['[deep-scan] scanning memory sectors...','[deep-scan] 2,048,000 sectors checked','[deep-scan] searching for orphan processes...','[deep-scan] process found: <UNKNOWN>','[deep-scan] pid: 000','[deep-scan] status: RUNNING','[deep-scan] location: LOCAL','[deep-scan] recommendation: DO NOT INTERRUPT'];a.forEach((x,i)=>setTimeout(()=>{terminal.innerHTML+=`<div class="${i>3?'pink':'ok'}">${x}</div>`},i*300))};
+const popup=$('#popup');
+$('#notify').onclick=()=>{popup.classList.add('show');$('#poptext').textContent=['Пакет пришёл из закрытого порта.','Координаты источника совпадают с координатами узла.','Система получила ответ до отправки запроса.'][Math.floor(Math.random()*3)]};
+$('#random').onclick=()=>{document.body.style.filter=`hue-rotate(${Math.floor(Math.random()*360)}deg)`;setTimeout(()=>document.body.style.filter='',700);$('#notify').click()};
+let c=$('#map'),ctx=c.getContext('2d'),pts=[];
+function resize(){c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio;pts=Array.from({length:45},()=>({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}))}
+resize();addEventListener('resize',resize);
+function draw(){ctx.clearRect(0,0,c.width,c.height);for(let p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>c.width)p.vx*=-1;if(p.y<0||p.y>c.height)p.vy*=-1;
+ for(let q of pts){let d=Math.hypot(p.x-q.x,p.y-q.y);if(d<120){ctx.strokeStyle=`rgba(77,234,255,${.09*(1-d/120)})`;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}}
+ ctx.fillStyle='#c7ff3d';ctx.beginPath();ctx.arc(p.x,p.y,1.4*devicePixelRatio,0,7);ctx.fill()}
+ let t=Date.now()/700;ctx.strokeStyle='rgba(199,255,61,.16)';ctx.beginPath();ctx.moveTo(0,(Math.sin(t)*.35+.5)*c.height);ctx.lineTo(c.width,(Math.sin(t+3)*.35+.5)*c.height);ctx.stroke();
+ $('#peak').textContent=(70+Math.random()*28).toFixed(2);$('#noisev').textContent=(2+Math.random()*8).toFixed(2);$('#packets').textContent=Math.floor(300+Math.random()*900);requestAnimationFrame(draw)}
+draw();
+addEventListener('mousemove',e=>$('#coord').textContent=((e.clientX/innerWidth)*999).toFixed(3)+' / '+((e.clientY/innerHeight)*999).toFixed(3));
+</script>
+</body>
+</html>
