@@ -1,1088 +1,1341 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ГОРОД, КОТОРЫЙ ТЕБЯ НЕ ЖДАЛ</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ASTRO-PHYSICS RESEARCH LAB v5.0 ULTRA // CERN & NASA QUANTUM SIMULATOR</title>
 
-  html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #000;
-    cursor: none;
-    font-family: 'Courier New', monospace;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
+    <!-- CDN Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  canvas {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
-  }
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Orbitron:wght@500;700;800;900&display=swap');
 
-  .cursor {
-    position: fixed;
-    width: 26px;
-    height: 26px;
-    border: 1px solid rgba(255,255,255,0.5);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: width 0.2s, height 0.2s, border-color 0.3s;
-    mix-blend-mode: difference;
-  }
-  .cursor::before,
-  .cursor::after {
-    content: '';
-    position: absolute;
-    background: rgba(255,255,255,0.5);
-  }
-  .cursor::before {
-    top: 50%; left: -8px;
-    width: 40px; height: 1px;
-    transform: translateY(-50%);
-  }
-  .cursor::after {
-    left: 50%; top: -8px;
-    width: 1px; height: 40px;
-    transform: translateX(-50%);
-  }
-  .cursor.grow {
-    width: 80px;
-    height: 80px;
-    border-color: rgba(255,120,60,0.9);
-  }
+        :root {
+            --cyan-glow: #00f3ff;
+            --magenta-glow: #ff0055;
+            --amber-glow: #ffb700;
+            --emerald-glow: #00ff88;
+            --bg-dark: rgba(4, 8, 16, 0.82);
+            --border-color: rgba(0, 243, 255, 0.25);
+        }
 
-  .hud {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    pointer-events: none;
-    color: rgba(220,230,255,0.75);
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    text-shadow: 0 0 8px rgba(0,0,0,0.9);
-  }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
 
-  .hud .corner {
-    position: absolute;
-    padding: 20px;
-  }
-  .hud .tl { top: 0; left: 0; }
-  .hud .tr { top: 0; right: 0; text-align: right; }
-  .hud .bl { bottom: 0; left: 0; }
-  .hud .br { bottom: 0; right: 0; text-align: right; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #010206;
+            font-family: 'Fira Code', monospace;
+            color: #d0f0ff;
+        }
 
-  .hud .v {
-    color: #fff;
-    text-shadow: 0 0 12px rgba(120,200,255,0.9);
-  }
+        h1, h2, h3, .font-title {
+            font-family: 'Orbitron', sans-serif;
+        }
 
-  .bar {
-    display: inline-block;
-    width: 80px;
-    height: 3px;
-    background: rgba(255,255,255,0.12);
-    margin-left: 8px;
-    vertical-align: middle;
-    position: relative;
-    overflow: hidden;
-  }
-  .bar i {
-    position: absolute;
-    top: 0; left: 0;
-    height: 100%;
-    background: linear-gradient(90deg, #4af, #f4a);
-    transition: width 0.3s;
-  }
+        /* Scanline Overlay Effect */
+        .scanline-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.22) 50%,
+                rgba(0, 0, 0, 0.22)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 90;
+            opacity: 0.45;
+        }
 
-  .crosshair {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 15;
-    pointer-events: none;
-    width: 60px;
-    height: 60px;
-    opacity: 0.35;
-  }
-  .crosshair::before,
-  .crosshair::after {
-    content: '';
-    position: absolute;
-    background: rgba(255,255,255,0.6);
-  }
-  .crosshair::before {
-    top: 50%; left: 0;
-    width: 100%; height: 1px;
-    transform: translateY(-50%);
-  }
-  .crosshair::after {
-    left: 50%; top: 0;
-    width: 1px; height: 100%;
-    transform: translateX(-50%);
-  }
+        /* Glassmorphism Window Architecture */
+        .window-panel {
+            position: absolute;
+            background: var(--bg-dark);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), inset 0 0 15px rgba(0, 243, 255, 0.05);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 20;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
 
-  .title {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 30;
-    text-align: center;
-    pointer-events: none;
-    transition: opacity 3s ease;
-  }
-  .title h1 {
-    font-size: clamp(24px, 6vw, 68px);
-    font-weight: 100;
-    letter-spacing: 0.4em;
-    text-indent: 0.4em;
-    color: #fff;
-    text-shadow: 0 0 40px rgba(120,180,255,0.9), 0 0 80px rgba(255,80,180,0.5);
-  }
-  .title p {
-    margin-top: 22px;
-    font-size: 11px;
-    letter-spacing: 0.9em;
-    text-indent: 0.9em;
-    color: rgba(180,200,255,0.6);
-  }
-  .title.fade { opacity: 0; }
+        .window-panel.active-window {
+            border-color: rgba(0, 243, 255, 0.7);
+            box-shadow: 0 14px 50px rgba(0, 243, 255, 0.22), inset 0 0 20px rgba(0, 243, 255, 0.08);
+            z-index: 40;
+        }
 
-  .toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 40;
-    color: #fff;
-    font-size: 14px;
-    letter-spacing: 6px;
-    text-transform: uppercase;
-    opacity: 0;
-    pointer-events: none;
-    text-shadow: 0 0 20px rgba(255,120,60,0.9), 0 0 40px rgba(255,60,120,0.5);
-    transition: opacity 0.4s, transform 0.4s;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
-  }
+        .window-panel.minimized {
+            height: 38px !important;
+            overflow: hidden !important;
+        }
 
-  .flash {
-    position: fixed;
-    inset: 0;
-    background: #fff;
-    z-index: 500;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-  .flash.on { opacity: 1; }
+        .window-header {
+            background: rgba(0, 243, 255, 0.08);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 12px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 38px;
+        }
 
-  .grain {
-    position: fixed;
-    inset: -50%;
-    z-index: 100;
-    pointer-events: none;
-    opacity: 0.06;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: grainmove 0.4s steps(2) infinite;
-  }
-  @keyframes grainmove {
-    0% { transform: translate(0,0); }
-    25% { transform: translate(-5%,3%); }
-    50% { transform: translate(3%,-5%); }
-    75% { transform: translate(-3%,-3%); }
-    100% { transform: translate(5%,5%); }
-  }
+        .window-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--cyan-glow);
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-  .vignette {
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    pointer-events: none;
-    background: radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,0.85) 100%);
-  }
+        .window-content {
+            padding: 10px;
+            flex-grow: 1;
+            overflow-y: auto;
+            font-size: 0.72rem;
+            position: relative;
+        }
 
-  .scanlines {
-    position: fixed;
-    inset: 0;
-    z-index: 95;
-    pointer-events: none;
-    opacity: 0.07;
-    background: repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 2px,
-      rgba(255,255,255,0.5) 3px,
-      transparent 4px
-    );
-  }
+        /* Window Resize Corner Handle */
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 14px;
+            height: 14px;
+            cursor: se-resize;
+            background: linear-gradient(135deg, transparent 50%, var(--cyan-glow) 50%);
+            opacity: 0.6;
+            z-index: 10;
+        }
+        .resize-handle:hover {
+            opacity: 1;
+        }
 
-  .chromatic {
-    position: fixed;
-    inset: 0;
-    z-index: 98;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    background:
-      linear-gradient(90deg, rgba(255,0,80,0.03), transparent 30%),
-      linear-gradient(270deg, rgba(0,120,255,0.03), transparent 30%);
-  }
-</style>
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.4);
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--cyan-glow);
+        }
+
+        /* Cyberpunk UI Controls */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: rgba(0, 243, 255, 0.12);
+            height: 5px;
+            border-radius: 3px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 13px;
+            width: 13px;
+            border-radius: 50%;
+            background: var(--cyan-glow);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--cyan-glow);
+        }
+
+        .btn-sci {
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--cyan-glow);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .btn-sci:hover {
+            background: rgba(0, 243, 255, 0.25);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(0, 243, 255, 0.4);
+            border-color: var(--cyan-glow);
+        }
+        .btn-sci.active {
+            background: var(--cyan-glow);
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 14px rgba(0, 243, 255, 0.6);
+        }
+
+        .win-btn {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-size: 10px;
+            color: var(--cyan-glow);
+            background: rgba(0, 243, 255, 0.1);
+            transition: all 0.15s;
+        }
+        .win-btn:hover {
+            background: var(--cyan-glow);
+            color: #000;
+        }
+
+        #webgl-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        /* Math Formula Render Box */
+        .math-block {
+            background: rgba(0, 243, 255, 0.04);
+            border-left: 2px solid var(--cyan-glow);
+            padding: 6px 10px;
+            margin: 6px 0;
+            font-family: 'Fira Code', monospace;
+            color: #7ee7ff;
+        }
+    </style>
 </head>
 <body>
 
-<canvas id="c"></canvas>
-<div class="chromatic"></div>
-<div class="scanlines"></div>
-<div class="grain"></div>
-<div class="vignette"></div>
-<div class="flash" id="flash"></div>
+    <div class="scanline-overlay"></div>
+    <div id="webgl-container"></div>
 
-<div class="crosshair"></div>
-<div class="cursor" id="cursor"></div>
+    <!-- TOP CONTROL NAVIGATION BAR -->
+    <header class="absolute top-0 left-0 w-full p-2.5 z-50 flex flex-wrap justify-between items-center pointer-events-none gap-2">
+        <div class="pointer-events-auto flex items-center gap-3 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-cyan-500/30 shadow-lg">
+            <div class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></div>
+            <div>
+                <h1 class="font-title text-xs md:text-sm font-black tracking-wider text-white flex items-center gap-2">
+                    ASTRO-PHYSICS <span class="text-cyan-400">LAB v5.0 ULTRA</span>
+                    <span class="text-[9px] bg-cyan-950 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-500/30">CERN-NASA</span>
+                </h1>
+            </div>
+        </div>
 
-<div class="hud">
-  <div class="corner tl">
-    сектор <span class="v" id="sector">A-01</span><br>
-    высота <span class="v" id="alt">0000</span> м
-  </div>
-  <div class="corner tr">
-    целостность <span class="v" id="integrity">100</span>%<br>
-    <span class="bar"><i id="integrityBar" style="width:100%"></i></span>
-  </div>
-  <div class="corner bl">
-    скорость <span class="v" id="speed">0.0</span> м/с<br>
-    курс <span class="v" id="heading">000</span>°
-  </div>
-  <div class="corner br">
-    объектов <span class="v" id="objCount">0</span><br>
-    сигнал <span class="v" id="signal">100</span>%
-  </div>
-</div>
+        <!-- Window Toggles & Actions -->
+        <div class="pointer-events-auto flex items-center flex-wrap gap-1.5">
+            <button class="btn-sci" id="toggle-win-controls">🎛️ Настройки</button>
+            <button class="btn-sci" id="toggle-win-telemetry">📊 Телеметрия</button>
+            <button class="btn-sci" id="toggle-win-chart">📈 Графики</button>
+            <button class="btn-sci" id="toggle-win-theory">📚 Справочник</button>
+            <button class="btn-sci" id="toggle-win-probe">🔍 Зонд</button>
+            <div class="h-4 w-px bg-cyan-500/30 mx-1"></div>
+            <button class="btn-sci" id="btn-export-csv">💾 CSV</button>
+            <button class="btn-sci" id="btn-screenshot">📷 Снимок</button>
+            <button class="btn-sci" id="btn-audio-toggle">🔊 Звук: Вкл</button>
+            <button class="btn-sci" id="btn-reset-layout">↺ Сброс UI</button>
+        </div>
+    </header>
 
-<div class="title" id="title">
-  <h1>ГОРОД</h1>
-  <p>двигай мышкой · кликай</p>
-</div>
+    <!-- WINDOW 1: CONTROLS & MODES -->
+    <div id="win-controls" class="window-panel active-window" style="top: 60px; left: 15px; width: 310px; height: 530px;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                ПАРАМЕТРЫ СИМУЛЯЦИИ
+            </span>
+            <div class="flex items-center gap-1">
+                <button class="win-btn btn-min">─</button>
+                <button class="win-btn btn-max">□</button>
+                <button class="win-btn btn-close">✕</button>
+            </div>
+        </div>
+        <div class="window-content space-y-3">
+            <div>
+                <label class="text-[10px] text-gray-400 font-bold block mb-1">ФИЗИЧЕСКИЙ СЦЕНАРИЙ</label>
+                <div class="grid grid-cols-1 gap-1">
+                    <button class="btn-sci active text-left text-[10px] w-full" data-mode="kerr">1. Черная Дыра Керра (Kerr BH)</button>
+                    <button class="btn-sci text-left text-[10px] w-full" data-mode="pulsar">2. Нейтронная Звезда / Пульсар</button>
+                    <button class="btn-sci text-left text-[10px] w-full" data-mode="supernova">3. Вспышка Сверхновой (Core Collapse)</button>
+                    <button class="btn-sci text-left text-[10px] w-full" data-mode="darkmatter">4. Гало Темной Материи (NFW Profile)</button>
+                    <button class="btn-sci text-left text-[10px] w-full" data-mode="protoplanet">5. Протопланетный Аккреционный Диск</button>
+                    <button class="btn-sci text-left text-[10px] w-full" data-mode="cosmicweb">6. Космическая Паутина (Filaments)</button>
+                </div>
+            </div>
 
-<div class="toast" id="toast"></div>
+            <div class="space-y-2.5 pt-2 border-t border-cyan-500/20">
+                <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                        <span class="text-gray-300">Масса $M$ ($M_\odot$)</span>
+                        <span id="val-mass" class="text-cyan-400 font-bold">14.5</span>
+                    </div>
+                    <input type="range" id="slider-mass" min="1.0" max="100.0" step="0.5" value="14.5">
+                </div>
 
-<script>
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d', { alpha: false });
-let W, H, DPR;
-function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
-  W = window.innerWidth;
-  H = window.innerHeight;
-  canvas.width = W * DPR;
-  canvas.height = H * DPR;
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-}
-resize();
-window.addEventListener('resize', resize);
+                <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                        <span class="text-gray-300">Спин $a^*$ (Угловой Момент)</span>
+                        <span id="val-spin" class="text-cyan-400 font-bold">0.92</span>
+                    </div>
+                    <input type="range" id="slider-spin" min="0.0" max="0.99" step="0.01" value="0.92">
+                </div>
 
-const input = {
-  x: W/2, y: H/2,
-  tx: W/2, ty: H/2,
-  down: false,
-  active: false,
-};
+                <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                        <span class="text-gray-300">Температура Диска $T$ ($10^6$ K)</span>
+                        <span id="val-temp" class="text-amber-400 font-bold">2.4</span>
+                    </div>
+                    <input type="range" id="slider-temp" min="0.1" max="10.0" step="0.1" value="2.4">
+                </div>
 
-const cursor = document.getElementById('cursor');
-function movePointer(x, y) {
-  input.tx = x;
-  input.ty = y;
-  input.active = true;
-  cursor.style.left = x + 'px';
-  cursor.style.top = y + 'px';
-}
-window.addEventListener('mousemove', e => movePointer(e.clientX, e.clientY));
-window.addEventListener('touchmove', e => {
-  if (e.touches[0]) movePointer(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: true });
-window.addEventListener('touchstart', e => {
-  if (e.touches[0]) movePointer(e.touches[0].clientX, e.touches[0].clientY);
-  input.down = true;
-  cursor.classList.add('grow');
-}, { passive: true });
-window.addEventListener('touchend', () => {
-  input.down = false;
-  cursor.classList.remove('grow');
-});
-window.addEventListener('mousedown', () => {
-  input.down = true;
-  cursor.classList.add('grow');
-});
-window.addEventListener('mouseup', () => {
-  input.down = false;
-  cursor.classList.remove('grow');
-});
+                <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                        <span class="text-gray-300">Скорость Симуляции</span>
+                        <span id="val-timescale" class="text-cyan-400 font-bold">1.0x</span>
+                    </div>
+                    <input type="range" id="slider-timescale" min="0.0" max="3.0" step="0.1" value="1.0">
+                </div>
 
-const CAMERA = {
-  x: 0,
-  y: 120,
-  z: 400,
-  yaw: 0,
-  pitch: -0.25,
-  roll: 0,
-  fov: 800,
-  vx: 0,
-  vy: 0,
-  vz: 0,
-  targetYaw: 0,
-  targetPitch: -0.25,
-  shake: 0,
-};
+                <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                        <span class="text-gray-300">Число Частиц GPU</span>
+                        <span id="val-pcount" class="text-cyan-400 font-bold">75,000</span>
+                    </div>
+                    <input type="range" id="slider-pcount" min="10000" max="100000" step="5000" value="75000">
+                </div>
 
-const WORLD = {
-  buildings: [],
-  cars: [],
-  stars: [],
-  rain: [],
-  birds: [],
-  neonSigns: [],
-  dataStreams: [],
-  smoke: [],
-};
+                <div class="pt-1">
+                    <label class="text-[10px] text-gray-400 font-bold block mb-1">НАБЛЮДАТЕЛЬ (CAMERA)</label>
+                    <div class="grid grid-cols-2 gap-1">
+                        <button class="btn-sci active text-[9px]" id="cam-orbit">Орбитальный</button>
+                        <button class="btn-sci text-[9px]" id="cam-freefall">Падающий</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
 
-const PALETTE = {
-  skyTop: [8, 6, 24],
-  skyBot: [40, 15, 60],
-  fog: [18, 10, 40],
-  ground: [10, 8, 22],
-  neon: [
-    [255, 40, 120],
-    [80, 200, 255],
-    [255, 180, 60],
-    [180, 80, 255],
-    [60, 255, 180],
-  ],
-};
+    <!-- WINDOW 2: TELEMETRY & METRICS -->
+    <div id="win-telemetry" class="window-panel" style="top: 60px; right: 15px; width: 330px; height: 380px;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                РЕЛЯТИВИСТСКАЯ ТЕЛЕМЕТРИЯ
+            </span>
+            <div class="flex items-center gap-1">
+                <button class="win-btn btn-min">─</button>
+                <button class="win-btn btn-max">□</button>
+                <button class="win-btn btn-close">✕</button>
+            </div>
+        </div>
+        <div class="window-content grid grid-cols-2 gap-2 text-[10px]">
+            <div class="bg-cyan-950/30 p-2 rounded border border-cyan-500/20">
+                <span class="text-gray-400 block">Радиус Шварцшильда $r_s$</span>
+                <span id="m-rs" class="text-cyan-300 text-xs font-bold font-mono">42.82 км</span>
+            </div>
+            <div class="bg-cyan-950/30 p-2 rounded border border-cyan-500/20">
+                <span class="text-gray-400 block">Радиус Эргосферы $r_{ergo}$</span>
+                <span id="m-ergo" class="text-cyan-300 text-xs font-bold font-mono">85.64 км</span>
+            </div>
+            <div class="bg-cyan-950/30 p-2 rounded border border-cyan-500/20">
+                <span class="text-gray-400 block">Орбита ISCO $r_{isco}$</span>
+                <span id="m-isco" class="text-amber-300 text-xs font-bold font-mono">98.12 км</span>
+            </div>
+            <div class="bg-cyan-950/30 p-2 rounded border border-cyan-500/20">
+                <span class="text-gray-400 block">Фактор Лоренца $\gamma$</span>
+                <span id="m-lorentz" class="text-amber-400 text-xs font-bold font-mono">1.582</span>
+            </div>
+            <div class="bg-cyan-950/30 p-2 rounded border border-cyan-500/20">
+                <span class="text-gray-400 block">Излучение Хокинга $P_{H}$</span>
+                <span id="m-hawking" class="text-pink-400 text-xs font-bold font-mono">2.93e-18 W</span>
+            </div>
+            <div class="bg-cyan-950/30 p-2 rounded border border-cyan-500/20">
+                <span class="text-gray-400 block">Магнитное Поле $B$</span>
+                <span id="m-mag" class="text-pink-400 text-xs font-bold font-mono">4.8e8 T</span>
+            </div>
+            <div class="col-span-2 bg-slate-900/60 p-2 rounded border border-cyan-500/20 space-y-1.5">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Гравитационный Redshift ($z$):</span>
+                    <span id="m-redshift" class="text-emerald-400 font-bold font-mono">0.612</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Замедление Времени ($\Delta t/\Delta t_0$):</span>
+                    <span id="m-timedil" class="text-emerald-400 font-bold font-mono">0.620</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Светимость Эддингтона:</span>
+                    <span id="m-eddington" class="text-cyan-300 font-bold font-mono">1.83e32 W</span>
+                </div>
+            </div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
 
-function rand(a, b) { return a + Math.random() * (b - a); }
-function randInt(a, b) { return Math.floor(rand(a, b + 1)); }
+    <!-- WINDOW 3: ANALYTICS & CHARTS -->
+    <div id="win-chart" class="window-panel" style="bottom: 15px; right: 15px; width: 420px; height: 300px;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                АНАЛИТИЧЕСКИЙ СПЕКТРОГРАФ (CHART.JS)
+            </span>
+            <div class="flex items-center gap-1">
+                <button class="win-btn btn-min">─</button>
+                <button class="win-btn btn-max">□</button>
+                <button class="win-btn btn-close">✕</button>
+            </div>
+        </div>
+        <div class="window-content flex flex-col justify-between h-full">
+            <div class="flex justify-between gap-1 mb-1.5 flex-wrap">
+                <button class="btn-sci active text-[9px] py-0.5 px-1.5" id="btn-chart-mb">Максвелл-Больцман</button>
+                <button class="btn-sci text-[9px] py-0.5 px-1.5" id="btn-chart-planck">Спектр Планка</button>
+                <button class="btn-sci text-[9px] py-0.5 px-1.5" id="btn-chart-pot">Потенциал V(r)</button>
+                <button class="btn-sci text-[9px] py-0.5 px-1.5" id="btn-chart-redshift">Redshift z(r)</button>
+            </div>
+            <div class="w-full flex-grow relative min-h-[160px]" id="chart-container">
+                <canvas id="analyticsChart"></canvas>
+            </div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
 
-function initWorld() {
-  WORLD.buildings = [];
-  WORLD.cars = [];
-  WORLD.stars = [];
-  WORLD.rain = [];
-  WORLD.birds = [];
-  WORLD.neonSigns = [];
-  WORLD.dataStreams = [];
-  WORLD.smoke = [];
+    <!-- WINDOW 4: THEORY HANDBOOK -->
+    <div id="win-theory" class="window-panel" style="bottom: 15px; left: 15px; width: 440px; height: 300px;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                НАУЧНЫЙ СПРАВОЧНИК / ТЕОРИЯ
+            </span>
+            <div class="flex items-center gap-1">
+                <button class="win-btn btn-min">─</button>
+                <button class="win-btn btn-max">□</button>
+                <button class="win-btn btn-close">✕</button>
+            </div>
+        </div>
+        <div class="window-content flex flex-col h-full">
+            <div class="flex gap-1 border-b border-cyan-500/20 pb-1.5 mb-2">
+                <button class="btn-sci active text-[9px] py-0.5 px-1.5" id="tab-t-phys">1. Физика Процесса</button>
+                <button class="btn-sci text-[9px] py-0.5 px-1.5" id="tab-t-math">2. Математика</button>
+                <button class="btn-sci text-[9px] py-0.5 px-1.5" id="tab-t-obs">3. Наблюдения</button>
+                <button class="btn-sci text-[9px] py-0.5 px-1.5" id="tab-t-sign">4. Значение</button>
+            </div>
+            <div id="theory-text-content" class="text-[11px] leading-relaxed text-gray-300 overflow-y-auto flex-grow">
+                <!-- Dynamic text insertion -->
+            </div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
 
-  const gridSize = 34;
-  const cellSize = 130;
-  const half = gridSize / 2;
+    <!-- WINDOW 5: QUANTUM INSPECTION PROBE -->
+    <div id="win-probe" class="window-panel" style="top: 220px; left: 340px; width: 280px; height: 210px;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                КВАНТОВЫЙ ЗОНД ПОЛЯ
+            </span>
+            <div class="flex items-center gap-1">
+                <button class="win-btn btn-min">─</button>
+                <button class="win-btn btn-max">□</button>
+                <button class="win-btn btn-close">✕</button>
+            </div>
+        </div>
+        <div class="window-content space-y-1.5 text-[10px]">
+            <p class="text-gray-400 italic">Кликните в 3D пространстве для сканирования точки:</p>
+            <div class="bg-black/40 p-1.5 rounded border border-cyan-500/20 font-mono space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Координаты (X,Y,Z):</span>
+                    <span id="probe-coords" class="text-cyan-300">0.0, 0.0, 0.0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Дистанция $r$:</span>
+                    <span id="probe-dist" class="text-cyan-300">0.00 км</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Локальная Скорость $v$:</span>
+                    <span id="probe-vel" class="text-amber-300">0.00 c</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Фактор Лоренца $\gamma$:</span>
+                    <span id="probe-gamma" class="text-amber-300">1.000</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Redshift $z(r)$:</span>
+                    <span id="probe-z" class="text-emerald-300">0.000</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Локальная Т ($K$):</span>
+                    <span id="probe-temp" class="text-pink-300">0 K</span>
+                </div>
+            </div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
 
-  for (let gx = -half; gx < half; gx++) {
-    for (let gz = -half; gz < half; gz++) {
-      const px = gx * cellSize + rand(-15, 15);
-      const pz = gz * cellSize + rand(-15, 15);
+    <script>
+        // WINDOW MANAGER WITH RESIZE OBSERVER & FULL LAYOUT CONTROL
+        class WindowManager {
+            constructor() {
+                this.topZ = 100;
+                this.windows = document.querySelectorAll('.window-panel');
+                this.init();
+            }
 
-      const distFromCenter = Math.hypot(gx, gz);
-      const chance = distFromCenter < 3 ? 0.15 : 0.82;
-      if (Math.random() > chance) continue;
+            init() {
+                this.windows.forEach(win => {
+                    const header = win.querySelector('.window-header');
+                    const resizeHandle = win.querySelector('.resize-handle');
+                    const minBtn = win.querySelector('.btn-min');
+                    const maxBtn = win.querySelector('.btn-max');
+                    const closeBtn = win.querySelector('.btn-close');
 
-      const h = rand(60, 400) * (1 - Math.min(distFromCenter / half, 0.7));
-      const w = rand(30, 70);
-      const d = rand(30, 70);
+                    // Focus & Bring to Front
+                    win.addEventListener('pointerdown', () => this.bringToFront(win));
 
-      const palette = PALETTE.neon[randInt(0, PALETTE.neon.length - 1)];
-      const hasWindows = Math.random() > 0.25;
+                    // Dragging Mechanics
+                    let isDragging = false, dragX = 0, dragY = 0;
+                    header.addEventListener('pointerdown', (e) => {
+                        if (e.target.classList.contains('win-btn')) return;
+                        isDragging = true;
+                        dragX = e.clientX - win.offsetLeft;
+                        dragY = e.clientY - win.offsetTop;
+                        header.setPointerCapture(e.pointerId);
+                        this.bringToFront(win);
+                    });
 
-      WORLD.buildings.push({
-        x: px, z: pz,
-        w, h: Math.max(h, 40), d,
-        color: [rand(10, 30), rand(8, 25), rand(20, 45)],
-        neonColor: palette,
-        hasWindows,
-        windowSeed: Math.random() * 1000,
-        antennaH: Math.random() > 0.7 ? rand(20, 60) : 0,
-        damage: Math.random() > 0.85 ? rand(0.2, 0.6) : 0,
-      });
+                    header.addEventListener('pointermove', (e) => {
+                        if (!isDragging) return;
+                        let newLeft = e.clientX - dragX;
+                        let newTop = e.clientY - dragY;
+                        newLeft = Math.max(0, Math.min(window.innerWidth - win.offsetWidth, newLeft));
+                        newTop = Math.max(0, Math.min(window.innerHeight - win.offsetHeight, newTop));
+                        win.style.left = `${newLeft}px`;
+                        win.style.top = `${newTop}px`;
+                    });
 
-      if (Math.random() > 0.5) {
-        WORLD.neonSigns.push({
-          x: px + rand(-w/2, w/2),
-          y: rand(20, Math.max(h - 20, 40)),
-          z: pz + d/2 + 1,
-          w: rand(8, 30),
-          h: rand(4, 12),
-          color: PALETTE.neon[randInt(0, PALETTE.neon.length - 1)],
-          blink: Math.random() * 10,
-          blinkSpeed: rand(0.02, 0.1),
-        });
-      }
-    }
-  }
+                    header.addEventListener('pointerup', (e) => {
+                        isDragging = false;
+                        try { header.releasePointerCapture(e.pointerId); } catch(err){}
+                    });
 
-  for (let i = 0; i < 40; i++) {
-    WORLD.cars.push({
-      x: rand(-800, 800),
-      z: rand(-800, 800),
-      y: 12,
-      dir: Math.random() > 0.5 ? 0 : 1,
-      speed: rand(1.5, 4),
-      color: PALETTE.neon[randInt(0, PALETTE.neon.length - 1)],
-      lane: randInt(0, 2),
-      alive: true,
-    });
-  }
+                    // Resizing Mechanics
+                    if (resizeHandle) {
+                        let isResizing = false, startW = 0, startH = 0, startX = 0, startY = 0;
+                        resizeHandle.addEventListener('pointerdown', (e) => {
+                            isResizing = true;
+                            startW = win.offsetWidth;
+                            startH = win.offsetHeight;
+                            startX = e.clientX;
+                            startY = e.clientY;
+                            resizeHandle.setPointerCapture(e.pointerId);
+                            e.stopPropagation();
+                            this.bringToFront(win);
+                        });
 
-  for (let i = 0; i < 400; i++) {
-    WORLD.stars.push({
-      x: rand(-2000, 2000),
-      y: rand(-800, -300),
-      z: rand(-2000, 2000),
-      r: rand(0.3, 1.4),
-      twinkle: Math.random() * Math.PI * 2,
-    });
-  }
+                        resizeHandle.addEventListener('pointermove', (e) => {
+                            if (!isResizing) return;
+                            const w = Math.max(240, startW + (e.clientX - startX));
+                            const h = Math.max(160, startH + (e.clientY - startY));
+                            win.style.width = `${w}px`;
+                            win.style.height = `${h}px`;
+                        });
 
-  for (let i = 0; i < 300; i++) {
-    WORLD.rain.push({
-      x: rand(-1200, 1200),
-      y: rand(0, 900),
-      z: rand(-1200, 1200),
-      len: rand(8, 22),
-      speed: rand(12, 24),
-    });
-  }
+                        resizeHandle.addEventListener('pointerup', (e) => {
+                            isResizing = false;
+                            try { resizeHandle.releasePointerCapture(e.pointerId); } catch(err){}
+                        });
+                    }
 
-  for (let i = 0; i < 15; i++) {
-    WORLD.birds.push({
-      x: rand(-1000, 1000),
-      y: rand(200, 500),
-      z: rand(-1000, 1000),
-      phase: Math.random() * Math.PI * 2,
-      speed: rand(0.4, 1.2),
-      dir: Math.random() * Math.PI * 2,
-      flap: Math.random() * Math.PI * 2,
-    });
-  }
+                    // Minimize / Maximize / Close Buttons
+                    if (minBtn) {
+                        minBtn.addEventListener('click', () => win.classList.toggle('minimized'));
+                    }
 
-  for (let i = 0; i < 20; i++) {
-    WORLD.dataStreams.push({
-      x: rand(-600, 600),
-      z: rand(-600, 600),
-      y: 0,
-      h: rand(100, 400),
-      color: PALETTE.neon[randInt(0, PALETTE.neon.length - 1)],
-      offset: Math.random() * 100,
-      speed: rand(0.5, 2),
-    });
-  }
+                    if (maxBtn) {
+                        let isMax = false, prevRect = {};
+                        maxBtn.addEventListener('click', () => {
+                            isMax = !isMax;
+                            if (isMax) {
+                                prevRect = { left: win.style.left, top: win.style.top, width: win.style.width, height: win.style.height };
+                                win.style.left = '10px';
+                                win.style.top = '50px';
+                                win.style.width = 'calc(100vw - 20px)';
+                                win.style.height = 'calc(100vh - 60px)';
+                            } else {
+                                win.style.left = prevRect.left;
+                                win.style.top = prevRect.top;
+                                win.style.width = prevRect.width;
+                                win.style.height = prevRect.height;
+                            }
+                        });
+                    }
 
-  for (let i = 0; i < 30; i++) {
-    WORLD.smoke.push({
-      x: rand(-800, 800),
-      y: rand(0, 100),
-      z: rand(-800, 800),
-      r: rand(30, 80),
-      vy: rand(0.2, 0.6),
-      vx: rand(-0.1, 0.1),
-      vz: rand(-0.1, 0.1),
-      life: Math.random(),
-    });
-  }
-}
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', () => win.style.display = 'none');
+                    }
 
-function project(x, y, z) {
-  const dx = x - CAMERA.x;
-  const dy = y - CAMERA.y;
-  const dz = z - CAMERA.z;
+                    // ResizeObserver for inner Chart.js / canvas scaling
+                    const ro = new ResizeObserver(() => {
+                        if (win.id === 'win-chart' && window.analyticsChart) {
+                            window.analyticsChart.resize();
+                        }
+                    });
+                    ro.observe(win);
+                });
 
-  const cy = Math.cos(CAMERA.yaw);
-  const sy = Math.sin(CAMERA.yaw);
-  const rx = dx * cy - dz * sy;
-  const rz = dx * sy + dz * cy;
+                // Top Header Window Toggle Buttons
+                document.getElementById('toggle-win-controls').addEventListener('click', () => this.toggleWindow('win-controls'));
+                document.getElementById('toggle-win-telemetry').addEventListener('click', () => this.toggleWindow('win-telemetry'));
+                document.getElementById('toggle-win-chart').addEventListener('click', () => this.toggleWindow('win-chart'));
+                document.getElementById('toggle-win-theory').addEventListener('click', () => this.toggleWindow('win-theory'));
+                document.getElementById('toggle-win-probe').addEventListener('click', () => this.toggleWindow('win-probe'));
 
-  const cp = Math.cos(CAMERA.pitch);
-  const sp = Math.sin(CAMERA.pitch);
-  const ry = dy * cp - rz * sp;
-  const rz2 = dy * sp + rz * cp;
+                document.getElementById('btn-reset-layout').addEventListener('click', () => {
+                    document.getElementById('win-controls').style.cssText = "top: 60px; left: 15px; width: 310px; height: 530px; display: flex;";
+                    document.getElementById('win-telemetry').style.cssText = "top: 60px; right: 15px; width: 330px; height: 380px; display: flex;";
+                    document.getElementById('win-chart').style.cssText = "bottom: 15px; right: 15px; width: 420px; height: 300px; display: flex;";
+                    document.getElementById('win-theory').style.cssText = "bottom: 15px; left: 15px; width: 440px; height: 300px; display: flex;";
+                    document.getElementById('win-probe').style.cssText = "top: 220px; left: 340px; width: 280px; height: 210px; display: flex;";
+                    this.windows.forEach(w => w.classList.remove('minimized'));
+                });
+            }
 
-  if (rz2 < 1) return null;
+            bringToFront(win) {
+                this.topZ++;
+                win.style.zIndex = this.topZ;
+                this.windows.forEach(w => w.classList.remove('active-window'));
+                win.classList.add('active-window');
+            }
 
-  const f = CAMERA.fov / rz2;
-  const sx = W / 2 + rx * f;
-  const sy2 = H / 2 - ry * f;
-
-  return { x: sx, y: sy2, z: rz2, scale: f };
-}
-
-let time = 0;
-let frame = 0;
-
-function drawSky() {
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
-  const t = Math.sin(time * 0.0003) * 0.5 + 0.5;
-  grad.addColorStop(0, `rgb(${Math.round(PALETTE.skyTop[0] + t * 10)}, ${Math.round(PALETTE.skyTop[1] + t * 5)}, ${Math.round(PALETTE.skyTop[2] + t * 20)})`);
-  grad.addColorStop(0.55, `rgb(${PALETTE.skyBot[0]}, ${PALETTE.skyBot[1]}, ${PALETTE.skyBot[2]})`);
-  grad.addColorStop(1, `rgb(${PALETTE.fog[0]}, ${PALETTE.fog[1]}, ${PALETTE.fog[2]})`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-}
-
-function drawStars() {
-  for (const s of WORLD.stars) {
-    const p = project(s.x, s.y, s.z);
-    if (!p) continue;
-    const tw = 0.5 + Math.sin(s.twinkle + time * 0.002) * 0.5;
-    ctx.fillStyle = `rgba(200, 220, 255, ${tw * 0.8})`;
-    ctx.fillRect(p.x, p.y, s.r, s.r);
-  }
-}
-
-function drawGround() {
-  const size = 2000;
-  const step = 100;
-  ctx.strokeStyle = 'rgba(80, 40, 120, 0.15)';
-  ctx.lineWidth = 1;
-
-  for (let i = -size; i <= size; i += step) {
-    const a = project(i, 0, -size);
-    const b = project(i, 0, size);
-    if (a && b) {
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(b.x, b.y);
-      ctx.stroke();
-    }
-    const c = project(-size, 0, i);
-    const d = project(size, 0, i);
-    if (c && d) {
-      ctx.beginPath();
-      ctx.moveTo(c.x, c.y);
-      ctx.lineTo(d.x, d.y);
-      ctx.stroke();
-    }
-  }
-}
-
-function drawBuildings() {
-  const sorted = [];
-  for (const b of WORLD.buildings) {
-    const dist = Math.hypot(b.x - CAMERA.x, b.z - CAMERA.z);
-    if (dist < 1500) sorted.push({ b, dist });
-  }
-  sorted.sort((a, c) => c.dist - a.dist);
-
-  for (const { b, dist } of sorted) {
-    const corners = [
-      [b.x - b.w/2, 0, b.z - b.d/2],
-      [b.x + b.w/2, 0, b.z - b.d/2],
-      [b.x + b.w/2, 0, b.z + b.d/2],
-      [b.x - b.w/2, 0, b.z + b.d/2],
-      [b.x - b.w/2, b.h, b.z - b.d/2],
-      [b.x + b.w/2, b.h, b.z - b.d/2],
-      [b.x + b.w/2, b.h, b.z + b.d/2],
-      [b.x - b.w/2, b.h, b.z + b.d/2],
-    ];
-
-    const proj = corners.map(c => project(c[0], c[1], c[2]));
-    if (proj.some(p => !p)) continue;
-
-    const fog = Math.min(dist / 1400, 0.85);
-    const fogR = PALETTE.fog[0];
-    const fogG = PALETTE.fog[1];
-    const fogB = PALETTE.fog[2];
-
-    const mix = (c) => `rgb(${Math.round(c[0] * (1 - fog) + fogR * fog)}, ${Math.round(c[1] * (1 - fog) + fogG * fog)}, ${Math.round(c[2] * (1 - fog) + fogB * fog)})`;
-
-    const faces = [
-      { idx: [0, 1, 5, 4], shade: 0.55 },
-      { idx: [1, 2, 6, 5], shade: 0.85 },
-      { idx: [2, 3, 7, 6], shade: 0.65 },
-      { idx: [3, 0, 4, 7], shade: 1.0 },
-    ];
-
-    for (const face of faces) {
-      const pts = face.idx.map(i => proj[i]);
-      const base = b.color.map(c => c * face.shade);
-      ctx.fillStyle = mix(base);
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
-      ctx.fill();
-
-      if (b.hasWindows && face.shade > 0.7) {
-        drawWindows(proj, face.idx, b, fog);
-      }
-    }
-
-    const topPts = [proj[4], proj[5], proj[6], proj[7]];
-    ctx.fillStyle = mix([b.color[0] * 0.4, b.color[1] * 0.4, b.color[2] * 0.4]);
-    ctx.beginPath();
-    ctx.moveTo(topPts[0].x, topPts[0].y);
-    for (let i = 1; i < topPts.length; i++) ctx.lineTo(topPts[i].x, topPts[i].y);
-    ctx.closePath();
-    ctx.fill();
-
-    if (b.antennaH > 0 && dist < 800) {
-      const baseP = project(b.x, b.h, b.z);
-      const topP = project(b.x, b.h + b.antennaH, b.z);
-      if (baseP && topP) {
-        ctx.strokeStyle = `rgba(120, 140, 180, ${0.6 * (1 - fog)})`;
-        ctx.lineWidth = Math.max(1, 2 * (1 - dist / 800));
-        ctx.beginPath();
-        ctx.moveTo(baseP.x, baseP.y);
-        ctx.lineTo(topP.x, topP.y);
-        ctx.stroke();
-
-        const blink = Math.sin(time * 0.008 + b.x) > 0.5;
-        if (blink) {
-          const g = ctx.createRadialGradient(topP.x, topP.y, 0, topP.x, topP.y, 8);
-          g.addColorStop(0, 'rgba(255, 60, 60, 0.9)');
-          g.addColorStop(1, 'transparent');
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(topP.x, topP.y, 8, 0, Math.PI * 2);
-          ctx.fill();
+            toggleWindow(id) {
+                const win = document.getElementById(id);
+                if (win.style.display === 'none') {
+                    win.style.display = 'flex';
+                    win.classList.remove('minimized');
+                    this.bringToFront(win);
+                } else {
+                    if (win.classList.contains('minimized')) {
+                        win.classList.remove('minimized');
+                        this.bringToFront(win);
+                    } else {
+                        win.style.display = 'none';
+                    }
+                }
+            }
         }
-      }
-    }
-  }
-}
-
-function drawWindows(proj, idx, b, fog) {
-  const cols = Math.max(2, Math.floor(b.w / 14));
-  const rows = Math.max(3, Math.floor(b.h / 22));
-
-  const [p0, p1, p2, p3] = idx.map(i => proj[i]);
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const u = (c + 0.5) / cols;
-      const v = (r + 0.5) / rows;
-
-      const leftX = p0.x + (p3.x - p0.x) * u;
-      const leftY = p0.y + (p3.y - p0.y) * u;
-      const rightX = p1.x + (p2.x - p1.x) * u;
-      const rightY = p1.y + (p2.y - p1.y) * u;
-
-      const x = leftX + (rightX - leftX) * v;
-      const y = leftY + (rightY - leftY) * v;
-
-      const seed = b.windowSeed + r * 31 + c * 17;
-      const on = (Math.sin(seed) * 43758.5453) % 1;
-      if (Math.abs(on) < 0.5) continue;
-
-      const size = Math.max(1, (1 - fog) * 3);
-      const flicker = Math.sin(time * 0.005 + seed) > -0.9 ? 1 : 0.3;
-
-      ctx.fillStyle = `rgba(${b.neonColor[0]}, ${b.neonColor[1]}, ${b.neonColor[2]}, ${(1 - fog) * 0.7 * flicker})`;
-      ctx.fillRect(x, y, size, size * 1.3);
-    }
-  }
-}
-
-function drawNeonSigns() {
-  for (const s of WORLD.neonSigns) {
-    const p = project(s.x, s.y, s.z);
-    if (!p) continue;
-    const dist = Math.hypot(s.x - CAMERA.x, s.z - CAMERA.z);
-    if (dist > 900) continue;
-
-    const fog = Math.min(dist / 1000, 0.8);
-    s.blink += s.blinkSpeed;
-    const flicker = Math.sin(s.blink) > -0.7 ? 1 : 0.2;
-
-    const w = s.w * p.scale * 0.5;
-    const h = s.h * p.scale * 0.5;
-    if (w < 1) continue;
-
-    const glowSize = w * 2.5;
-    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowSize);
-    g.addColorStop(0, `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${(1 - fog) * 0.5 * flicker})`);
-    g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g;
-    ctx.fillRect(p.x - glowSize, p.y - glowSize, glowSize * 2, glowSize * 2);
-
-    ctx.fillStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${(1 - fog) * flicker})`;
-    ctx.fillRect(p.x - w/2, p.y - h/2, w, h);
-  }
-}
-
-function drawDataStreams() {
-  for (const d of WORLD.dataStreams) {
-    const baseP = project(d.x, d.y, d.z);
-    const topP = project(d.x, d.y + d.h, d.z);
-    if (!baseP || !topP) continue;
-
-    const dist = Math.hypot(d.x - CAMERA.x, d.z - CAMERA.z);
-    if (dist > 1200) continue;
-
-    const fog = Math.min(dist / 1200, 0.85);
-    const segments = 20;
-
-    for (let i = 0; i < segments; i++) {
-      const t1 = (i / segments + (time * 0.001 * d.speed + d.offset) % 1) % 1;
-      const t2 = ((i + 1) / segments + (time * 0.001 * d.speed + d.offset) % 1) % 1;
-
-      const x1 = baseP.x + (topP.x - baseP.x) * t1;
-      const y1 = baseP.y + (topP.y - baseP.y) * t1;
-      const x2 = baseP.x + (topP.x - baseP.x) * t2;
-      const y2 = baseP.y + (topP.y - baseP.y) * t2;
-
-      const alpha = (1 - t1) * (1 - fog) * 0.7;
-      ctx.strokeStyle = `rgba(${d.color[0]}, ${d.color[1]}, ${d.color[2]}, ${alpha})`;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-    }
-  }
-}
-
-function drawCars() {
-  for (const car of WORLD.cars) {
-    const p = project(car.x, car.y, car.z);
-    if (!p) continue;
-    const dist = Math.hypot(car.x - CAMERA.x, car.z - CAMERA.z);
-    if (dist > 1000) continue;
-
-    const fog = Math.min(dist / 1000, 0.8);
-    const size = Math.max(2, p.scale * 4);
-    const flicker = Math.sin(time * 0.02 + car.x) > -0.8 ? 1 : 0.2;
-
-    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 4);
-    g.addColorStop(0, `rgba(${car.color[0]}, ${car.color[1]}, ${car.color[2]}, ${(1 - fog) * flicker})`);
-    g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g;
-    ctx.fillRect(p.x - size*4, p.y - size*4, size*8, size*8);
-
-    ctx.fillStyle = `rgba(255, 255, 255, ${(1 - fog) * flicker})`;
-    ctx.fillRect(p.x - size/2, p.y - size/2, size, size);
-  }
-}
-
-function drawBirds() {
-  for (const b of WORLD.birds) {
-    b.phase += 0.02;
-    b.flap += 0.15;
-    b.x += Math.cos(b.dir) * b.speed;
-    b.z += Math.sin(b.dir) * b.speed;
-    if (Math.abs(b.x) > 1200) b.dir = Math.PI - b.dir;
-    if (Math.abs(b.z) > 1200) b.dir = -b.dir;
-
-    const p = project(b.x, b.y + Math.sin(b.phase) * 5, b.z);
-    if (!p) continue;
-    const dist = Math.hypot(b.x - CAMERA.x, b.z - CAMERA.z);
-    if (dist > 900) continue;
-
-    const fog = Math.min(dist / 900, 0.8);
-    const size = Math.max(2, p.scale * 6);
-    const wing = Math.sin(b.flap) * 0.7 + 0.3;
-
-    ctx.strokeStyle = `rgba(20, 15, 40, ${(1 - fog) * 0.9})`;
-    ctx.lineWidth = Math.max(1, size * 0.15);
-    ctx.beginPath();
-    ctx.moveTo(p.x - size, p.y + size * wing * 0.5);
-    ctx.lineTo(p.x, p.y);
-    ctx.lineTo(p.x + size, p.y + size * wing * 0.5);
-    ctx.stroke();
-  }
-}
-
-function drawSmoke() {
-  for (const s of WORLD.smoke) {
-    s.life += 0.003;
-    if (s.life > 1) {
-      s.life = 0;
-      s.x = rand(-800, 800);
-      s.z = rand(-800, 800);
-      s.y = 0;
-    }
-    s.y += s.vy;
-    s.x += s.vx;
-    s.z += s.vz;
-
-    const p = project(s.x, s.y, s.z);
-    if (!p) continue;
-    const dist = Math.hypot(s.x - CAMERA.x, s.z - CAMERA.z);
-    if (dist > 700) continue;
-
-    const fog = Math.min(dist / 700, 0.8);
-    const r = s.r * p.scale * 0.5;
-    const a = Math.sin(s.life * Math.PI) * (1 - fog) * 0.15;
-    if (r < 2) continue;
-
-    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
-    g.addColorStop(0, `rgba(120, 80, 180, ${a})`);
-    g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g;
-    ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
-  }
-}
-
-function drawRain() {
-  ctx.strokeStyle = 'rgba(140, 180, 255, 0.35)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  for (const r of WORLD.rain) {
-    r.y += r.speed;
-    if (r.y > 900) {
-      r.y = -100;
-      r.x = CAMERA.x + rand(-800, 800);
-      r.z = CAMERA.z + rand(-800, 800);
-    }
-    if (Math.abs(r.x - CAMERA.x) > 1000 || Math.abs(r.z - CAMERA.z) > 1000) {
-      r.x = CAMERA.x + rand(-600, 600);
-      r.z = CAMERA.z + rand(-600, 600);
-    }
-
-    const p1 = project(r.x, r.y, r.z);
-    const p2 = project(r.x, r.y + r.len, r.z);
-    if (p1 && p2) {
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-    }
-  }
-  ctx.stroke();
-}
-
-function drawScanEffect() {
-  const scanY = (time * 0.05) % H;
-  const g = ctx.createLinearGradient(0, scanY - 40, 0, scanY + 40);
-  g.addColorStop(0, 'transparent');
-  g.addColorStop(0.5, 'rgba(120, 200, 255, 0.05)');
-  g.addColorStop(1, 'transparent');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, scanY - 40, W, 80);
-}
-
-function drawReticle() {
-  const cx = W/2;
-  const cy = H/2;
-
-  const targets = [];
-  for (const b of WORLD.buildings) {
-    const p = project(b.x, b.h/2, b.z);
-    if (!p) continue;
-    const d = Math.hypot(p.x - cx, p.y - cy);
-    if (d < 200) {
-      targets.push({ p, b, d });
-    }
-  }
-  targets.sort((a, c) => a.d - c.d);
-
-  if (targets.length > 0) {
-    const t = targets[0];
-    const size = 30 + (1 - t.d / 200) * 30;
-    ctx.strokeStyle = `rgba(255, 100, 60, ${0.4 + (1 - t.d/200) * 0.5})`;
-    ctx.lineWidth = 1;
-
-    const corners = [
-      [t.p.x - size, t.p.y - size, 1, 1],
-      [t.p.x + size, t.p.y - size, -1, 1],
-      [t.p.x - size, t.p.y + size, 1, -1],
-      [t.p.x + size, t.p.y + size, -1, -1],
-    ];
-    for (const [x, y, sx, sy] of corners) {
-      ctx.beginPath();
-      ctx.moveTo(x + sx * 8, y);
-      ctx.lineTo(x, y);
-      ctx.lineTo(x, y + sy * 8);
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = `rgba(255, 100, 60, ${0.7 + (1 - t.d/200) * 0.3})`;
-    ctx.font = '10px Courier New';
-    ctx.fillText(`ОБЪЕКТ ${Math.round(t.b.h)}M`, t.p.x + size + 8, t.p.y - 4);
-    ctx.fillText(`ДИСТ ${Math.round(Math.hypot(t.b.x - CAMERA.x, t.b.z - CAMERA.z))}M`, t.p.x + size + 8, t.p.y + 10);
-  }
-}
-
-function updateCamera(dt) {
-  const targetYaw = (input.x - W/2) / W * Math.PI * 1.2;
-  const targetPitch = ((input.y - H/2) / H) * Math.PI * 0.8 - 0.15;
-
-  CAMERA.targetYaw = targetYaw;
-  CAMERA.targetPitch = targetPitch;
-
-  CAMERA.yaw += (CAMERA.targetYaw - CAMERA.yaw) * 0.04;
-  CAMERA.pitch += (CAMERA.targetPitch - CAMERA.pitch) * 0.04;
-
-  const speed = input.down ? 2.5 : 0.35;
-
-  const forwardX = Math.sin(CAMERA.yaw);
-  const forwardZ = Math.cos(CAMERA.yaw);
-
-  CAMERA.vx += forwardX * speed * 0.05;
-  CAMERA.vz += forwardZ * speed * 0.05;
-
-  CAMERA.x += CAMERA.vx;
-  CAMERA.z += CAMERA.vz;
-  CAMERA.vx *= 0.95;
-  CAMERA.vz *= 0.95;
-
-  CAMERA.y = 120 + Math.sin(time * 0.001) * 15;
-
-  CAMERA.roll = (input.x - W/2) / W * 0.08;
-}
-
-function updateHUD() {
-  const heading = ((CAMERA.yaw * 180 / Math.PI) % 360 + 360) % 360;
-  document.getElementById('heading').textContent = String(Math.round(heading)).padStart(3, '0');
-
-  const speed = Math.hypot(CAMERA.vx, CAMERA.vz) * 20;
-  document.getElementById('speed').textContent = speed.toFixed(1);
-
-  const sectorX = Math.floor(CAMERA.x / 500);
-  const sectorZ = Math.floor(CAMERA.z / 500);
-  const sectorLetter = String.fromCharCode(65 + ((sectorX % 26 + 26) % 26));
-  const sectorNum = ((sectorZ % 99 + 99) % 99) + 1;
-  document.getElementById('sector').textContent = `${sectorLetter}-${String(sectorNum).padStart(2, '0')}`;
-
-  document.getElementById('alt').textContent = String(Math.round(CAMERA.y)).padStart(4, '0');
-
-  const dist = Math.hypot(CAMERA.x, CAMERA.z);
-  const integrity = Math.max(0, 100 - dist * 0.02);
-  document.getElementById('integrity').textContent = Math.round(integrity);
-  document.getElementById('integrityBar').style.width = integrity + '%';
-
-  document.getElementById('objCount').textContent = WORLD.buildings.length;
-
-  const signal = 100 - Math.min(60, dist * 0.01);
-  document.getElementById('signal').textContent = Math.round(signal);
-}
-
-function render() {
-  ctx.save();
-
-  const roll = CAMERA.roll || 0;
-  if (Math.abs(roll) > 0.001) {
-    ctx.translate(W/2, H/2);
-    ctx.rotate(roll);
-    ctx.translate(-W/2, -H/2);
-  }
-
-  drawSky();
-  drawStars();
-  drawGround();
-  drawSmoke();
-  drawBuildings();
-  drawNeonSigns();
-  drawDataStreams();
-  drawCars();
-  drawBirds();
-  drawRain();
-
-  ctx.restore();
-
-  drawScanEffect();
-  drawReticle();
-}
-
-let lastTime = performance.now();
-
-function loop(now) {
-  const dt = Math.min(now - lastTime, 50);
-  lastTime = now;
-  time = now;
-
-  updateCamera(dt);
-  render();
-  updateHUD();
-
-  requestAnimationFrame(loop);
-}
-
-let lastCarUpdate = 0;
-function updateCars(now) {
-  if (now - lastCarUpdate < 40) return;
-  lastCarUpdate = now;
-
-  for (const car of WORLD.cars) {
-    car.x += Math.cos(car.dir * Math.PI) * car.speed;
-    if (Math.abs(car.x) > 900) car.x = -Math.sign(car.x) * 900;
-  }
-}
-setInterval(() => updateCars(performance.now()), 40);
-
-const flash = document.getElementById('flash');
-const title = document.getElementById('title');
-const toast = document.getElementById('toast');
-
-let toastTimer = null;
-function showToast(text) {
-  toast.textContent = text;
-  toast.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 900);
-}
-
-const messages = [
-  'связь установлена',
-  'обнаружен объект',
-  'сигнал прерван',
-  'перехожу в сектор',
-  'сбой навигации',
-  'система в норме',
-  'внимание: помехи',
-  'вхожу в зону тишины',
-  'данные получены',
-  'продолжаю движение',
-];
-
-window.addEventListener('click', e => {
-  showToast(messages[Math.floor(Math.random() * messages.length)]);
-
-  flash.classList.add('on');
-  setTimeout(() => flash.classList.remove('on'), 60);
-
-  for (const b of WORLD.buildings) {
-    if (Math.random() > 0.3) continue;
-    const p = project(b.x, b.h, b.z);
-    if (p && Math.hypot(p.x - e.clientX, p.y - e.clientY) < 100) {
-      b.neonColor = PALETTE.neon[randInt(0, PALETTE.neon.length - 1)];
-    }
-  }
-});
-
-setTimeout(() => title.classList.add('fade'), 6000);
-
-initWorld();
-render();
-requestAnimationFrame(loop);
-
-setTimeout(() => showToast('добро пожаловать домой'), 2000);
-
-window.addEventListener('keydown', e => {
-  if (e.key === 'r' || e.key === 'R' || e.key === 'к' || e.key === 'К') {
-    flash.classList.add('on');
-    setTimeout(() => {
-      initWorld();
-      CAMERA.x = 0;
-      CAMERA.z = 400;
-      CAMERA.vx = 0;
-      CAMERA.vz = 0;
-      flash.classList.remove('on');
-      showToast('мир пересобран');
-    }, 150);
-  }
-});
-</script>
+
+        const winMgr = new WindowManager();
+    </script>
+
+    <script>
+        // PROCEDURAL AUDIO SYNTHESIZER ENGINE (Web Audio API)
+        class CosmicAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.isMuted = false;
+                this.masterGain = null;
+                this.subOsc = null;
+                this.spinFilter = null;
+            }
+
+            init() {
+                if (this.ctx) return;
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                this.masterGain.connect(this.ctx.destination);
+
+                // Sub-Bass Gravitational Hum
+                this.subOsc = this.ctx.createOscillator();
+                this.subOsc.type = 'sine';
+                this.subOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // 55Hz Low A
+
+                this.spinFilter = this.ctx.createBiquadFilter();
+                this.spinFilter.type = 'lowpass';
+                this.spinFilter.frequency.setValueAtTime(220, this.ctx.currentTime);
+
+                this.subOsc.connect(this.spinFilter);
+                this.spinFilter.connect(this.masterGain);
+                this.subOsc.start();
+            }
+
+            updateAudio(mass, spin) {
+                if (!this.ctx || this.isMuted) return;
+                const freq = 40 + (mass * 1.5);
+                const cutoff = 150 + (spin * 800);
+                this.subOsc.frequency.setTargetAtTime(freq, this.ctx.currentTime, 0.1);
+                this.spinFilter.frequency.setTargetAtTime(cutoff, this.ctx.currentTime, 0.1);
+            }
+
+            playProbeBeep() {
+                if (!this.ctx || this.isMuted) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1760, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            toggle() {
+                if (!this.ctx) this.init();
+                this.isMuted = !this.isMuted;
+                this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.08, this.ctx.currentTime);
+                return !this.isMuted;
+            }
+        }
+
+        const audioEngine = new CosmicAudioEngine();
+        document.getElementById('btn-audio-toggle').addEventListener('click', (e) => {
+            const active = audioEngine.toggle();
+            e.target.innerText = active ? "🔊 Звук: Вкл" : "🔇 Звук: Выкл";
+        });
+    </script>
+
+    <script>
+        // GLOBAL STATE
+        const CONFIG = {
+            mode: 'kerr',
+            mass: 14.5,
+            spin: 0.92,
+            temp: 2.4, // in 10^6 K
+            timeScale: 1.0,
+            particleCount: 75000,
+            chartMetric: 'mb',
+            theoryTab: 'phys',
+            cameraMode: 'orbit'
+        };
+
+        // THREE.JS SCENE & SHADERS SETUP
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x010206, 0.0012);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 4000);
+        camera.position.set(0, 60, 130);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance", preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.04;
+
+        // DOPPLER SHIFT PARTICLE SHADERS
+        const vertexShader = `
+            attribute float size;
+            attribute vec3 customColor;
+            attribute vec3 velocity;
+            varying vec3 vColor;
+            varying float vDoppler;
+
+            uniform vec3 uCameraPos;
+
+            void main() {
+                vColor = customColor;
+                
+                // Calculate Doppler shift vector relative to camera direction
+                vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                vec3 viewDir = normalize(uCameraPos - worldPos.xyz);
+                float radialVel = dot(velocity, viewDir);
+                vDoppler = clamp(radialVel * 0.15, -1.0, 1.0);
+
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (280.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+
+        const fragmentShader = `
+            varying vec3 vColor;
+            varying float vDoppler;
+
+            void main() {
+                float r = length(gl_PointCoord - vec2(0.5));
+                if (r > 0.5) discard;
+                float alpha = smoothstep(0.5, 0.0, r);
+
+                // Mix Doppler Color: Redshift (receding) vs Blueshift (approaching)
+                vec3 blueShift = vec3(0.2, 0.6, 1.0);
+                vec3 redShift = vec3(1.0, 0.2, 0.2);
+                vec3 dopplerColor = vDoppler > 0.0 ? mix(vColor, blueShift, vDoppler) : mix(vColor, redShift, -vDoppler);
+
+                gl_FragColor = vec4(dopplerColor, alpha * 0.88);
+            }
+        `;
+
+        let particleGeometry, particleSystem, pShaderMaterial;
+        let positions, velocities, colors, sizes;
+
+        function initParticles() {
+            if (particleSystem) scene.remove(particleSystem);
+
+            const count = CONFIG.particleCount;
+            particleGeometry = new THREE.BufferGeometry();
+
+            positions = new Float32Array(count * 3);
+            velocities = new Float32Array(count * 3);
+            colors = new Float32Array(count * 3);
+            sizes = new Float32Array(count);
+
+            generateModeParticles();
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+            particleGeometry.setAttribute('customColor', new THREE.BufferAttribute(colors, 3));
+            particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            pShaderMaterial = new THREE.ShaderMaterial({
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                uniforms: {
+                    uCameraPos: { value: camera.position }
+                },
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                transparent: true
+            });
+
+            particleSystem = new THREE.Points(particleGeometry, pShaderMaterial);
+            scene.add(particleSystem);
+        }
+
+        function generateModeParticles() {
+            const count = CONFIG.particleCount;
+            const cCyan = new THREE.Color(0x00f3ff);
+            const cMagenta = new THREE.Color(0xff0055);
+            const cGold = new THREE.Color(0xffb700);
+
+            for (let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                let r, angle, y;
+
+                if (CONFIG.mode === 'kerr') {
+                    r = 8 + Math.pow(Math.random(), 2.2) * 80;
+                    angle = Math.random() * Math.PI * 2;
+                    positions[i3] = Math.cos(angle) * r;
+                    positions[i3 + 1] = (Math.random() - 0.5) * (r * 0.05);
+                    positions[i3 + 2] = Math.sin(angle) * r;
+
+                    const vOrb = Math.sqrt((CONFIG.mass * 18.0) / r);
+                    velocities[i3] = -Math.sin(angle) * vOrb;
+                    velocities[i3 + 1] = 0;
+                    velocities[i3 + 2] = Math.cos(angle) * vOrb;
+
+                    let c = new THREE.Color().copy(cGold).lerp(cCyan, (r - 8) / 80);
+                    colors[i3] = c.r; colors[i3 + 1] = c.g; colors[i3 + 2] = c.b;
+                    sizes[i] = Math.random() * 1.8 + 0.6;
+                } else if (CONFIG.mode === 'pulsar') {
+                    if (Math.random() < 0.38) {
+                        const dir = Math.random() > 0.5 ? 1 : -1;
+                        const h = Math.random() * 110 * dir;
+                        positions[i3] = (Math.random() - 0.5) * (Math.abs(h) * 0.04 + 0.2);
+                        positions[i3 + 1] = h;
+                        positions[i3 + 2] = (Math.random() - 0.5) * (Math.abs(h) * 0.04 + 0.2);
+
+                        velocities[i3] = 0;
+                        velocities[i3 + 1] = dir * (Math.random() * 4.0 + 3.0);
+                        velocities[i3 + 2] = 0;
+
+                        colors[i3] = cMagenta.r; colors[i3 + 1] = cMagenta.g; colors[i3 + 2] = cMagenta.b;
+                    } else {
+                        r = 4 + Math.random() * 50;
+                        angle = Math.random() * Math.PI * 2;
+                        positions[i3] = Math.cos(angle) * r;
+                        positions[i3 + 1] = (Math.random() - 0.5) * 1.5;
+                        positions[i3 + 2] = Math.sin(angle) * r;
+
+                        velocities[i3] = -Math.sin(angle) * 2.0;
+                        velocities[i3 + 1] = 0;
+                        velocities[i3 + 2] = Math.cos(angle) * 2.0;
+
+                        colors[i3] = cCyan.r; colors[i3 + 1] = cCyan.g; colors[i3 + 2] = cCyan.b;
+                    }
+                    sizes[i] = Math.random() * 2.2 + 0.8;
+                } else if (CONFIG.mode === 'cosmicweb') {
+                    const u = Math.random() * Math.PI * 2;
+                    const v = Math.random() * Math.PI;
+                    r = Math.random() * 140;
+                    positions[i3] = r * Math.sin(v) * Math.cos(u);
+                    positions[i3 + 1] = r * Math.sin(v) * Math.sin(u);
+                    positions[i3 + 2] = r * Math.cos(v);
+
+                    velocities[i3] = positions[i3] * 0.008;
+                    velocities[i3 + 1] = positions[i3 + 1] * 0.008;
+                    velocities[i3 + 2] = positions[i3 + 2] * 0.008;
+
+                    colors[i3] = cCyan.r; colors[i3 + 1] = cCyan.g; colors[i3 + 2] = cCyan.b;
+                    sizes[i] = Math.random() * 1.4 + 0.4;
+                } else {
+                    r = Math.random() * 70 + 3;
+                    angle = Math.random() * Math.PI * 2;
+                    positions[i3] = Math.cos(angle) * r;
+                    positions[i3 + 1] = (Math.random() - 0.5) * 8;
+                    positions[i3 + 2] = Math.sin(angle) * r;
+
+                    velocities[i3] = (Math.random() - 0.5) * 0.8;
+                    velocities[i3 + 1] = (Math.random() - 0.5) * 0.8;
+                    velocities[i3 + 2] = (Math.random() - 0.5) * 0.8;
+
+                    colors[i3] = cGold.r; colors[i3 + 1] = cGold.g; colors[i3 + 2] = cGold.b;
+                    sizes[i] = Math.random() * 1.8 + 0.5;
+                }
+            }
+        }
+    </script>
+
+    <script>
+        // DYNAMIC REAL-TIME CHART CALCULATIONS
+        let analyticsChart;
+
+        function initAnalyticsChart() {
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            analyticsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => i * 2),
+                    datasets: [{
+                        label: 'Значение Метрики',
+                        data: Array(30).fill(0),
+                        borderColor: '#00f3ff',
+                        borderWidth: 2,
+                        backgroundColor: 'rgba(0, 243, 255, 0.08)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            grid: { color: 'rgba(0, 243, 255, 0.08)' },
+                            ticks: { color: '#7ee7ff', font: { size: 8, family: 'Fira Code' } } 
+                        },
+                        y: { 
+                            grid: { color: 'rgba(0, 243, 255, 0.08)' },
+                            ticks: { color: '#00f3ff', font: { size: 8, family: 'Fira Code' } }
+                        }
+                    }
+                }
+            });
+            updateChartData();
+        }
+
+        function updateChartData() {
+            if (!analyticsChart) return;
+            const points = 30;
+            const labels = [];
+            const data = [];
+
+            if (CONFIG.chartMetric === 'mb') {
+                // Maxwell-Boltzmann Speed Distribution: f(v) = 4pi * (m/(2pi*k*T))^1.5 * v^2 * exp(-mv^2 / 2kT)
+                const T = CONFIG.temp * 1e6;
+                const kB = 1.38e-23, m = 1.67e-27; // Proton mass
+                const v_peak = Math.sqrt(2 * kB * T / m);
+
+                for (let i = 0; i < points; i++) {
+                    const v = (i / points) * v_peak * 2.5;
+                    labels.push((v / 1000).toFixed(0)); // km/s
+                    const fv = 4 * Math.PI * Math.pow(m / (2 * Math.PI * kB * T), 1.5) * v * v * Math.exp(-m * v * v / (2 * kB * T));
+                    data.push(fv * 1e6);
+                }
+                analyticsChart.data.datasets[0].label = 'Распределение Скоростей Максвелла-Больцмана f(v)';
+                analyticsChart.data.datasets[0].borderColor = '#00f3ff';
+            } else if (CONFIG.chartMetric === 'planck') {
+                // Planck Blackbody Spectrum: B(lambda, T)
+                const T = CONFIG.temp * 1e6;
+                const h = 6.626e-34, c = 3e8, kB = 1.38e-23;
+                const lambda_peak = 2.897e-3 / T; // Wien's Law
+
+                for (let i = 1; i <= points; i++) {
+                    const lambda = (i / points) * lambda_peak * 3.0;
+                    labels.push((lambda * 1e9).toFixed(1)); // nm
+                    const expVal = Math.exp((h * c) / (lambda * kB * T)) - 1;
+                    const B = (2 * h * c * c) / (Math.pow(lambda, 5) * expVal);
+                    data.push(B / 1e12);
+                }
+                analyticsChart.data.datasets[0].label = 'Спектр Излучения Планка B(λ, T)';
+                analyticsChart.data.datasets[0].borderColor = '#ffb700';
+            } else if (CONFIG.chartMetric === 'pot') {
+                // Effective Relativistic Gravitational Potential V(r)
+                const rs = 2.95 * CONFIG.mass; // km
+                for (let i = 1; i <= points; i++) {
+                    const r = rs * (0.8 + i * 0.2);
+                    labels.push(r.toFixed(1));
+                    const V_eff = -1.0 / r + (CONFIG.spin * 2.0) / (r * r) - (CONFIG.mass * 0.5) / (r * r * r);
+                    data.push(V_eff);
+                }
+                analyticsChart.data.datasets[0].label = 'Эффективный Потенциал Керра V_eff(r)';
+                analyticsChart.data.datasets[0].borderColor = '#ff0055';
+            } else if (CONFIG.chartMetric === 'redshift') {
+                // Gravitational Redshift z(r)
+                const rs = 2.95 * CONFIG.mass;
+                for (let i = 1; i <= points; i++) {
+                    const r = rs * (1.05 + i * 0.2);
+                    labels.push(r.toFixed(1));
+                    const z = 1.0 / Math.sqrt(Math.max(0.01, 1.0 - rs / r)) - 1.0;
+                    data.push(z);
+                }
+                analyticsChart.data.datasets[0].label = 'Гравитационное Красное Смещение z(r)';
+                analyticsChart.data.datasets[0].borderColor = '#00ff88';
+            }
+
+            analyticsChart.data.labels = labels;
+            analyticsChart.data.datasets[0].data = data;
+            analyticsChart.update();
+        }
+    </script>
+
+    <script>
+        // THEORY HANDBOOK DATA ENGINE
+        const THEORY_DATABASE = {
+            kerr: {
+                phys: `<b>ЧЕРНАЯ ДЫРА КЕРРА (Kerr Spacetime)</b><br>
+                Представляет собой стационарное, осесимметричное решение уравнений Эйнштейна для вращающейся черной дыры массы $M$ и спинового параметра $a^* = J / (GM^2/c)$.<br>
+                • <i>Горизонт Событий:</i> Сфера безвозвратного падения.<br>
+                • <i>Эргосфера:</i> Эллипсоидальная область вне горизонта, в которой увлекаются пространственные координаты (Lense-Thirring drag). Ни один наблюдатель не может оставаться неподвижным относительно далеких звезд.`,
+                math: `<div class="math-block">ds² = -(1 - r_s r / ρ²) c² dt² - (2 r_s r a sin²θ / ρ²) c dt dφ + (ρ² / Δ) dr² + ρ² dθ² + ...</div>
+                где $\\Delta = r² - r_s r + a²$, $\\rho² = r² + a² \\cos²\\theta$.<br>
+                Радиус внешнего горизонта: $r_+ = \\frac{r_s}{2} + \\sqrt{\\left(\\frac{r_s}{2}\\right)² - a²}$.`,
+                obs: `Телескоп Горизонта Событий (Event Horizon Telescope, EHT) подтвердил наличие тени черной дыры M87* и Sagittarius A*, зафиксировав кольцо аккреции и релятивистские джеты.`,
+                sign: `Фундаментальная модель для супермассивных черных дыр в центрах активных галактик (AGN) и источниках квазаров.`
+            },
+            pulsar: {
+                phys: `<b>НЕЙТРОННАЯ ЗВЕЗДА И ПУЛЬСАР</b><br>
+                Остаток эволюции массивных звезд ($M > 8 M_\\odot$). Вещество находится в состоянии вырожденного нейтронного газа при плотностях $\\sim 10^{17} \\text{ кг/м}^3$.`,
+                math: `<div class="math-block">P_{dot} = - \frac{d\Omega}{dt} = \frac{2 B^2 R^6 \Omega^3}{3 c^3 I}</div>
+                Период вращения $P$ может составлять от 1.4 миллисекунды до нескольких секунд. Магнитное поле достигает $10^8 - 10^{11}$ Тесла.`,
+                obs: `Радиопульсары (например, Пульсар в Крабовидной туманности PSR B0531+21) излучают строго периодические импульсы во всем спектре.`,
+                sign: `Используются как идеальные космические часы для тестирования ОТО и детектирования наногерцовых гравитационных волн (NANOGrav).`
+            },
+            supernova: {
+                phys: `<b>ГРАВИТАЦИОННЫЙ КОЛЛАПС (Type II Supernova)</b><br>
+                При исчерпании термоядерного топлива в железо-никелевом ядре давление излучения падаем ниже гравитационного порога. Ядро схлопывается за 0.1 секунды.`,
+                math: `<div class="math-block">E_{tot} \approx \frac{G M^2}{R_{NS}} \approx 3 \times 10^{46} \text{ Дж (99\% уносится нейтрино)}</div>`,
+                obs: `Сверхновая SN 1987A в Большом Магеллановом Облаке предоставила первые прямые измерения нейтринного импульса.`,
+                sign: `Главный источник обогащения Вселенной тяжелыми элементами (углерод, железо, золото) выше водорода и гелия.`
+            },
+            darkmatter: {
+                phys: `<b>ГАЛО ТЕМНОЙ МАТЕРИИ (NFW Profile)</b><br>
+                Гипотетическая форма материи, не участвующая в электромагнитном взаимодействии. Составляет $\\sim 85\\%$ всей массы материи Вселенной.`,
+                math: `<div class="math-block">\rho(r) = \frac{\rho_0}{\frac{r}{r_s} \left(1 + \frac{r}{r_s}\right)^2}</div>
+                Обеспечивает плоский профиль скоростей вращения звезд в галактиках $v(r) \approx \text{const}$.`,
+                obs: `Гравитационное линзирование скоплений галактик (например, Bullet Cluster) демонстрирует смещение центра массы относительно видимого газа.`,
+                sign: `Определяет гравитационный каркас для формирования и эволюции всех галактических структур.`
+            },
+            protoplanet: {
+                phys: `<b>ПРОТОПЛАНЕТНЫЙ ДИСК</b><br>
+                Вращающийся околозвездный диск из плотного газа и пыли вокруг молодой звезды (типа T Tauri).`,
+                math: `<div class="math-block">v_k(r) = \sqrt{\frac{G M_*}{r}} \quad \text{(Кеплерова орбитального скорость)}</div>`,
+                obs: `Интерферометр ALMA зафиксировал чёткие концентрические щели и пылевые кольца у звезды HL Таури.`,
+                sign: `Колыбель формирования планетных систем, астероидов и комет.`
+            },
+            cosmicweb: {
+                phys: `<b>КРУПНОМАСШТАБНАЯ СТРУКТУРА ВСЕЛЕННОЙ</b><br>
+                Сеть из галактических нитей (филаментов), разделенных гигантскими пустотами (войдами).`,
+                math: `<div class="math-block">H^2(a) = H_0^2 \left( \Omega_{m,0} a^{-3} + \Omega_{r,0} a^{-4} + \Omega_{\Lambda,0} \right)</div>`,
+                obs: `Обзоры SDSS и космический телескоп Euclid картируют миллиарды галактик в 3D.`,
+                sign: `Демонстрирует эволюцию Вселенной под действием Темной Энергии ($\Lambda$).`
+            }
+        };
+
+        function updateTheoryUI() {
+            const modeData = THEORY_DATABASE[CONFIG.mode] || THEORY_DATABASE['kerr'];
+            const content = modeData[CONFIG.theoryTab] || modeData['phys'];
+            document.getElementById('theory-text-content').innerHTML = content;
+        }
+
+        document.querySelectorAll('[id^="tab-t-"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[id^="tab-t-"]').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                CONFIG.theoryTab = e.currentTarget.id.replace('tab-t-', '');
+                updateTheoryUI();
+            });
+        });
+    </script>
+
+    <script>
+        // TELEMETRY & METRIC RECALCULATION
+        function updateTelemetry() {
+            const G = 6.674e-11, c = 3e8, M_sun = 1.989e30;
+            const M_kg = CONFIG.mass * M_sun;
+
+            const rs_km = (2 * G * M_kg / (c * c)) / 1000;
+            const ergo_km = rs_km * (1 + Math.sqrt(Math.max(0, 1 - CONFIG.spin * CONFIG.spin)));
+            const isco_km = rs_km * (3 + 1.5 * (1 - CONFIG.spin));
+
+            const lorentz = (1 / Math.sqrt(Math.max(0.01, 1 - 0.5 * CONFIG.spin))).toFixed(3);
+            const hawking_W = (3.5e-18 / (CONFIG.mass * CONFIG.mass)).toExponential(2);
+            const mag_T = (CONFIG.spin * 5.2e8).toExponential(1);
+
+            const redshift = (1 / Math.sqrt(Math.max(0.05, 1 - (rs_km / ergo_km))) - 1).toFixed(3);
+            const timedil = (Math.sqrt(Math.max(0.05, 1 - (rs_km / ergo_km)))).toFixed(3);
+            const eddington = (1.26e31 * CONFIG.mass).toExponential(2);
+
+            document.getElementById('m-rs').innerText = `${rs_km.toFixed(2)} км`;
+            document.getElementById('m-ergo').innerText = `${ergo_km.toFixed(2)} км`;
+            document.getElementById('m-isco').innerText = `${isco_km.toFixed(2)} км`;
+            document.getElementById('m-lorentz').innerText = lorentz;
+            document.getElementById('m-hawking').innerText = `${hawking_W} W`;
+            document.getElementById('m-mag').innerText = `${mag_T} T`;
+            document.getElementById('m-redshift').innerText = redshift;
+            document.getElementById('m-timedil').innerText = timedil;
+            document.getElementById('m-eddington').innerText = `${eddington} W`;
+
+            audioEngine.updateAudio(CONFIG.mass, CONFIG.spin);
+            updateChartData();
+        }
+
+        // RAYCASTER PROBE LOGIC
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        window.addEventListener('pointerdown', (e) => {
+            // Ignore if clicking UI
+            if (e.target.closest('.window-panel') || e.target.closest('header')) return;
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            const targetPoint = new THREE.Vector3();
+
+            if (raycaster.ray.intersectPlane(plane, targetPoint)) {
+                const r = targetPoint.length();
+                const rs_km = 2.95 * CONFIG.mass;
+                const r_km = r * (rs_km / 10.0);
+
+                const v_c = Math.min(0.99, Math.sqrt((10.0 * CONFIG.mass) / Math.max(1.0, r)));
+                const gamma = 1.0 / Math.sqrt(1 - v_c * v_c);
+                const z = 1.0 / Math.sqrt(Math.max(0.01, 1 - rs_km / Math.max(rs_km + 0.1, r_km))) - 1.0;
+                const T_k = Math.round(CONFIG.temp * 1e6 * Math.pow(Math.max(1, r / 10), -0.75));
+
+                document.getElementById('probe-coords').innerText = `${targetPoint.x.toFixed(1)}, ${targetPoint.y.toFixed(1)}, ${targetPoint.z.toFixed(1)}`;
+                document.getElementById('probe-dist').innerText = `${r_km.toFixed(2)} км`;
+                document.getElementById('probe-vel').innerText = `${v_c.toFixed(3)} c`;
+                document.getElementById('probe-gamma').innerText = gamma.toFixed(3);
+                document.getElementById('probe-z').innerText = z.toFixed(3);
+                document.getElementById('probe-temp').innerText = `${T_k.toLocaleString()} K`;
+
+                audioEngine.playProbeBeep();
+            }
+        });
+
+        // CSV & SCREENSHOT EXPORT
+        document.getElementById('btn-export-csv').addEventListener('click', () => {
+            const csvData = `Metric,Value\nMass (Solar),${CONFIG.mass}\nSpin,${CONFIG.spin}\nDisk Temp (10^6K),${CONFIG.temp}\nParticles,${CONFIG.particleCount}\nMode,${CONFIG.mode}`;
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `astrophysics_telemetry_${Date.now()}.csv`;
+            a.click();
+        });
+
+        document.getElementById('btn-screenshot').addEventListener('click', () => {
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = `astro_lab_capture_${Date.now()}.png`;
+            a.click();
+        });
+    </script>
+
+    <script>
+        // CONTROL BINDINGS
+        document.getElementById('slider-mass').addEventListener('input', (e) => {
+            CONFIG.mass = parseFloat(e.target.value);
+            document.getElementById('val-mass').innerText = CONFIG.mass.toFixed(1);
+            updateTelemetry();
+        });
+
+        document.getElementById('slider-spin').addEventListener('input', (e) => {
+            CONFIG.spin = parseFloat(e.target.value);
+            document.getElementById('val-spin').innerText = CONFIG.spin.toFixed(2);
+            updateTelemetry();
+        });
+
+        document.getElementById('slider-temp').addEventListener('input', (e) => {
+            CONFIG.temp = parseFloat(e.target.value);
+            document.getElementById('val-temp').innerText = CONFIG.temp.toFixed(1);
+            updateTelemetry();
+        });
+
+        document.getElementById('slider-timescale').addEventListener('input', (e) => {
+            CONFIG.timeScale = parseFloat(e.target.value);
+            document.getElementById('val-timescale').innerText = `${CONFIG.timeScale.toFixed(1)}x`;
+        });
+
+        document.getElementById('slider-pcount').addEventListener('input', (e) => {
+            CONFIG.particleCount = parseInt(e.target.value);
+            document.getElementById('val-pcount').innerText = CONFIG.particleCount.toLocaleString();
+            initParticles();
+        });
+
+        document.querySelectorAll('[data-mode]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                CONFIG.mode = e.currentTarget.getAttribute('data-mode');
+                initParticles();
+                updateTheoryUI();
+                updateTelemetry();
+            });
+        });
+
+        document.querySelectorAll('[id^="btn-chart-"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[id^="btn-chart-"]').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                CONFIG.chartMetric = e.currentTarget.id.replace('btn-chart-', '');
+                updateChartData();
+            });
+        });
+
+        document.getElementById('cam-orbit').addEventListener('click', (e) => {
+            document.getElementById('cam-freefall').classList.remove('active');
+            e.target.classList.add('active');
+            CONFIG.cameraMode = 'orbit';
+        });
+
+        document.getElementById('cam-freefall').addEventListener('click', (e) => {
+            document.getElementById('cam-orbit').classList.remove('active');
+            e.target.classList.add('active');
+            CONFIG.cameraMode = 'freefall';
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // PHYSICS SIMULATION LOOP
+        const clock = new THREE.Clock();
+        function animatePhysics() {
+            const dt = clock.getDelta() * CONFIG.timeScale;
+            if (dt === 0) return;
+
+            const posAttr = particleGeometry.attributes.position;
+            const velAttr = particleGeometry.attributes.velocity;
+            const pos = posAttr.array;
+            const vel = velAttr.array;
+            const count = CONFIG.particleCount;
+            const G_sim = CONFIG.mass * 14.0;
+
+            for (let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                let x = pos[i3], y = pos[i3+1], z = pos[i3+2];
+
+                let distSq = x*x + y*y + z*z + 0.1;
+                let dist = Math.sqrt(distSq);
+
+                let force = G_sim / distSq;
+                let ax = -(x / dist) * force;
+                let ay = -(y / dist) * force;
+                let az = -(z / dist) * force;
+
+                if (CONFIG.mode === 'kerr' && CONFIG.spin > 0) {
+                    let spinForce = (CONFIG.spin * 9.0) / (distSq + 1.0);
+                    ax += -z * spinForce;
+                    az += x * spinForce;
+                }
+
+                vel[i3] += ax * dt;
+                vel[i3+1] += ay * dt;
+                vel[i3+2] += az * dt;
+
+                pos[i3] += vel[i3] * dt;
+                pos[i3+1] += vel[i3+1] * dt;
+                pos[i3+2] += vel[i3+2] * dt;
+
+                if (dist < 3.2 || dist > 320) {
+                    const ang = Math.random() * Math.PI * 2;
+                    const rNew = 25 + Math.random() * 55;
+                    pos[i3] = Math.cos(ang) * rNew;
+                    pos[i3+1] = (Math.random() - 0.5) * 2;
+                    pos[i3+2] = Math.sin(ang) * rNew;
+
+                    const vOrb = Math.sqrt(G_sim / rNew);
+                    vel[i3] = -Math.sin(ang) * vOrb;
+                    vel[i3+1] = 0;
+                    vel[i3+2] = Math.cos(ang) * vOrb;
+                }
+            }
+
+            posAttr.needsUpdate = true;
+            velAttr.needsUpdate = true;
+
+            // Camera Freefall Logic
+            if (CONFIG.cameraMode === 'freefall') {
+                const time = Date.now() * 0.0005;
+                camera.position.x = Math.sin(time) * 45;
+                camera.position.z = Math.cos(time) * 45;
+                camera.position.y = 15 + Math.sin(time * 2) * 10;
+                camera.lookAt(0, 0, 0);
+            }
+        }
+
+        // MAIN RENDER LOOP
+        function renderLoop() {
+            requestAnimationFrame(renderLoop);
+            if (CONFIG.cameraMode === 'orbit') controls.update();
+            animatePhysics();
+            if (pShaderMaterial) pShaderMaterial.uniforms.uCameraPos.value.copy(camera.position);
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function() {
+            initParticles();
+            initAnalyticsChart();
+            updateTheoryUI();
+            updateTelemetry();
+            renderLoop();
+        };
+    </script>
 </body>
 </html>
+```
