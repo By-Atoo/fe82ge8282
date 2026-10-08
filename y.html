@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Streamer</title>
+    <title>Invidious Music Streamer</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background: #121212; color: #fff; }
         h1 { font-size: 1.5rem; margin-bottom: 16px; }
@@ -25,11 +25,10 @@
         #player { width: 100%; margin-top: 16px; border-radius: 8px; }
         #waveCanvas { width: 100%; height: 120px; margin-top: 16px; border-radius: 8px; background: #1a1a1a; display: none; }
         .error { color: #ff6b6b; }
-        .loader { text-align: center; color: #aaa; padding: 12px; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h1>🎵 Music Streamer</h1>
+    <h1>🎵 Invidious Music Streamer</h1>
     <div class="search-box">
         <input type="text" id="query" placeholder="Поиск трека или исполнителя..." />
         <button id="searchBtn">Найти</button>
@@ -40,29 +39,23 @@
     <canvas id="waveCanvas"></canvas>
 
 <script>
+    // Публичные инстансы Invidious (все нестабильны, пробуем по очереди)
     const INSTANCES = [
-        'https://pipedapi.kavin.rocks',
-        'https://pipedapi.leptons.xyz',
-        'https://pipedapi.nosebs.ru',
-        'https://piped-api.privacy.com.de',
-        'https://pipedapi.adminforge.de'
+        'https://inv.thepixora.com',
+        'https://invidious.nerdvpn.de',
+        'https://inv.nadeko.net'
     ];
 
     let currentInstanceIndex = 0;
-    let nextPageToken = null;
-    let currentQuery = '';
-    let isLoadingMore = false;
     let currentTrackElement = null;
 
-    // ========== КЭШИРОВАНИЕ ==========
-    const STREAM_CACHE = new Map(); // videoId -> {url, expiresAt}
+    // Кэш потоков
+    const STREAM_CACHE = new Map();
     const CACHE_TTL = 1000 * 60 * 30; // 30 минут
 
     function getCachedStream(videoId) {
         const cached = STREAM_CACHE.get(videoId);
-        if (cached && Date.now() < cached.expiresAt) {
-            return cached.url;
-        }
+        if (cached && Date.now() < cached.expiresAt) return cached.url;
         STREAM_CACHE.delete(videoId);
         return null;
     }
@@ -95,7 +88,6 @@
         const dataArray = new Uint8Array(bufferLength);
         const canvasCtx = canvas.getContext('2d');
 
-        // Адаптивный размер canvas под Retina
         const dpr = window.devicePixelRatio || 1;
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width * dpr;
@@ -104,7 +96,6 @@
 
         function draw() {
             canvasAnimationId = requestAnimationFrame(draw);
-
             analyser.getByteTimeDomainData(dataArray);
 
             const WIDTH = rect.width;
@@ -114,7 +105,6 @@
             canvasCtx.fillStyle = '#1a1a1a';
             canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
-            // Рисуем центральную линию
             canvasCtx.strokeStyle = '#333';
             canvasCtx.lineWidth = 1;
             canvasCtx.beginPath();
@@ -122,7 +112,6 @@
             canvasCtx.lineTo(WIDTH, HEIGHT / 2);
             canvasCtx.stroke();
 
-            // Рисуем волну
             canvasCtx.lineWidth = 2;
             canvasCtx.strokeStyle = '#1db954';
             canvasCtx.beginPath();
@@ -133,15 +122,10 @@
             for (let i = 0; i < bufferLength; i++) {
                 const v = dataArray[i] / 128.0;
                 const y = (v * HEIGHT) / 2;
-
-                if (i === 0) {
-                    canvasCtx.moveTo(x, y);
-                } else {
-                    canvasCtx.lineTo(x, y);
-                }
+                if (i === 0) canvasCtx.moveTo(x, y);
+                else canvasCtx.lineTo(x, y);
                 x += sliceWidth;
             }
-
             canvasCtx.stroke();
         }
 
@@ -165,109 +149,69 @@
         el.className = isError ? 'error' : '';
     }
 
-    async function searchMusic(query, append = false) {
-        if (isLoadingMore) return;
+    async function searchMusic(query) {
+        document.getElementById('results').innerHTML = '';
+        document.getElementById('player').style.display = 'none';
+        document.getElementById('waveCanvas').style.display = 'none';
+        setStatus('Поиск...');
 
-        if (!append) {
-            currentQuery = query;
-            nextPageToken = null;
-            document.getElementById('results').innerHTML = '';
-            document.getElementById('player').style.display = 'none';
-            document.getElementById('waveCanvas').style.display = 'none';
-            setStatus('Поиск...');
-        } else {
-            isLoadingMore = true;
-            setStatus('Загрузка ещё...');
-        }
-
-        let url = `${getBaseUrl()}/search?q=${encodeURIComponent(query)}&filter=music_songs`;
-        if (append && nextPageToken) {
-            url += `&nextpage=${encodeURIComponent(nextPageToken)}`;
-        }
+        // Invidious использует операторы для фильтрации [citation:2]
+        const searchQuery = `${query} type:video sort:relevance`;
+        const url = `${getBaseUrl()}/api/v1/search?q=${encodeURIComponent(searchQuery)}`;
 
         try {
             const res = await fetch(url);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
 
-            const items = data.items || [];
-            nextPageToken = data.nextpage || null;
-
-            if (items.length === 0 && !append) {
+            if (data.length === 0) {
                 setStatus('Ничего не найдено.');
-                isLoadingMore = false;
                 return;
             }
 
-            setStatus(append ? `Загружено ещё ${items.length}` : `Найдено: ${items.length}`);
-            renderResults(items, append);
+            setStatus(`Найдено: ${data.length}`);
+            renderResults(data);
         } catch (err) {
             console.error(err);
             setStatus(`Ошибка: ${err.message}. Пробую другой сервер...`, true);
             rotateInstance();
-            searchMusic(query, append);
-        } finally {
-            isLoadingMore = false;
+            searchMusic(query);
         }
     }
 
-    function renderResults(items, append) {
+    function renderResults(items) {
         const container = document.getElementById('results');
-        if (!append) container.innerHTML = '';
+        container.innerHTML = '';
 
         items.forEach(item => {
-            const videoId = item.url ? item.url.split('v=')[1] : null;
-            if (!videoId) return;
+            if (item.type !== 'video') return; // Только видео/треки
 
             const div = document.createElement('div');
             div.className = 'track';
-            div.dataset.videoId = videoId;
-            div.onclick = () => playTrack(videoId, item.title, div);
+            div.dataset.videoId = item.videoId;
+            div.onclick = () => playTrack(item.videoId, item.title, div);
 
-            const dur = item.duration ? formatDuration(item.duration) : '';
+            const dur = item.lengthSeconds ? formatDuration(item.lengthSeconds) : '';
 
             div.innerHTML = `
-                <img src="${item.thumbnail || ''}" alt="" loading="lazy" />
+                <img src="${item.videoThumbnails?.[0]?.url || ''}" alt="" loading="lazy" />
                 <div class="info">
                     <div class="title">${escapeHtml(item.title || 'Неизвестно')}</div>
-                    <div class="artist">${escapeHtml(item.uploaderName || 'Неизвестный исполнитель')}</div>
+                    <div class="artist">${escapeHtml(item.author || 'Неизвестный исполнитель')}</div>
                 </div>
                 <div class="duration">${dur}</div>
             `;
             container.appendChild(div);
         });
-
-        // Добавляем sentinel для бесконечной подгрузки
-        const oldSentinel = document.getElementById('loadMoreSentinel');
-        if (oldSentinel) oldSentinel.remove();
-
-        if (nextPageToken) {
-            const sentinel = document.createElement('div');
-            sentinel.id = 'loadMoreSentinel';
-            sentinel.className = 'loader';
-            sentinel.textContent = 'Загрузка...';
-            container.appendChild(sentinel);
-
-            // Intersection Observer для автоматической подгрузки
-            if (window.loadMoreObserver) window.loadMoreObserver.disconnect();
-            window.loadMoreObserver = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && nextPageToken && !isLoadingMore) {
-                    searchMusic(currentQuery, true);
-                }
-            }, { rootMargin: '200px' });
-            window.loadMoreObserver.observe(sentinel);
-        }
     }
 
     async function playTrack(videoId, title, trackElement) {
-        // Подсветка активного трека
         if (currentTrackElement) currentTrackElement.classList.remove('active');
         currentTrackElement = trackElement;
         if (trackElement) trackElement.classList.add('active');
 
         const player = document.getElementById('player');
 
-        // Проверяем кэш
         const cachedUrl = getCachedStream(videoId);
         if (cachedUrl) {
             setStatus(`▶ ${title} (из кэша)`);
@@ -281,21 +225,20 @@
         setStatus(`Загрузка потока: ${title}...`);
 
         try {
-            const res = await fetch(`${getBaseUrl()}/streams/${videoId}`);
+            const res = await fetch(`${getBaseUrl()}/api/v1/videos/${videoId}`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
 
-            const audioStreams = data.audioStreams || [];
-            if (audioStreams.length === 0) throw new Error('Аудиопотоки не найдены');
+            // Invidious возвращает потоки в adaptiveFormats или audioStreams
+            const formats = data.adaptiveFormats || data.audioStreams || [];
+            const audioOnly = formats.filter(f => f.type && f.type.includes('audio'));
 
-            // Приоритет m4a для совместимости с браузером
-            const m4a = audioStreams.filter(s => s.mimeType && s.mimeType.includes('mp4'));
-            const candidates = m4a.length > 0 ? m4a : audioStreams;
-            candidates.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+            if (audioOnly.length === 0) throw new Error('Аудиопотоки не найдены');
 
-            const stream = candidates[0];
+            // Сортируем по битрейту (убывание)
+            audioOnly.sort((a, b) => (parseInt(b.bitrate) || 0) - (parseInt(a.bitrate) || 0));
+            const stream = audioOnly[0];
 
-            // Сохраняем в кэш
             setCachedStream(videoId, stream.url);
 
             player.src = stream.url;
@@ -303,7 +246,7 @@
             setupVisualizer(player);
             player.play();
 
-            const quality = stream.bitrate ? Math.round(stream.bitrate / 1000) + ' kbps' : '';
+            const quality = stream.bitrate ? Math.round(parseInt(stream.bitrate) / 1000) + ' kbps' : '';
             setStatus(`▶ ${title} (${quality})`);
         } catch (err) {
             console.error(err);
@@ -324,7 +267,7 @@
         }[c]));
     }
 
-    // ========== СОБЫТИЯ ==========
+    // События
     document.getElementById('searchBtn').onclick = () => {
         const q = document.getElementById('query').value.trim();
         if (q) searchMusic(q);
@@ -337,12 +280,11 @@
         }
     });
 
-    // Возобновление AudioContext при взаимодействии (требование браузеров)
     document.addEventListener('click', () => {
         if (audioContext && audioContext.state === 'suspended') {
             audioContext.resume();
         }
-    }, { once: false });
+    });
 </script>
 </body>
 </html>
