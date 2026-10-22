@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title></title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--card:#f4f4f5;--bd:#e0e0e3;--ac:#d9480f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121214;--fg:#eee;--mut:#9a9aa2;--card:#1d1d21;--bd:#2d2d33;--ac:#ff8c5a}}
+:root[data-theme="dark"]{--bg:#121214;--fg:#eee;--mut:#9a9aa2;--card:#1d1d21;--bd:#2d2d33;--ac:#ff8c5a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px;max-width:900px;margin-inline:auto}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 14px}
+.hero{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+.hash{font:600 15px ui-monospace,Menlo,Consolas,monospace;color:var(--ac);word-break:break-all}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;margin:8px 8px 0 0}
+details{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;padding:0 14px}
+summary{padding:12px 0;font-weight:600;cursor:pointer}
+summary small{color:var(--mut);font-weight:400}
+.row{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--bd)}
+.k{flex:0 0 38%;color:var(--mut);word-break:break-word}
+.v{flex:1;word-break:break-word;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.note{color:var(--mut);font-size:13px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div>Сводный отпечаток (SHA-256):</div>
+  <div class="hash" id="fp">считаю…</div>
+  <div id="cnt" class="sub"></div>
+  <button id="cp">Копировать JSON</button><button id="dl">Скачать JSON</button>
+</div>
+<div id="out"></div>
+<script>
+const R={};const sec=(n,o)=>R[n]=o;
+const t=async(f,d='недоступно')=>{try{const r=await f();return r===undefined||r===''?d:r}catch(e){return d}};
+const hex=async s=>{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')};
+const mq=q=>matchMedia(q).matches;
+
+async function collect(){
+const n=navigator,s=screen;
+sec('Браузер и система',{
+'User-Agent':n.userAgent,'Platform':n.platform,'Vendor':n.vendor,'AppVersion':n.appVersion,
+'Product / productSub':n.product+' / '+n.productSub,'Язык':n.language,'Все языки':(n.languages||[]).join(', '),
+'Ядер CPU':n.hardwareConcurrency,'Память (ГБ, округл.)':n.deviceMemory??'недоступно',
+'Макс. точек касания':n.maxTouchPoints,'Cookies включены':n.cookieEnabled,'Online':n.onLine,
+'Do Not Track':n.doNotTrack??'не задано','Global Privacy Control':n.globalPrivacyControl??'недоступно',
+'webdriver (автоматизация)':n.webdriver,'PDF-просмотрщик':n.pdfViewerEnabled??'недоступно',
+'Java-апплеты':typeof n.javaEnabled==='function'?n.javaEnabled():'—'});
+
+const uad=n.userAgentData;let hi={};
+if(uad){hi=await t(()=>uad.getHighEntropyValues(['architecture','bitness','model','platformVersion','uaFullVersion','fullVersionList','wow64','formFactors']),{});}
+sec('UA Client Hints (Chromium)',uad?{'Бренды':JSON.stringify(uad.brands),'Mobile':uad.mobile,'Platform':uad.platform,
+'Архитектура':hi.architecture,'Битность':hi.bitness,'Модель':hi.model||'—','Версия платформы':hi.platformVersion,
+'Полная версия':hi.uaFullVersion,'Полный список версий':JSON.stringify(hi.fullVersionList),'WoW64':hi.wow64}:{'Статус':'не поддерживается (Firefox/Safari)'});
+
+sec('Экран и окно',{
+'Экран':s.width+'×'+s.height,'Доступная область':s.availWidth+'×'+s.availHeight,'Окно (inner)':innerWidth+'×'+innerHeight,
+'Окно (outer)':outerWidth+'×'+outerHeight,'Позиция окна':screenX+','+screenY,'devicePixelRatio':devicePixelRatio,
+'Глубина цвета':s.colorDepth,'Pixel depth':s.pixelDepth,'Ориентация':s.orientation?.type,'Visual viewport scale':visualViewport?.scale,
+'Fullscreen доступен':document.fullscreenEnabled,'Стандартный шрифт (px)':getComputedStyle(document.documentElement).fontSize});
+
+const tz=Intl.DateTimeFormat().resolvedOptions();
+sec('Время и локаль',{'Часовой пояс':tz.timeZone,'Смещение UTC (мин)':new Date().getTimezoneOffset(),'Локаль Intl':tz.locale,
+'Календарь':tz.calendar,'Система счисления':tz.numberingSystem,'Пример даты':new Date(0).toLocaleString(),
+'Пример числа':(1234567.89).toLocaleString(),'Первый день недели':await t(()=>new Intl.Locale(tz.locale).weekInfo?.firstDay??new Intl.Locale(tz.locale).getWeekInfo?.().firstDay),
+'Время загрузки страницы':new Date().toString()});
+
+sec('Предпочтения (CSS media)',{
+'Тёмная тема':mq('(prefers-color-scheme:dark)'),'Уменьшенная анимация':mq('(prefers-reduced-motion:reduce)'),
+'Высокий контраст':mq('(prefers-contrast:more)'),'Forced colors':mq('(forced-colors:active)'),
+'Reduced transparency':mq('(prefers-reduced-transparency:reduce)'),'Hover':mq('(hover:hover)'),'Pointer':mq('(pointer:fine)')?'fine':mq('(pointer:coarse)')?'coarse':'none',
+'Gamut':mq('(color-gamut:rec2020)')?'rec2020':mq('(color-gamut:p3)')?'p3':mq('(color-gamut:srgb)')?'srgb':'?',
+'HDR':mq('(dynamic-range:high)'),'Inverted colors':mq('(inverted-colors:inverted)'),'Standalone PWA':mq('(display-mode:standalone)'),
+'Монохром':mq('(monochrome)')});
+
+const c=n.connection||{};
+sec('Сеть',{'Тип':c.effectiveType??'недоступно','Downlink (Мбит/с)':c.downlink??'—','RTT (мс)':c.rtt??'—','Save-Data':c.saveData??'—',
+'Referrer':document.referrer||'пусто','URL':location.href,'Протокол':location.protocol,'Длина history':history.length});
+
+const bat=await t(async()=>{const b=await n.getBattery();return{'Заряд':Math.round(b.level*100)+'%','Зарядка':b.charging,'До разряда (с)':b.dischargingTime}},null);
+sec('Батарея',bat||{'Статус':'API недоступен (Firefox/Safari его блокируют)'});
+
+const perms={};for(const p of['geolocation','notifications','camera','microphone','clipboard-read','clipboard-write','midi','persistent-storage','accelerometer','gyroscope','magnetometer','background-sync','screen-wake-lock'])
+perms[p]=await t(async()=>(await n.permissions.query({name:p})).state,'не поддерживается');
+sec('Состояние разрешений (без запроса)',perms);
+
+const md=await t(async()=>{const d=await n.mediaDevices.enumerateDevices();const k={};d.forEach(x=>k[x.kind]=(k[x.kind]||0)+1);return JSON.stringify(k)+(d.some(x=>x.label)?' (метки видны)':' (метки скрыты)')});
+const est=await t(async()=>{const e=await n.storage.estimate();return Math.round(e.quota/1048576)+' МБ квота, '+Math.round(e.usage/1024)+' КБ занято'});
+const st={};for(const k of['localStorage','sessionStorage','indexedDB','caches','serviceWorker','Notification','WebSocket','WebAssembly','SharedArrayBuffer','WebGPU','Bluetooth','USB','Serial','HID','XRSystem','Gamepad','Share','Vibrate','Geolocation','Clipboard','MediaRecorder','RTCPeerConnection','SpeechRecognition','PaymentRequest','CredentialsContainer','OffscreenCanvas'])
+st[k]=({localStorage:()=>'localStorage' in window,sessionStorage:()=>'sessionStorage' in window,indexedDB:()=>'indexedDB' in window,caches:()=>'caches' in window,serviceWorker:()=>'serviceWorker' in n,Notification:()=>'Notification' in window,WebSocket:()=>'WebSocket' in window,WebAssembly:()=>'WebAssembly' in window,SharedArrayBuffer:()=>'SharedArrayBuffer' in window,WebGPU:()=>'gpu' in n,Bluetooth:()=>'bluetooth' in n,USB:()=>'usb' in n,Serial:()=>'serial' in n,HID:()=>'hid' in n,XRSystem:()=>'xr' in n,Gamepad:()=>'getGamepads' in n,Share:()=>'share' in n,Vibrate:()=>'vibrate' in n,Geolocation:()=>'geolocation' in n,Clipboard:()=>'clipboard' in n,MediaRecorder:()=>'MediaRecorder' in window,RTCPeerConnection:()=>'RTCPeerConnection' in window,SpeechRecognition:()=>'SpeechRecognition' in window||'webkitSpeechRecognition' in window,PaymentRequest:()=>'PaymentRequest' in window,CredentialsContainer:()=>'credentials' in n,OffscreenCanvas:()=>'OffscreenCanvas' in window})[k]();
+sec('Устройства и хранилище',{'Медиа-устройства':md,'Хранилище':est,'Gamepads':await t(()=>n.getGamepads().filter(Boolean).length),'Plugins':[...n.plugins].map(p=>p.name).join(', ')||'нет','MIME-типов':n.mimeTypes?.length});
+sec('Поддерживаемые API',st);
+
+// WebGL
+const gl=await t(()=>{const cv=document.createElement('canvas');const g=cv.getContext('webgl')||cv.getContext('experimental-webgl');if(!g)return null;
+const e=g.getExtension('WEBGL_debug_renderer_info');const o={'Vendor (маскированный)':g.getParameter(g.VENDOR),'Renderer (маскированный)':g.getParameter(g.RENDERER),
+'Vendor (реальный)':e?g.getParameter(e.UNMASKED_VENDOR_WEBGL):'скрыт','Renderer (реальный, GPU)':e?g.getParameter(e.UNMASKED_RENDERER_WEBGL):'скрыт',
+'Версия':g.getParameter(g.VERSION),'GLSL':g.getParameter(g.SHADING_LANGUAGE_VERSION),'Max texture':g.getParameter(g.MAX_TEXTURE_SIZE),
+'Max viewport':[...g.getParameter(g.MAX_VIEWPORT_DIMS)].join('×'),'Max vertex attribs':g.getParameter(g.MAX_VERTEX_ATTRIBS),
+'Anisotropy max':(g.getExtension('EXT_texture_filter_anisotropic')&&g.getParameter(g.getExtension('EXT_texture_filter_anisotropic').MAX_TEXTURE_MAX_ANISOTROPY_EXT))||'—',
+'Расширений':g.getSupportedExtensions().length};
+g.clearColor(.2,.4,.6,1);g.clear(g.COLOR_BUFFER_BIT);o['Хэш рендера']=null;return o},null);
+sec('WebGL / видеокарта',gl||{'Статус':'WebGL недоступен'});
+const wg=await t(async()=>{const a=await n.gpu.requestAdapter();const i=a.info||{};return{'Vendor':i.vendor,'Architecture':i.architecture,'Device':i.device,'Description':i.description,'Features':a.features.size}},null);
+if(wg)sec('WebGPU',wg);
+
+// Canvas
+const canvasData=await t(()=>{const cv=document.createElement('canvas');cv.width=280;cv.height=60;const x=cv.getContext('2d');
+x.textBaseline='top';x.font="16px 'Arial'";x.fillStyle='#f60';x.fillRect(100,1,60,30);x.fillStyle='#069';x.fillText('Cwm fjordbank glyphs vext quiz, 😃 Привет',2,15);
+x.fillStyle='rgba(102,204,0,.7)';x.font='18px Times New Roman';x.fillText('Fingerprint ✓ ∑ ß ж',4,32);x.globalCompositeOperation='multiply';x.fillStyle='#f0f';x.beginPath();x.arc(60,40,20,0,6.28);x.fill();return cv.toDataURL()},'');
+const ch=canvasData?await hex(canvasData):'недоступно';
+// Audio
+const au=await t(async()=>{const C=window.OfflineAudioContext||window.webkitOfflineAudioContext;const ctx=new C(1,44100,44100);const o=ctx.createOscillator();o.type='triangle';o.frequency.value=10000;
+const cp=ctx.createDynamicsCompressor();[['threshold',-50],['knee',40],['ratio',12],['attack',0],['release',.25]].forEach(([k,v])=>cp[k].value=v);o.connect(cp);cp.connect(ctx.destination);o.start(0);
+const b=await ctx.startRendering();const d=b.getChannelData(0);let sum=0;for(let i=4500;i<5000;i++)sum+=Math.abs(d[i]);return{sum:sum.toString(),hash:await hex([...d.slice(0,2000)].join())}},null);
+const ac=await t(()=>{const c=new (window.AudioContext||window.webkitAudioContext)();const r={'Частота':c.sampleRate,'Каналов max':c.destination.maxChannelCount,'Latency':c.baseLatency};c.close();return r},{});
+sec('Canvas / Audio отпечатки',{'Canvas SHA-256':ch,'Audio сумма':au?au.sum:'недоступно','Audio SHA-256':au?au.hash:'недоступно','AudioContext':JSON.stringify(ac)});
+
+// Fonts
+const fonts=await t(()=>{const base=['monospace','sans-serif','serif'],txt='mmmmmmmmmmlli',cv=document.createElement('span');cv.style.cssText='position:absolute;left:-9999px;font-size:72px;visibility:hidden';cv.textContent=txt;document.body.appendChild(cv);
+const w={};base.forEach(b=>{cv.style.fontFamily=b;w[b]=[cv.offsetWidth,cv.offsetHeight]});
+const list=['Arial','Arial Black','Calibri','Cambria','Candara','Comic Sans MS','Consolas','Courier New','Georgia','Impact','Lucida Console','Segoe UI','Tahoma','Times New Roman','Trebuchet MS','Verdana','Helvetica','Helvetica Neue','Menlo','Monaco','San Francisco','Geneva','Palatino','Optima','Futura','Gill Sans','Avenir','Ubuntu','Cantarell','DejaVu Sans','Liberation Sans','Noto Sans','Roboto','Open Sans','Fira Sans','Droid Sans','Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji','MS Gothic','SimSun','Microsoft YaHei','Meiryo','PingFang SC','Hiragino Sans','Malgun Gothic','Nirmala UI','Sitka','Franklin Gothic','Bahnschrift','Gabriola','Cascadia Code','JetBrains Mono','Source Code Pro','Fira Code','Hack','Wingdings','Symbol','Webdings','Book Antiqua','Century Gothic','Garamond','Rockwell','Baskerville','Didot','Copperplate','Papyrus','Marker Felt'];
+const found=list.filter(f=>base.some(b=>{cv.style.fontFamily=`'${f}',${b}`;return cv.offsetWidth!==w[b][0]||cv.offsetHeight!==w[b][1]}));cv.remove();return found},[]);
+sec('Шрифты (проверено '+70+')',{'Найдено':fonts.length,'Список':fonts.join(', ')||'ни одного (возможна защита от фингерпринтинга)'});
+
+const vo=await t(()=>new Promise(r=>{const g=()=>speechSynthesis.getVoices();if(g().length)return r(g());speechSynthesis.onvoiceschanged=()=>r(g());setTimeout(()=>r(g()),800)}),[]);
+sec('Голоса речи',{'Количество':vo.length,'Список':vo.slice(0,40).map(v=>v.name+' ('+v.lang+')').join('; ')||'—'});
+
+// Codecs
+const v=document.createElement('video'),a=document.createElement('audio');
+const codecs={};[['H.264','video/mp4; codecs="avc1.42E01E"'],['HEVC','video/mp4; codecs="hvc1"'],['VP8','video/webm; codecs="vp8"'],['VP9','video/webm; codecs="vp9"'],['AV1','video/mp4; codecs="av01.0.05M.08"'],['Theora','video/ogg; codecs="theora"']].forEach(([k,m])=>codecs[k]=v.canPlayType(m)||'нет');
+[['AAC','audio/mp4; codecs="mp4a.40.2"'],['MP3','audio/mpeg'],['Opus','audio/ogg; codecs="opus"'],['Vorbis','audio/ogg; codecs="vorbis"'],['FLAC','audio/flac'],['WAV','audio/wav']].forEach(([k,m])=>codecs[k]=a.canPlayType(m)||'нет');
+sec('Кодеки',codecs);
+
+// WebRTC
+const rtc=await t(()=>new Promise(res=>{const pc=new RTCPeerConnection({iceServers:[]}),ips=new Set();pc.createDataChannel('x');pc.onicecandidate=e=>{if(!e.candidate){pc.close();return res([...ips].join(', ')||'нет кандидатов')}ips.add(e.candidate.address||e.candidate.candidate.split(' ')[4])};pc.createOffer().then(o=>pc.setLocalDescription(o));setTimeout(()=>res([...ips].join(', ')||'нет'),1500)}),'WebRTC отключён');
+sec('WebRTC (локальные адреса)',{'ICE-кандидаты':rtc+' — Chrome/Safari обычно прячут IP за mdns-именем, старые Firefox могли светить реальный LAN-IP'});
+
+const pf=performance.getEntriesByType('navigation')[0]||{};
+sec('Производительность и среда',{'Память JS heap limit (МБ)':performance.memory?Math.round(performance.memory.jsHeapSizeLimit/1048576):'недоступно',
+'Точность performance.now (мс)':(()=>{let m=1,l=performance.now();for(let i=0;i<5000;i++){const x=performance.now();if(x>l&&x-l<m)m=x-l;l=x}return +m.toFixed(5)})(),
+'Загрузка DOM (мс)':Math.round(pf.domContentLoadedEventEnd||0),'Тип навигации':pf.type,'Изолирована (crossOriginIsolated)':crossOriginIsolated,
+'Secure context':isSecureContext,'Math.tan(-1e300)':Math.tan(-1e300),'Math.sinh(1)':Math.sinh(1),'Math.expm1(1)':Math.expm1(1),
+'Длина строки ошибки':(()=>{try{null.x}catch(e){return e.message}})(),'Количество свойств window':Object.getOwnPropertyNames(window).length,
+'Количество свойств navigator':Object.keys(Object.getPrototypeOf(n)).length});
+}
+
+function render(){
+const o=document.getElementById('out');o.innerHTML='';let total=0;
+for(const[name,obj]of Object.entries(R)){const d=document.createElement('details');d.open=true;const keys=Object.keys(obj).filter(k=>obj[k]!==null);total+=keys.length;
+d.innerHTML=`<summary>${name} <small>(${keys.length})</small></summary>`;
+keys.forEach(k=>{const r=document.createElement('div');r.className='row';const kk=document.createElement('div');kk.className='k';kk.textContent=k;const vv=document.createElement('div');vv.className='v';vv.textContent=String(obj[k]);r.append(kk,vv);d.append(r)});o.append(d)}
+document.getElementById('cnt').textContent='Собрано параметров: '+total;}
+
+(async()=>{
+await collect();render();
+const stable=JSON.stringify(R,(k,v)=>['Время загрузки страницы','Загрузка DOM (мс)','Заряд','До разряда (с)','Окно (inner)','Окно (outer)','Позиция окна','Длина history','Referrer','URL','Тип навигации','Visual viewport scale'].includes(k)?undefined:v);
+const h=await hex(stable);document.getElementById('fp').textContent=h;
+const json=()=>JSON.stringify({fingerprint:h,date:new Date().toISOString(),data:R},null,2);
+document.getElementById('cp').onclick=async e=>{try{await navigator.clipboard.writeText(json());e.target.textContent='Скопировано ✓'}catch{e.target.textContent='Не удалось'}};
+document.getElementById('dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json()],{type:'application/json'}));a.download='fingerprint.json';a.click()};
+})();
+</script>
+</body>
+</html>
